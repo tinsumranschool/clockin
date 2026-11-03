@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TimeTrack Pro — ระบบลงเวลาทำงาน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===================================================================
+   RESET & TOKENS
+=================================================================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-deep:#0a0e27;
+  --bg-card:rgba(255,255,255,.06);
+  --border-glass:rgba(255,255,255,.12);
+  --text:#f0f2ff;
+  --muted:#8b92b8;
+  --cyan:#22d3ee;
+  --violet:#a78bfa;
+  --rose:#fb7185;
+  --emerald:#34d399;
+  --amber:#fbbf24;
+  --radius-xl:24px;
+  --radius-lg:18px;
+  --radius-md:12px;
+}
+body{
+  font-family:'Prompt','Inter',sans-serif;
+  background:var(--bg-deep);color:var(--text);
+  min-height:100vh;display:flex;align-items:flex-start;
+  justify-content:center;padding:24px 16px;
+  position:relative;overflow-x:hidden;
+}
+.orb{position:fixed;border-radius:50%;filter:blur(100px);opacity:.4;
+  pointer-events:none;z-index:0;animation:float 14s ease-in-out infinite alternate}
+.orb-1{width:520px;height:520px;background:#06b6d4;top:-180px;left:-140px}
+.orb-2{width:460px;height:460px;background:#8b5cf6;bottom:-160px;right:-120px;animation-delay:-4s}
+.orb-3{width:320px;height:320px;background:#f43f5e;top:40%;left:60%;opacity:.18;animation-delay:-8s}
+@keyframes float{0%{transform:translate(0,0) scale(1)}100%{transform:translate(30px,-40px) scale(1.08)}}
+
+/* ===================================================================
+   LAYOUT
+=================================================================== */
+.wrapper{position:relative;z-index:1;width:100%;max-width:580px;display:flex;flex-direction:column;gap:16px}
+.screen{display:none;flex-direction:column;gap:16px}
+.screen.active{display:flex}
+
+/* ===================================================================
+   BRAND
+=================================================================== */
+.brand{text-align:center;padding:8px 0 4px}
+.brand-badge{
+  display:inline-flex;align-items:center;gap:8px;font-size:.72rem;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);
+  background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.25);
+  padding:6px 14px;border-radius:999px;margin-bottom:12px;
+}
+.brand-dot{width:7px;height:7px;background:var(--cyan);border-radius:50%;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,211,238,.6)}50%{opacity:.6;box-shadow:0 0 0 6px rgba(34,211,238,0)}}
+.brand-title{
+  font-size:clamp(1.8rem,5vw,2.2rem);font-weight:700;
+  background:linear-gradient(135deg,#fff,#a5b4fc 50%,#22d3ee);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;letter-spacing:-.02em;
+}
+.brand-sub{font-size:.88rem;color:var(--muted);margin-top:6px;font-weight:300}
+
+/* ===================================================================
+   CARD
+=================================================================== */
+.card{
+  background:var(--bg-card);border:1px solid var(--border-glass);
+  border-radius:var(--radius-xl);padding:24px 22px;
+  backdrop-filter:blur(24px) saturate(140%);
+  -webkit-backdrop-filter:blur(24px) saturate(140%);
+  box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 60px rgba(34,211,238,.08);
+}
+
+/* ===================================================================
+   APP HEADER
+=================================================================== */
+.app-header{
+  display:flex;align-items:center;gap:10px;
+  background:rgba(255,255,255,.04);border:1px solid var(--border-glass);
+  padding:12px 16px;border-radius:var(--radius-lg);
+  backdrop-filter:blur(16px);
+}
+.user-info{flex:1;min-width:0}
+.user-name{font-weight:600;font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:.72rem;color:var(--muted);margin-top:2px}
+.badge{
+  display:inline-block;padding:2px 8px;border-radius:999px;
+  font-size:.68rem;font-weight:500;letter-spacing:.02em;
+}
+.badge-admin{background:rgba(167,139,250,.2);color:var(--violet);border:1px solid rgba(167,139,250,.4)}
+.badge-user{background:rgba(34,211,238,.2);color:var(--cyan);border:1px solid rgba(34,211,238,.4)}
+.badge-pending{background:rgba(251,191,36,.2);color:var(--amber);border:1px solid rgba(251,191,36,.4)}
+.badge-approved{background:rgba(52,211,153,.2);color:var(--emerald);border:1px solid rgba(52,211,153,.4)}
+.badge-rejected{background:rgba(251,113,133,.2);color:var(--rose);border:1px solid rgba(251,113,133,.4)}
+.icon-btn{
+  width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;color:var(--text);cursor:pointer;font-size:1.05rem;
+  transition:all .2s;
+}
+.icon-btn:hover{background:rgba(34,211,238,.15);border-color:var(--cyan);color:var(--cyan)}
+
+/* ===================================================================
+   TABS
+=================================================================== */
+.tabs{display:flex;gap:6px;background:rgba(255,255,255,.04);
+  padding:5px;border-radius:14px;border:1px solid var(--border-glass)}
+.tab{
+  flex:1;padding:10px 12px;border:none;background:transparent;
+  color:var(--muted);font-family:inherit;font-size:.85rem;font-weight:500;
+  cursor:pointer;border-radius:10px;transition:all .2s;
+}
+.tab.active{background:linear-gradient(135deg,rgba(34,211,238,.2),rgba(167,139,250,.2));
+  color:#fff;box-shadow:0 4px 12px rgba(34,211,238,.15)}
+.tab-content{display:none}
+.tab-content.active{display:block}
+
+/* ===================================================================
+   CLOCK
+=================================================================== */
+.clock-block{text-align:center;padding-bottom:18px;margin-bottom:18px;
+  border-bottom:1px dashed rgba(255,255,255,.1)}
+.clock-time{
+  font-family:'Inter',monospace;font-size:clamp(2.4rem,8vw,3rem);
+  font-weight:600;letter-spacing:.04em;
+  background:linear-gradient(135deg,#67e8f9,#c4b5fd);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.clock-date{font-size:.84rem;color:var(--muted);margin-top:4px;font-weight:300}
+
+/* ===================================================================
+   FORM
+=================================================================== */
+.field{margin-bottom:16px}
+.field-label{display:flex;align-items:center;gap:6px;font-size:.82rem;
+  font-weight:500;color:var(--muted);margin-bottom:8px}
+.req{color:var(--rose);font-size:.9rem}
+.input,.textarea{
+  width:100%;background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);
+  padding:12px 14px;color:var(--text);font-family:inherit;font-size:.92rem;
+  outline:none;transition:border-color .25s,box-shadow .25s,background .25s;
+}
+.input::placeholder,.textarea::placeholder{color:#5a6285}
+.input:focus,.textarea:focus{
+  border-color:rgba(34,211,238,.55);background:rgba(34,211,238,.05);
+  box-shadow:0 0 0 4px rgba(34,211,238,.1);
+}
+.textarea{resize:vertical;min-height:70px;line-height:1.55}
+
+/* ===================================================================
+   ACTION GRID
+=================================================================== */
+.action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px}
+.action-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:6px;padding:16px 10px;border-radius:var(--radius-lg);
+  border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);
+  color:var(--muted);font-family:inherit;font-size:.85rem;font-weight:500;
+  cursor:pointer;transition:all .3s cubic-bezier(.22,1,.36,1);
+}
+.action-btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.25)}
+.action-btn .icon{font-size:1.4rem;line-height:1}
+.action-btn[data-action="เข้างาน"].active{background:linear-gradient(145deg,rgba(52,211,153,.22),rgba(52,211,153,.06));
+  border-color:var(--emerald);color:var(--emerald);box-shadow:0 0 30px rgba(52,211,153,.18)}
+.action-btn[data-action="ออกงาน"].active{background:linear-gradient(145deg,rgba(251,113,133,.22),rgba(251,113,133,.06));
+  border-color:var(--rose);color:var(--rose);box-shadow:0 0 30px rgba(251,113,133,.18)}
+.action-btn[data-action="ลา"].active{background:linear-gradient(145deg,rgba(251,191,36,.22),rgba(251,191,36,.06));
+  border-color:var(--amber);color:var(--amber);box-shadow:0 0 30px rgba(251,191,36,.18)}
+.action-btn[data-action="มาสาย"].active{background:linear-gradient(145deg,rgba(167,139,250,.22),rgba(167,139,250,.06));
+  border-color:var(--violet);color:var(--violet);box-shadow:0 0 30px rgba(167,139,250,.18)}
+
+/* ===================================================================
+   GPS STATUS
+=================================================================== */
+.gps-status{
+  display:flex;align-items:center;gap:8px;padding:10px 14px;
+  border-radius:12px;font-size:.82rem;font-weight:500;
+  background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);
+  margin-bottom:16px;color:var(--muted);transition:all .3s;
+}
+.gps-status.ok{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.4);color:var(--emerald)}
+.gps-status.bad{background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.4);color:var(--rose)}
+.gps-status.loading{background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.4);color:var(--cyan)}
+
+/* ===================================================================
+   REASON SECTION
+=================================================================== */
+.reason-section{max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .45s ease,opacity .3s,margin .3s;margin-bottom:0}
+.reason-section.visible{max-height:200px;opacity:1;margin-bottom:16px}
+
+/* ===================================================================
+   SUBMIT BTN
+=================================================================== */
+.submit-btn{
+  width:100%;padding:16px;border:none;border-radius:var(--radius-lg);
+  font-family:inherit;font-size:.98rem;font-weight:600;cursor:pointer;
+  color:#06121f;background:linear-gradient(135deg,#22d3ee,#818cf8);
+  box-shadow:0 10px 30px rgba(34,211,238,.25);
+  transition:transform .2s,box-shadow .2s,opacity .2s;
+}
+.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 16px 40px rgba(34,211,238,.35)}
+.submit-btn:active:not(:disabled){transform:translateY(0)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed}
+.spinner{
+  display:inline-block;width:16px;height:16px;
+  border:2px solid rgba(6,18,31,.25);border-top-color:#06121f;
+  border-radius:50%;animation:spin .7s linear infinite;
+  vertical-align:middle;margin-right:6px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ===================================================================
+   TABLES / LISTS
+=================================================================== */
+.section-title{font-size:.95rem;font-weight:600;margin-bottom:12px;color:var(--text)}
+.empty-state{
+  text-align:center;padding:24px 12px;color:var(--muted);font-size:.85rem;
+  background:rgba(255,255,255,.02);border-radius:var(--radius-md);
+  border:1px dashed rgba(255,255,255,.1);
+}
+.list-item{
+  display:flex;align-items:center;gap:12px;padding:12px 14px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;margin-bottom:8px;font-size:.85rem;
+}
+.list-item-info{flex:1;min-width:0}
+.list-item-title{font-weight:500;font-size:.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-item-sub{color:var(--muted);font-size:.75rem;margin-top:2px}
+.list-actions{display:flex;gap:6px;flex-shrink:0}
+.btn-sm{
+  padding:6px 12px;border-radius:8px;border:1px solid transparent;
+  font-family:inherit;font-size:.75rem;font-weight:500;cursor:pointer;
+  transition:all .2s;
+}
+.btn-approve{background:rgba(52,211,153,.15);color:var(--emerald);border-color:rgba(52,211,153,.4)}
+.btn-approve:hover{background:rgba(52,211,153,.3)}
+.btn-reject{background:rgba(251,113,133,.15);color:var(--rose);border-color:rgba(251,113,133,.4)}
+.btn-reject:hover{background:rgba(251,113,133,.3)}
+.btn-danger{background:rgba(251,113,133,.15);color:var(--rose);border-color:rgba(251,113,133,.4)}
+.btn-danger:hover{background:rgba(251,113,133,.3)}
+.btn-neutral{background:rgba(255,255,255,.06);color:var(--muted);border-color:rgba(255,255,255,.15)}
+.btn-neutral:hover{background:rgba(255,255,255,.1);color:var(--text)}
+.btn-cyan{background:rgba(34,211,238,.15);color:var(--cyan);border-color:rgba(34,211,238,.4)}
+.btn-cyan:hover{background:rgba(34,211,238,.3)}
+
+/* ===================================================================
+   RECENT HISTORY
+=================================================================== */
+.recent-item{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 12px;background:rgba(255,255,255,.03);
+  border-radius:10px;margin-bottom:6px;font-size:.82rem;
+}
+.recent-action{font-weight:500}
+.recent-action[data-a="เข้างาน"]{color:var(--emerald)}
+.recent-action[data-a="ออกงาน"]{color:var(--rose)}
+.recent-action[data-a="ลา"]{color:var(--amber)}
+.recent-action[data-a="มาสาย"]{color:var(--violet)}
+.recent-time{color:var(--muted);font-size:.75rem}
+
+/* ===================================================================
+   TOAST
+=================================================================== */
+.toast{
+  position:fixed;bottom:24px;left:50%;
+  transform:translateX(-50%) translateY(120%);
+  z-index:99;display:flex;align-items:center;gap:10px;
+  padding:14px 22px;border-radius:var(--radius-lg);
+  background:rgba(15,23,42,.95);border:1px solid rgba(255,255,255,.12);
+  backdrop-filter:blur(16px);box-shadow:0 12px 40px rgba(0,0,0,.5);
+  font-size:.88rem;font-weight:500;
+  transition:transform .4s cubic-bezier(.22,1,.36,1);
+  max-width:calc(100vw - 40px);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:rgba(52,211,153,.5);color:var(--emerald)}
+.toast.error{border-color:rgba(251,113,133,.5);color:var(--rose)}
+
+/* ===================================================================
+   MODAL
+=================================================================== */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);
+  backdrop-filter:blur(4px);z-index:100;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:#151b3d;border:1px solid rgba(255,255,255,.15);
+  border-radius:20px;padding:24px;max-width:420px;width:100%;
+  box-shadow:0 24px 80px rgba(0,0,0,.6);
+}
+.modal h3{font-size:1.1rem;margin-bottom:14px;font-weight:600}
+.modal-body{font-size:.9rem;color:var(--muted);line-height:1.6;margin-bottom:18px}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+
+/* ===================================================================
+   FOOTER INFO
+=================================================================== */
+.footer-info{
+  text-align:center;font-size:.78rem;color:var(--muted);
+  margin-top:6px;padding:10px;line-height:1.7;
+}
+
+/* ===================================================================
+   RESPONSIVE
+=================================================================== */
+@media (max-width:480px){
+  body{padding:16px 12px}
+  .card{padding:20px 16px;border-radius:20px}
+  .action-grid{gap:8px}
+  .action-btn{padding:13px 8px;font-size:.8rem}
+  .tabs{padding:4px;gap:4px}
+  .tab{padding:8px 6px;font-size:.78rem}
+}
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="wrapper">
+
+  <!-- ============================================================
+       AUTH SCREEN
+  ============================================================ -->
+  <div id="authScreen" class="screen active">
+    <header class="brand">
+      <div class="brand-badge"><span class="brand-dot"></span>TIME TRACK PRO</div>
+      <h1 class="brand-title">ลงเวลาทำงาน</h1>
+      <p class="brand-sub">ระบบบันทึกเวลาพร้อม GPS Geofence</p>
+    </header>
+
+    <div class="card">
+      <div class="tabs" style="margin-bottom:18px">
+        <button class="tab active" data-tab="login">เข้าสู่ระบบ</button>
+        <button class="tab" data-tab="register">ลงทะเบียน</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="loginForm" class="tab-content active">
+        <div class="field">
+          <label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label>
+          <input type="text" id="loginUsername" class="input" placeholder="username" required autocomplete="username">
+        </div>
+        <div class="field">
+          <label class="field-label">รหัสผ่าน <span class="req">*</span></label>
+          <input type="password" id="loginPassword" class="input" placeholder="••••••••" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="submit-btn" id="loginBtn">เข้าสู่ระบบ</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="registerForm" class="tab-content">
+        <div class="field">
+          <label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label>
+          <input type="text" id="regUsername" class="input" placeholder="a-z, 0-9, _ (3+ ตัว)" required autocomplete="username">
+        </div>
+        <div class="field">
+          <label class="field-label">ชื่อ-นามสกุล <span class="req">*</span></label>
+          <input type="text" id="regFullName" class="input" placeholder="เช่น สมชาย ใจดี" required>
+        </div>
+        <div class="field">
+          <label class="field-label">อีเมล</label>
+          <input type="email" id="regEmail" class="input" placeholder="you@example.com">
+        </div>
+        <div class="field">
+          <label class="field-label">เบอร์โทร</label>
+          <input type="tel" id="regPhone" class="input" placeholder="08x-xxx-xxxx">
+        </div>
+        <div class="field">
+          <label class="field-label">รหัสผ่าน <span class="req">*</span></label>
+          <input type="password" id="regPassword" class="input" placeholder="อย่างน้อย 6 ตัว" required autocomplete="new-password">
+        </div>
+        <div class="field">
+          <label class="field-label">ยืนยันรหัสผ่าน <span class="req">*</span></label>
+          <input type="password" id="regPassword2" class="input" placeholder="พิมพ์ซ้ำ" required autocomplete="new-password">
+        </div>
+        <div class="gps-status" id="regGpsStatus">
+          <span>📍</span><span>ระบบจะขอตำแหน่ง GPS ขณะลงทะเบียน</span>
+        </div>
+        <button type="submit" class="submit-btn" id="registerBtn">ลงทะเบียน</button>
+      </form>
+    </div>
+
+    <div class="footer-info" id="footerInfo">—</div>
+  </div>
+
+  <!-- ============================================================
+       MAIN SCREEN
+  ============================================================ -->
+  <div id="mainScreen" class="screen">
+    <header class="app-header">
+      <div class="user-info">
+        <div class="user-name" id="userName">—</div>
+        <div class="user-role" id="userRole">—</div>
+      </div>
+      <button class="icon-btn" id="adminBtn" title="Admin Panel" style="display:none">⚙️</button>
+      <button class="icon-btn" id="changePwBtn" title="เปลี่ยนรหัสผ่าน">🔑</button>
+      <button class="icon-btn" id="logoutBtn" title="ออกจากระบบ">🚪</button>
+    </header>
+
+    <div class="card">
+      <div class="clock-block">
+        <div class="clock-time" id="clockTime">--:--:--</div>
+        <div class="clock-date" id="clockDate">กำลังโหลด...</div>
+      </div>
+
+      <div class="gps-status" id="gpsStatus">
+        <span>📍</span><span>เลือกประเภทการลงเวลาเพื่อตรวจสอบตำแหน่ง</span>
+      </div>
+
+      <form id="attendanceForm" autocomplete="off">
+        <div class="field" style="margin-bottom:12px">
+          <span class="field-label">เลือกประเภทการลงเวลา <span class="req">*</span></span>
+          <div class="action-grid">
+            <button type="button" class="action-btn" data-action="เข้างาน">
+              <span class="icon">🌅</span> เข้างาน
+            </button>
+            <button type="button" class="action-btn" data-action="ออกงาน">
+              <span class="icon">🌇</span> ออกงาน
+            </button>
+            <button type="button" class="action-btn" data-action="ลา">
+              <span class="icon">🌴</span> ลา
+            </button>
+            <button type="button" class="action-btn" data-action="มาสาย">
+              <span class="icon">⏰</span> มาสาย
+            </button>
+          </div>
+        </div>
+
+        <div class="reason-section" id="reasonSection">
+          <div class="field" style="margin-bottom:12px">
+            <label class="field-label">เหตุผล <span class="req">*</span></label>
+            <textarea id="reasonInput" class="textarea" placeholder="ระบุเหตุผล..."></textarea>
+          </div>
+        </div>
+
+        <div class="field">
+          <label class="field-label">หมายเหตุเพิ่มเติม</label>
+          <textarea id="noteInput" class="textarea" placeholder="ไม่บังคับ..." style="min-height:56px"></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">📍 บันทึกพร้อมตำแหน่ง</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="section-title">📊 ประวัติล่าสุด</div>
+      <div id="recentList"><div class="empty-state">ยังไม่มีรายการ</div></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       ADMIN SCREEN
+  ============================================================ -->
+  <div id="adminScreen" class="screen">
+    <header class="app-header">
+      <button class="icon-btn" id="adminBackBtn" title="กลับ">←</button>
+      <div class="user-info">
+        <div class="user-name">Admin Panel</div>
+        <div class="user-role">จัดการระบบ</div>
+      </div>
+      <button class="icon-btn" id="adminLogoutBtn" title="ออกจากระบบ">🚪</button>
+    </header>
+
+    <div class="card">
+      <div class="tabs" style="margin-bottom:16px">
+        <button class="tab active" data-tab="pending">รออนุมัติ</button>
+        <button class="tab" data-tab="users">ผู้ใช้</button>
+        <button class="tab" data-tab="settings">ตั้งค่า</button>
+      </div>
+
+      <div class="tab-content active" id="pendingTab">
+        <div class="section-title">👥 ผู้ใช้รออนุมัติ</div>
+        <div id="pendingList"><div class="empty-state">กำลังโหลด...</div></div>
+      </div>
+
+      <div class="tab-content" id="usersTab">
+        <div class="section-title">👤 ผู้ใช้ทั้งหมด</div>
+        <div id="usersList"><div class="empty-state">กำลังโหลด...</div></div>
+      </div>
+
+      <div class="tab-content" id="settingsTab">
+        <div class="section-title">⚙️ ตั้งค่าสำนักงาน</div>
+
+        <div class="field">
+          <label class="field-label">ชื่อสำนักงาน</label>
+          <input type="text" id="setOfficeName" class="input" placeholder="สำนักงานใหญ่">
+        </div>
+
+        <div class="field">
+          <label class="field-label">ละติจูด (Latitude)</label>
+          <input type="number" id="setOfficeLat" class="input" step="any" placeholder="13.7563">
+        </div>
+
+        <div class="field">
+          <label class="field-label">ลองจิจูด (Longitude)</label>
+          <input type="number" id="setOfficeLng" class="input" step="any" placeholder="100.5018">
+        </div>
+
+        <div class="field">
+          <label class="field-label">รัศมีที่อนุญาต (เมตร)</label>
+          <input type="number" id="setRadius" class="input" min="10" step="10" placeholder="200">
+        </div>
+
+        <div class="field">
+          <label class="field-label">บังคับรัศมีตอนลงทะเบียน</label>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+            <input type="checkbox" id="setStrictReg" style="width:18px;height:18px;cursor:pointer">
+            <span style="font-size:.82rem;color:var(--muted)">เปิด = ผู้สมัครต้องอยู่ในพื้นที่ตอนลงทะเบียน</span>
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+          <button type="button" class="btn-sm btn-cyan" id="useCurrentLocBtn" style="padding:11px">📍 ใช้ตำแหน่งปัจจุบัน</button>
+          <button type="button" class="btn-sm btn-neutral" id="testRadiusBtn" style="padding:11px">🧪 ทดสอบระยะ</button>
+        </div>
+
+        <div class="gps-status" id="adminGpsStatus" style="margin-bottom:12px;display:none">
+          <span>📍</span><span id="adminGpsMsg"></span>
+        </div>
+
+        <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่า</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span id="toastIcon">✅</span>
+  <span id="toastMsg"></span>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG
+============================================================ */
+const API_URL = 'https://script.google.com/macros/s/AKfycbzWYTvLaLC7odux6JIyP3ZFTAbRrpDu93zFekwKzPPQUait2LYK1_v69onuzdaQOqThXg/exec';
+
+/* ============================================================
+   STATE
+============================================================ */
+const state = {
+  token: localStorage.getItem('tt_token') || '',
+  user: null,
+  settings: null,
+  selectedAction: null,
+  currentPos: null,
+  posTimestamp: 0,
+  loadingAuth: false,
+};
+
+/* ============================================================
+   API HELPER
+============================================================ */
+async function api(cmd, extra = {}) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ cmd, token: state.token, ...extra }),
+    });
+    return await res.json();
+  } catch (err) {
+    console.error('API error:', err);
+    return { success: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ' };
+  }
+}
+
+/* ============================================================
+   TOAST
+============================================================ */
+let toastTimer = null;
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '⚠️';
+  document.getElementById('toastMsg').textContent = msg;
+  el.className = `toast ${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 4500);
+}
+
+/* ============================================================
+   MODAL
+============================================================ */
+function showModal(title, bodyHTML, actions) {
+  document.getElementById('modalTitle').textContent = title;
+  document.getElementById('modalBody').innerHTML = bodyHTML;
+  const box = document.getElementById('modalActions');
+  box.innerHTML = '';
+  actions.forEach(a => {
+    const btn = document.createElement('button');
+    btn.className = `btn-sm ${a.class || 'btn-neutral'}`;
+    btn.style.padding = '10px 18px';
+    btn.textContent = a.label;
+    btn.onclick = () => { if (a.onClick) a.onClick(); closeModal(); };
+    box.appendChild(btn);
+  });
+  document.getElementById('modalOverlay').classList.add('show');
+}
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+document.getElementById('modalOverlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modalOverlay') closeModal();
+});
+
+/* ============================================================
+   SCREENS
+============================================================ */
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ============================================================
+   CLOCK
+============================================================ */
+const THAI_DAYS = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+const THAI_MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+function tickClock() {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  document.getElementById('clockTime').textContent = `${hh}:${mm}:${ss}`;
+  document.getElementById('clockDate').textContent =
+    `วัน${THAI_DAYS[now.getDay()]}ที่ ${now.getDate()} ${THAI_MONTHS[now.getMonth()]} ${now.getFullYear()+543}`;
+}
+tickClock();
+setInterval(tickClock, 1000);
+
+/* ============================================================
+   UTILS
+============================================================ */
+function escapeHtml(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/* ============================================================
+   GPS
+============================================================ */
+function getGPS() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('เบราว์เซอร์ไม่รองรับ GPS'));
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        accuracy: pos.coords.accuracy,
+      }),
+      err => {
+        let m = 'ไม่สามารถเข้าถึง GPS';
+        if (err.code === 1) m = 'กรุณาอนุญาต GPS (เปิด Location Permission)';
+        else if (err.code === 2) m = 'ไม่สามารถหาตำแหน่งได้';
+        else if (err.code === 3) m = 'หมดเวลา (โปรดลองใหม่)';
+        reject(new Error(m));
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
+}
+
+async function refreshPosition() {
+  const pos = await getGPS();
+  state.currentPos = pos;
+  state.posTimestamp = Date.now();
+  return pos;
+}
+
+function getFreshPosition() {
+  if (state.currentPos && Date.now() - state.posTimestamp < 60000) {
+    return Promise.resolve(state.currentPos);
+  }
+  return refreshPosition();
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000, toRad = d => d * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(a));
+}
+
+/* ============================================================
+   AUTH TABS
+============================================================ */
+document.querySelectorAll('#authScreen .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#authScreen .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('#authScreen .tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(tab.dataset.tab + 'Form').classList.add('active');
+  });
+});
+
+/* ============================================================
+   LOGIN
+============================================================ */
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (state.loadingAuth) return;
+  const btn = document.getElementById('loginBtn');
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+
+  if (!username || !password) return toast('กรุณากรอกข้อมูลให้ครบ', 'error');
+
+  state.loadingAuth = true;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> กำลังเข้าสู่ระบบ...';
+
+  const res = await api('login', { username, password });
+  state.loadingAuth = false;
+  btn.disabled = false;
+  btn.textContent = 'เข้าสู่ระบบ';
+
+  if (!res.success) return toast(res.message, 'error');
+
+  state.token = res.token;
+  state.user = res.user;
+  localStorage.setItem('tt_token', res.token);
+  toast('ยินดีต้อนรับ ' + res.user.fullName);
+
+  await enterMainScreen();
+});
+
+/* ============================================================
+   REGISTER
+============================================================ */
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (state.loadingAuth) return;
+
+  const username = document.getElementById('regUsername').value.trim().toLowerCase();
+  const fullName = document.getElementById('regFullName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const password2 = document.getElementById('regPassword2').value;
+
+  if (!username || !fullName || !password) return toast('กรุณากรอกข้อมูลให้ครบ', 'error');
+  if (password !== password2) return toast('รหัสผ่านไม่ตรงกัน', 'error');
+  if (password.length < 6) return toast('รหัสผ่านอย่างน้อย 6 ตัว', 'error');
+
+  const btn = document.getElementById('registerBtn');
+  const statusEl = document.getElementById('regGpsStatus');
+  statusEl.className = 'gps-status loading';
+  statusEl.innerHTML = '<span>⏳</span><span>กำลังรับตำแหน่ง GPS...</span>';
+
+  let pos;
+  try { pos = await refreshPosition(); }
+  catch (err) {
+    statusEl.className = 'gps-status bad';
+    statusEl.innerHTML = '<span>❌</span><span>' + escapeHtml(err.message) + '</span>';
+    return toast(err.message, 'error');
+  }
+
+  statusEl.className = 'gps-status ok';
+  statusEl.innerHTML = '<span>✅</span><span>ได้ตำแหน่งแล้ว กำลังส่งข้อมูล...</span>';
+
+  state.loadingAuth = true;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> กำลังลงทะเบียน...';
+
+  const res = await api('register', {
+    username, password, fullName, email, phone,
+    lat: pos.lat, lng: pos.lng,
+  });
+
+  state.loadingAuth = false;
+  btn.disabled = false;
+  btn.textContent = 'ลงทะเบียน';
+
+  if (!res.success) {
+    statusEl.className = 'gps-status bad';
+    statusEl.innerHTML = '<span>❌</span><span>' + escapeHtml(res.message) + '</span>';
+    return toast(res.message, 'error');
+  }
+
+  toast(res.message);
+  statusEl.className = 'gps-status ok';
+  statusEl.innerHTML = '<span>✅</span><span>' + escapeHtml(res.message) + '</span>';
+  document.getElementById('registerForm').reset();
+});
+
+/* ============================================================
+   ENTER MAIN SCREEN
+============================================================ */
+async function enterMainScreen() {
+  if (!state.user) {
+    document.getElementById('userName').textContent = '—';
+    document.getElementById('userRole').textContent = '—';
+    return;
+  }
+  const nameEl = document.getElementById('userName');
+  const roleEl = document.getElementById('userRole');
+  nameEl.textContent = state.user.fullName;
+  roleEl.innerHTML = `<span class="badge badge-${state.user.role === 'admin' ? 'admin' : 'user'}">${
+    state.user.role === 'admin' ? 'ADMIN' : 'EMPLOYEE'
+  }</span> ${escapeHtml(state.user.username)}`;
+
+  document.getElementById('adminBtn').style.display = state.user.role === 'admin' ? 'flex' : 'none';
+
+  if (!state.settings) {
+    const s = await api('getSettings');
+    if (s.success) state.settings = s.settings;
+  }
+  updateFooterInfo();
+
+  await loadRecent();
+  showScreen('mainScreen');
+}
+
+function updateFooterInfo() {
+  const el = document.getElementById('footerInfo');
+  if (!state.settings) { el.textContent = '—'; return; }
+  el.innerHTML = `🏢 <b>${escapeHtml(state.settings.officeName)}</b><br>
+    รัศมีที่อนุญาต <b>${state.settings.radius}</b> เมตร`;
+}
+
+/* ============================================================
+   LOGOUT
+============================================================ */
+async function doLogout() {
+  await api('logout');
+  state.token = '';
+  state.user = null;
+  localStorage.removeItem('tt_token');
+  document.getElementById('loginForm').reset();
+  showScreen('authScreen');
+  toast('ออกจากระบบแล้ว');
+}
+document.getElementById('logoutBtn').addEventListener('click', doLogout);
+document.getElementById('adminLogoutBtn').addEventListener('click', doLogout);
+
+/* ============================================================
+   CHANGE PASSWORD
+============================================================ */
+document.getElementById('changePwBtn').addEventListener('click', () => {
+  showModal(
+    '🔑 เปลี่ยนรหัสผ่าน',
+    `<div class="field"><label class="field-label">รหัสเดิม</label><input type="password" id="mOldPw" class="input"></div>
+     <div class="field"><label class="field-label">รหัสใหม่ (6+)</label><input type="password" id="mNewPw" class="input"></div>`,
+    [
+      { label: 'ยกเลิก', class: 'btn-neutral' },
+      { label: 'ยืนยัน', class: 'btn-cyan', onClick: async () => {
+        const oldPw = document.getElementById('mOldPw').value;
+        const newPw = document.getElementById('mNewPw').value;
+        if (!oldPw || !newPw) return toast('กรุณากรอกให้ครบ', 'error');
+        const r = await api('changePassword', { oldPassword: oldPw, newPassword: newPw });
+        toast(r.message, r.success ? 'success' : 'error');
+      }},
+    ]
+  );
+});
+
+/* ============================================================
+   ACTION BUTTONS
+============================================================ */
+document.querySelectorAll('.action-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const action = btn.dataset.action;
+    if (state.selectedAction === action) {
+      state.selectedAction = null;
+      btn.classList.remove('active');
+      document.getElementById('reasonSection').classList.remove('visible');
+      return;
+    }
+    document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    state.selectedAction = action;
+
+    const reasonSec = document.getElementById('reasonSection');
+    const reasonInput = document.getElementById('reasonInput');
+    if (action === 'ลา' || action === 'มาสาย') {
+      reasonSec.classList.add('visible');
+      reasonInput.setAttribute('required', 'required');
+    } else {
+      reasonSec.classList.remove('visible');
+      reasonInput.removeAttribute('required');
+      reasonInput.value = '';
+    }
+
+    await checkPositionForAction();
+  });
+});
+
+async function checkPositionForAction() {
+  const statusEl = document.getElementById('gpsStatus');
+  statusEl.className = 'gps-status loading';
+  statusEl.innerHTML = '<span>⏳</span><span>กำลังตรวจสอบตำแหน่ง GPS...</span>';
+
+  let pos;
+  try { pos = await refreshPosition(); }
+  catch (err) {
+    statusEl.className = 'gps-status bad';
+    statusEl.innerHTML = '<span>❌</span><span>' + escapeHtml(err.message) + '</span>';
+    return;
+  }
+
+  const s = await api('getSettings');
+  if (s.success) state.settings = s.settings;
+
+  if (!state.settings) {
+    statusEl.className = 'gps-status bad';
+    statusEl.innerHTML = '<span>❌</span><span>ไม่สามารถโหลดการตั้งค่าสำนักงาน</span>';
+    return;
+  }
+
+  const dist = haversine(
+    pos.lat, pos.lng,
+    state.settings.officeLat, state.settings.officeLng
+  );
+  const r = Math.round(dist);
+  if (dist <= state.settings.radius) {
+    statusEl.className = 'gps-status ok';
+    statusEl.innerHTML = `<span>✅</span><span>อยู่ในพื้นที่ (${r} ม. / รัศมี ${state.settings.radius} ม.)</span>`;
+  } else {
+    statusEl.className = 'gps-status bad';
+    statusEl.innerHTML = `<span>❌</span><span>อยู่นอกพื้นที่ (${r} ม. / รัศมี ${state.settings.radius} ม.)</span>`;
+  }
+}
+
+/* ============================================================
+   SUBMIT ATTENDANCE
+============================================================ */
+document.getElementById('attendanceForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!state.selectedAction) return toast('กรุณาเลือกประเภทการลงเวลา', 'error');
+
+  const reason = document.getElementById('reasonInput').value.trim();
+  const note = document.getElementById('noteInput').value.trim();
+  if ((state.selectedAction === 'ลา' || state.selectedAction === 'มาสาย') && !reason) {
+    return toast('กรุณาระบุเหตุผล', 'error');
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+
+  try {
+    const pos = await getFreshPosition();
+    const res = await api('attendance', {
+      action: state.selectedAction,
+      reason, note,
+      lat: pos.lat, lng: pos.lng,
+    });
+
+    if (res.success) {
+      toast(res.message);
+      document.getElementById('attendanceForm').reset();
+      document.getElementById('reasonSection').classList.remove('visible');
+      document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+      state.selectedAction = null;
+      document.getElementById('gpsStatus').className = 'gps-status';
+      document.getElementById('gpsStatus').innerHTML = '<span>📍</span><span>เลือกประเภทการลงเวลาเพื่อตรวจสอบตำแหน่ง</span>';
+      await loadRecent();
+    } else {
+      toast(res.message, 'error');
+    }
+  } catch (err) {
+    toast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '📍 บันทึกพร้อมตำแหน่ง';
+  }
+});
+
+/* ============================================================
+   RECENT HISTORY
+============================================================ */
+async function loadRecent() {
+  const box = document.getElementById('recentList');
+  const res = await api('getRecent');
+  if (!res.success || !res.items || res.items.length === 0) {
+    box.innerHTML = '<div class="empty-state">ยังไม่มีรายการ</div>';
+    return;
+  }
+  box.innerHTML = res.items.map(it => `
+    <div class="recent-item">
+      <div>
+        <span class="recent-action" data-a="${escapeHtml(it.action)}">${escapeHtml(it.action)}</span>
+        ${it.reason ? `<span style="color:var(--muted);font-size:.75rem"> · ${escapeHtml(it.reason)}</span>` : ''}
+      </div>
+      <div class="recent-time">${escapeHtml(it.timestamp)}</div>
+    </div>
+  `).join('');
+}
+
+/* ============================================================
+   ADMIN PANEL
+============================================================ */
+document.getElementById('adminBtn').addEventListener('click', () => {
+  showScreen('adminScreen');
+  loadPending();
+});
+
+document.getElementById('adminBackBtn').addEventListener('click', () => {
+  showScreen('mainScreen');
+});
+
+document.querySelectorAll('#adminScreen .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#adminScreen .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('#adminScreen .tab-content').forEach(c => c.classList.remove('active'));
+    const id = tab.dataset.tab + 'Tab';
+    document.getElementById(id).classList.add('active');
+    if (tab.dataset.tab === 'pending') loadPending();
+    if (tab.dataset.tab === 'users') loadAllUsers();
+    if (tab.dataset.tab === 'settings') loadAdminSettings();
+  });
+});
+
+async function loadPending() {
+  const box = document.getElementById('pendingList');
+  box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  const res = await api('admin_listPending');
+  if (!res.success) {
+    box.innerHTML = `<div class="empty-state">${escapeHtml(res.message)}</div>`;
+    return;
+  }
+  if (res.users.length === 0) {
+    box.innerHTML = '<div class="empty-state">ไม่มีผู้ใช้รออนุมัติ 🎉</div>';
+    return;
+  }
+  box.innerHTML = res.users.map(u => `
+    <div class="list-item">
+      <div class="list-item-info">
+        <div class="list-item-title">${escapeHtml(u.fullName)} <span style="color:var(--muted);font-size:.75rem">@${escapeHtml(u.username)}</span></div>
+        <div class="list-item-sub">
+          ${u.email ? escapeHtml(u.email) + ' · ' : ''}${u.phone ? escapeHtml(u.phone) + ' · ' : ''}
+          ลงทะเบียน ${escapeHtml(u.registeredAt)} · ระยะ ${u.regDistance || '?'} ม.
+        </div>
+      </div>
+      <div class="list-actions">
+        <button class="btn-sm btn-approve" onclick="approveUser('${escapeHtml(u.username)}')">อนุมัติ</button>
+        <button class="btn-sm btn-reject" onclick="rejectUser('${escapeHtml(u.username)}')">ปฏิเสธ</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.approveUser = async function(username) {
+  const r = await api('admin_approve', { username });
+  toast(r.message, r.success ? 'success' : 'error');
+  loadPending();
+};
+
+window.rejectUser = async function(username) {
+  const r = await api('admin_reject', { username });
+  toast(r.message, r.success ? 'success' : 'error');
+  loadPending();
+};
+
+async function loadAllUsers() {
+  const box = document.getElementById('usersList');
+  box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  const res = await api('admin_listUsers');
+  if (!res.success) {
+    box.innerHTML = `<div class="empty-state">${escapeHtml(res.message)}</div>`;
+    return;
+  }
+  box.innerHTML = res.users.map(u => `
+    <div class="list-item">
+      <div class="list-item-info">
+        <div class="list-item-title">
+          ${escapeHtml(u.fullName)}
+          <span class="badge badge-${u.role === 'admin' ? 'admin' : 'user'}">${escapeHtml(u.role)}</span>
+          <span class="badge badge-${escapeHtml(u.status)}">${escapeHtml(u.status)}</span>
+        </div>
+        <div class="list-item-sub">@${escapeHtml(u.username)} · ลงทะเบียน ${escapeHtml(u.registeredAt)}</div>
+      </div>
+      <div class="list-actions">
+        <button class="btn-sm btn-cyan" onclick="resetUserPw('${escapeHtml(u.username)}')">รีเซ็ตรหัส</button>
+        ${u.username !== 'admin' ? `<button class="btn-sm btn-danger" onclick="deleteUser('${escapeHtml(u.username)}')">ลบ</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+window.resetUserPw = function(username) {
+  showModal(
+    'รีเซ็ตรหัสผ่าน: ' + escapeHtml(username),
+    '<div class="field"><label class="field-label">รหัสใหม่ (6+)</label><input type="password" id="mRstPw" class="input"></div>',
+    [
+      { label: 'ยกเลิก', class: 'btn-neutral' },
+      { label: 'ยืนยัน', class: 'btn-cyan', onClick: async () => {
+        const newPw = document.getElementById('mRstPw').value;
+        if (!newPw || newPw.length < 6) return toast('รหัสอย่างน้อย 6 ตัว', 'error');
+        const r = await api('admin_resetPassword', { username, newPassword: newPw });
+        toast(r.message, r.success ? 'success' : 'error');
+      }},
+    ]
+  );
+};
+
+window.deleteUser = function(username) {
+  showModal(
+    '⚠️ ยืนยันการลบ',
+    `ต้องการลบผู้ใช้ <b>${escapeHtml(username)}</b> ใช่หรือไม่? (ไม่สามารถกู้คืนได้)`,
+    [
+      { label: 'ยกเลิก', class: 'btn-neutral' },
+      { label: 'ลบ', class: 'btn-danger', onClick: async () => {
+        const r = await api('admin_deleteUser', { username });
+        toast(r.message, r.success ? 'success' : 'error');
+        loadAllUsers();
+      }},
+    ]
+  );
+};
+
+async function loadAdminSettings() {
+  const s = await api('getSettings');
+  if (!s.success) return toast(s.message, 'error');
+  state.settings = s.settings;
+  document.getElementById('setOfficeName').value = s.settings.officeName || '';
+  document.getElementById('setOfficeLat').value = s.settings.officeLat || '';
+  document.getElementById('setOfficeLng').value = s.settings.officeLng || '';
+  document.getElementById('setRadius').value = s.settings.radius || '';
+  document.getElementById('setStrictReg').checked = !!s.settings.strictRegistration;
+}
+
+document.getElementById('useCurrentLocBtn').addEventListener('click', async () => {
+  const el = document.getElementById('adminGpsStatus');
+  const msg = document.getElementById('adminGpsMsg');
+  el.style.display = 'flex';
+  el.className = 'gps-status loading';
+  msg.textContent = 'กำลังรับตำแหน่ง...';
+
+  try {
+    const pos = await refreshPosition();
+    document.getElementById('setOfficeLat').value = pos.lat.toFixed(6);
+    document.getElementById('setOfficeLng').value = pos.lng.toFixed(6);
+    el.className = 'gps-status ok';
+    msg.textContent = `ได้ตำแหน่งแล้ว (${pos.lat.toFixed(6)}, ${pos.lng.toFixed(6)})`;
+  } catch (err) {
+    el.className = 'gps-status bad';
+    msg.textContent = err.message;
+  }
+});
+
+document.getElementById('testRadiusBtn').addEventListener('click', async () => {
+  const el = document.getElementById('adminGpsStatus');
+  const msg = document.getElementById('adminGpsMsg');
+  el.style.display = 'flex';
+  el.className = 'gps-status loading';
+  msg.textContent = 'กำลังทดสอบระยะ...';
+
+  const lat = Number(document.getElementById('setOfficeLat').value);
+  const lng = Number(document.getElementById('setOfficeLng').value);
+  const radius = Number(document.getElementById('setRadius').value);
+
+  if (isNaN(lat) || isNaN(lng) || isNaN(radius)) {
+    el.className = 'gps-status bad';
+    msg.textContent = 'กรุณากรอก lat / lng / radius ให้ครบ';
+    return;
+  }
+
+  try {
+    const pos = await refreshPosition();
+    const dist = haversine(pos.lat, pos.lng, lat, lng);
+    const inside = dist <= radius;
+    el.className = 'gps-status ' + (inside ? 'ok' : 'bad');
+    msg.textContent = `${inside ? '✅ อยู่ในพื้นที่' : '❌ อยู่นอกพื้นที่'} — ระยะ ${Math.round(dist)} ม. / รัศมี ${radius} ม.`;
+  } catch (err) {
+    el.className = 'gps-status bad';
+    msg.textContent = err.message;
+  }
+});
+
+document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+  const officeName = document.getElementById('setOfficeName').value.trim();
+  const officeLat = Number(document.getElementById('setOfficeLat').value);
+  const officeLng = Number(document.getElementById('setOfficeLng').value);
+  const radius = Number(document.getElementById('setRadius').value);
+  const strictRegistration = document.getElementById('setStrictReg').checked;
+
+  if (!officeName) return toast('กรุณากรอกชื่อสำนักงาน', 'error');
+  if (isNaN(officeLat) || isNaN(officeLng)) return toast('กรุณากรอกพิกัดให้ถูกต้อง', 'error');
+  if (isNaN(radius) || radius < 10) return toast('รัศมีอย่างน้อย 10 เมตร', 'error');
+
+  const btn = document.getElementById('saveSettingsBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+
+  const res = await api('admin_updateSettings', {
+    officeName, officeLat, officeLng, radius, strictRegistration
+  });
+
+  btn.disabled = false;
+  btn.textContent = '💾 บันทึกการตั้งค่า';
+
+  if (res.success) {
+    toast(res.message);
+    state.settings = null;
+    const s = await api('getSettings');
+    if (s.success) {
+      state.settings = s.settings;
+      updateFooterInfo();
+    }
+  } else {
+    toast(res.message, 'error');
+  }
+});
+
+/* ============================================================
+   AUTO-LOGIN (ถ้ามี token เดิม)
+============================================================ */
+(async function autoLogin() {
+  if (!state.token) return;
+  const r = await api('getMyInfo');
+  if (!r.success) {
+    localStorage.removeItem('tt_token');
+    state.token = '';
+    return;
+  }
+  state.user = r.user;
+  await enterMainScreen();
+})();
+</script>
+</body>
+</html>
