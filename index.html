@@ -1,187 +1,562 @@
-/**
- * ============================================================
- * TimeTrack Pro — Backend (Google Apps Script)
- * Features: GPS, Admin Approval, Daily Dashboard, User Profile, Term Reports
- * ============================================================
- */
-
-const SHEET_USERS      = 'Users';
-const SHEET_ATTENDANCE = 'Attendance';
-const SHEET_SETTINGS   = 'Settings';
-const TOKEN_TTL_MS     = 1000 * 60 * 60 * 24 * 30; // 30 วัน (สำหรับ Remember Me)
-
-// =================================================================
-// Helper: สร้าง JSON Response
-// =================================================================
-function jsonResponse(obj) {
-  return ContentService.createTextOutput(JSON.stringify(obj))
-    .setMimeType(ContentService.MimeType.JSON);
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>TimeTrack Pro — ระบบลงเวลาทำงาน</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ===================================================================
+   CSS VARIABLES & RESET
+=================================================================== */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-deep:#0a0e27; --bg-card:rgba(255,255,255,.06); --border-glass:rgba(255,255,255,.12);
+  --text:#f0f2ff; --muted:#8b92b8; --cyan:#22d3ee; --violet:#a78bfa;
+  --rose:#fb7185; --emerald:#34d399; --amber:#fbbf24;
+  --radius-xl:24px; --radius-lg:18px; --radius-md:12px;
+  --nav-height: 70px;
 }
-
-// =================================================================
-// 🟢 ฟังก์ชันสร้าง Google Sheet และโฟลเดอร์รูปภาพ
-// =================================================================
-function getOrCreateSpreadsheet() {
-  try {
-    const activeSS = SpreadsheetApp.getActiveSpreadsheet();
-    if (activeSS) return activeSS;
-  } catch (e) {}
-
-  const fileName = 'TimeTrack_DB';
-  const files = DriveApp.getFilesByName(fileName);
-  if (files.hasNext()) return SpreadsheetApp.open(files.next());
-  return SpreadsheetApp.create(fileName);
+body{
+  font-family:'Prompt','Inter',sans-serif; background:var(--bg-deep); color:var(--text);
+  min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  padding:20px 16px calc(var(--nav-height) + 30px) 16px; position:relative; overflow-x:hidden;
 }
+.orb{position:fixed;border-radius:50%;filter:blur(100px);opacity:.4;pointer-events:none;z-index:0;animation:float 14s ease-in-out infinite alternate}
+.orb-1{width:520px;height:520px;background:#06b6d4;top:-180px;left:-140px}
+.orb-2{width:460px;height:460px;background:#8b5cf6;bottom:-160px;right:-120px;animation-delay:-4s}
+.orb-3{width:320px;height:320px;background:#f43f5e;top:40%;left:60%;opacity:.18;animation-delay:-8s}
+@keyframes float{0%{transform:translate(0,0) scale(1)}100%{transform:translate(30px,-40px) scale(1.08)}}
 
-function getOrCreateProfileFolder() {
-  const folderName = 'TimeTrack_Profiles';
-  const folders = DriveApp.getFoldersByName(folderName);
-  if (folders.hasNext()) return folders.next();
-  return DriveApp.createFolder(folderName);
-}
+/* ===================================================================
+   LAYOUT & COMPONENTS
+=================================================================== */
+.wrapper{position:relative;z-index:1;width:100%;max-width:580px;display:flex;flex-direction:column;gap:16px}
+.screen{display:none;flex-direction:column;gap:16px;width:100%;animation:fadeIn .3s ease}
+.screen.active{display:flex}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-// =================================================================
-// SETUP (สร้างชีต/หัวตาราง)
-// =================================================================
-function ensureSetup() {
-  const ss = getOrCreateSpreadsheet();
+.brand{text-align:center;padding:8px 0 4px}
+.brand-badge{display:inline-flex;align-items:center;gap:8px;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.25);padding:6px 14px;border-radius:999px;margin-bottom:12px}
+.brand-dot{width:7px;height:7px;background:var(--cyan);border-radius:50%;animation:pulse 1.8s infinite}
+@keyframes pulse{0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(34,211,238,.6)}50%{opacity:.6;box-shadow:0 0 0 6px rgba(34,211,238,0)}}
+.brand-title{font-size:clamp(1.8rem,5vw,2.2rem);font-weight:700;background:linear-gradient(135deg,#fff,#a5b4fc 50%,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em}
+.brand-sub{font-size:.88rem;color:var(--muted);margin-top:6px;font-weight:300}
 
-  // --- Users ---
-  let u = ss.getSheetByName(SHEET_USERS);
-  if (!u) {
-    u = ss.insertSheet(SHEET_USERS);
-    u.appendRow([
-      'Username','PasswordHash','FullName','Role','Status',
-      'RegisteredAt','ApprovedAt','ApprovedBy','Email','Phone',
-      'RegLatitude','RegLongitude','RegDistance','ProfilePicUrl'
-    ]);
-    u.getRange('A1:N1').setFontWeight('bold').setBackground('#1a1a2e')
-      .setFontColor('#ffffff').setHorizontalAlignment('center');
-    u.setFrozenRows(1);
-    u.setColumnWidths(1, 14, 130);
+.card{background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-xl);padding:24px 22px;backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 60px rgba(34,211,238,.08)}
 
-    const salt = Utilities.getUuid();
-    u.appendRow([
-      'admin', salt + ':' + hashPassword('admin123', salt),
-      'ผู้ดูแลระบบ', 'admin', 'approved',
-      new Date(), new Date(), 'system', '', '', '', '', '', ''
-    ]);
-  }
+/* Header */
+.app-header{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border-glass);padding:12px 16px;border-radius:var(--radius-lg);backdrop-filter:blur(16px)}
+.user-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
+.avatar{border-radius:50%;width:40px;height:40px;object-fit:cover;border:2px solid var(--cyan);background:#1e293b}
+.user-name{font-weight:600;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:.72rem;color:var(--muted);margin-top:2px}
+.icon-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);cursor:pointer;font-size:1rem;transition:all .2s}
+.icon-btn:hover{background:rgba(34,211,238,.15);border-color:var(--cyan);color:var(--cyan)}
 
-  // --- Attendance ---
-  let a = ss.getSheetByName(SHEET_ATTENDANCE);
-  if (!a) {
-    a = ss.insertSheet(SHEET_ATTENDANCE);
-    a.appendRow([
-      'Timestamp','Username','FullName','Action','Reason','Note',
-      'Latitude','Longitude','DistanceMeters','InsideGeofence'
-    ]);
-    a.getRange('A1:J1').setFontWeight('bold').setBackground('#1a1a2e')
-      .setFontColor('#ffffff').setHorizontalAlignment('center');
-    a.setFrozenRows(1);
-    a.setColumnWidths(1, 10, 130);
-  }
+/* Tabs & Forms */
+.tabs{display:flex;gap:6px;background:rgba(255,255,255,.04);padding:5px;border-radius:14px;border:1px solid var(--border-glass)}
+.tab{flex:1;padding:10px 12px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:.85rem;font-weight:500;cursor:pointer;border-radius:10px;transition:all .2s}
+.tab.active{background:linear-gradient(135deg,rgba(34,211,238,.2),rgba(167,139,250,.2));color:#fff;box-shadow:0 4px 12px rgba(34,211,238,.15)}
+.tab-content{display:none}
+.tab-content.active{display:block}
 
-  // --- Settings ---
-  let s = ss.getSheetByName(SHEET_SETTINGS);
-  if (!s) {
-    s = ss.insertSheet(SHEET_SETTINGS);
-    s.appendRow(['Key','Value','Description']);
-    s.getRange('A1:C1').setFontWeight('bold').setBackground('#1a1a2e')
-      .setFontColor('#ffffff').setHorizontalAlignment('center');
-    s.setFrozenRows(1);
-    s.setColumnWidths(1, 3, 180);
-    // ตั้งค่าเริ่มต้น
-    const defaults = [
-      ['office_lat', '13.7563', 'ละติจูดสำนักงาน'],
-      ['office_lng', '100.5018', 'ลองจิจูดสำนักงาน'],
-      ['radius_meters', '200', 'รัศมีที่อนุญาต (เมตร)'],
-      ['office_name', 'สำนักงานใหญ่', 'ชื่อสำนักงาน'],
-      ['strict_registration', 'false', 'บังคับรัศมีตอนลงทะเบียน'],
-      ['academic_year', '2567', 'ปีการศึกษาปัจจุบัน'],
-      ['term1_start', '2024-05-16', 'วันเปิดเทอม 1'],
-      ['term1_end', '2024-10-11', 'วันปิดเทอม 1'],
-      ['term2_start', '2024-11-01', 'วันเปิดเทอม 2'],
-      ['term2_end', '2025-03-31', 'วันปิดเทอม 2']
-    ];
-    defaults.forEach(d => s.appendRow(d));
-  }
-  return ss;
-}
+.field{margin-bottom:16px}
+.field-label{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:500;color:var(--muted);margin-bottom:8px}
+.req{color:var(--rose);font-size:.9rem}
+.input,.textarea,.select{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);padding:12px 14px;color:var(--text);font-family:inherit;font-size:.92rem;outline:none;transition:border-color .25s,box-shadow .25s,background .25s}
+.input:focus,.textarea:focus,.select:focus{border-color:rgba(34,211,238,.55);background:rgba(34,211,238,.05);box-shadow:0 0 0 4px rgba(34,211,238,.1)}
+.input::placeholder,.textarea::placeholder{color:#5a6285}
+.checkbox-group{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);cursor:pointer}
+input[type="checkbox"]{width:16px;height:16px;cursor:pointer}
 
-function resetAll() {
-  const ss = getOrCreateSpreadsheet();
-  [SHEET_USERS, SHEET_ATTENDANCE, SHEET_SETTINGS].forEach(n => {
-    const sh = ss.getSheetByName(n);
-    if (sh) ss.deleteSheet(sh);
-  });
-  ensureSetup();
-  SpreadsheetApp.getUi().alert('รีเซ็ตระบบเรียบร้อย!\n\nAdmin: admin\nPassword: admin123');
-}
+/* Actions */
+.action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px}
+.action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 10px;border-radius:var(--radius-lg);border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:var(--muted);font-family:inherit;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .3s}
+.action-btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.25)}
+.action-btn .icon{font-size:1.4rem;line-height:1}
+.action-btn[data-action="เข้างาน"].active{background:linear-gradient(145deg,rgba(52,211,153,.22),rgba(52,211,153,.06));border-color:var(--emerald);color:var(--emerald)}
+.action-btn[data-action="ออกงาน"].active{background:linear-gradient(145deg,rgba(251,113,133,.22),rgba(251,113,133,.06));border-color:var(--rose);color:var(--rose)}
+.action-btn[data-action="ลา"].active{background:linear-gradient(145deg,rgba(251,191,36,.22),rgba(251,191,36,.06));border-color:var(--amber);color:var(--amber)}
+.action-btn[data-action="มาสาย"].active{background:linear-gradient(145deg,rgba(167,139,250,.22),rgba(167,139,250,.06));border-color:var(--violet);color:var(--violet)}
 
-// =================================================================
-// HTTP ENTRY POINTS
-// =================================================================
-function doGet(e) {
-  ensureSetup();
-  return jsonResponse({ success: true, message: 'TimeTrack Pro API is running perfectly!' });
-}
+.submit-btn{width:100%;padding:16px;border:none;border-radius:var(--radius-lg);font-family:inherit;font-size:.98rem;font-weight:600;cursor:pointer;color:#06121f;background:linear-gradient(135deg,#22d3ee,#818cf8);box-shadow:0 10px 30px rgba(34,211,238,.25);transition:all .2s}
+.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 16px 40px rgba(34,211,238,.35)}
+.submit-btn:disabled{opacity:.6;cursor:not-allowed}
+.btn-sm{padding:6px 12px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:.75rem;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-cyan{background:rgba(34,211,238,.15);color:var(--cyan);border-color:rgba(34,211,238,.4)}
+.btn-neutral{background:rgba(255,255,255,.06);color:var(--muted);border-color:rgba(255,255,255,.15)}
+.btn-danger{background:rgba(251,113,133,.15);color:var(--rose);border-color:rgba(251,113,133,.4)}
 
-function doPost(e) {
-  ensureSetup();
-  const lock = LockService.getScriptLock();
-  try {
-    lock.waitLock(15000);
-    let p;
-    try { p = JSON.parse(e.postData.contents); }
-    catch (err) { return jsonResponse({ success: false, message: 'รูปแบบข้อมูลไม่ถูกต้อง' }); }
+/* GPS Status */
+.gps-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;font-size:.82rem;font-weight:500;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);margin-bottom:16px;color:var(--muted);transition:all .3s}
+.gps-status.ok{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.4);color:var(--emerald)}
+.gps-status.bad{background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.4);color:var(--rose)}
+.gps-status.loading{background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.4);color:var(--cyan)}
 
-    const cmd = String(p.cmd || '');
-    let result;
+/* Tables */
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border-glass);margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:.82rem;text-align:left}
+th{background:rgba(255,255,255,.05);padding:12px 10px;font-weight:600;color:var(--muted);white-space:nowrap}
+td{padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
+tr:last-child td{border-bottom:none}
+.table-name{font-weight:500;color:var(--text)}
+.table-sub{font-size:.75rem;color:var(--rose);margin-top:2px}
 
-    switch (cmd) {
-      case 'register':              result = handleRegister(p); break;
-      case 'login':                 result = handleLogin(p); break;
-      case 'logout':                result = handleLogout(p); break;
-      case 'getMyInfo':             result = handleGetMyInfo(p); break;
-      case 'getSettings':           result = handleGetSettings(p); break;
-      case 'attendance':            result = handleAttendance(p); break;
-      case 'getRecent':             result = handleGetRecent(p); break;
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.show{display:flex}
+.modal{background:#151b3d;border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:24px;max-width:420px;width:100%}
+
+/* Navigation Bar */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:rgba(15,23,42,.85);backdrop-filter:blur(20px);border-top:1px solid var(--border-glass);display:none;justify-content:space-around;align-items:center;z-index:90;padding:0 10px}
+.bottom-nav.show{display:flex}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.7rem;font-weight:500;cursor:pointer;transition:all .2s;padding:8px 12px;border-radius:12px}
+.nav-item.active{color:var(--cyan);background:rgba(34,211,238,.1)}
+.nav-icon{font-size:1.3rem}
+
+/* Misc */
+.section-title{font-size:1rem;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
+.reason-section{max-height:0;overflow:hidden;opacity:0;transition:all .3s;margin-bottom:0}
+.reason-section.visible{max-height:200px;opacity:1;margin-bottom:16px}
+.empty-state{text-align:center;padding:30px 12px;color:var(--muted);font-size:.85rem;border:1px dashed rgba(255,255,255,.1);border-radius:12px}
+.profile-pic-upload{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px}
+.avatar-lg{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--cyan);background:#1e293b}
+.toast{position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%;transform:translateX(-50%) translateY(120%);z-index:99;padding:14px 22px;border-radius:12px;background:rgba(15,23,42,.95);border:1px solid rgba(255,255,255,.12);font-size:.88rem;font-weight:500;transition:all .4s;max-width:calc(100vw - 40px);display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:rgba(52,211,153,.5);color:var(--emerald)}
+.toast.error{border-color:rgba(251,113,133,.5);color:var(--rose)}
+.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(6,18,31,.25);border-top-color:#06121f;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<div class="orb orb-3"></div>
+
+<div class="wrapper">
+
+  <!-- ================= AUTH SCREEN ================= -->
+  <div id="authScreen" class="screen active">
+    <header class="brand">
+      <div class="brand-badge"><span class="brand-dot"></span>TIME TRACK PRO</div>
+      <h1 class="brand-title">ลงเวลาทำงาน</h1>
+      <p class="brand-sub">ระบบบันทึกเวลาพร้อม GPS Geofence</p>
+    </header>
+
+    <div class="card">
+      <div class="tabs" style="margin-bottom:18px">
+        <button class="tab active" data-tab="login">เข้าสู่ระบบ</button>
+        <button class="tab" data-tab="register">ลงทะเบียน</button>
+      </div>
+
+      <form id="loginForm" class="tab-content active">
+        <div class="field">
+          <label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label>
+          <input type="text" id="loginUsername" class="input" required>
+        </div>
+        <div class="field">
+          <label class="field-label">รหัสผ่าน <span class="req">*</span></label>
+          <input type="password" id="loginPassword" class="input" required>
+        </div>
+        <div class="field">
+          <label class="checkbox-group">
+            <input type="checkbox" id="rememberMe" checked> จดจำรหัสผ่าน (ล็อกอินอัตโนมัติ)
+          </label>
+        </div>
+        <button type="submit" class="submit-btn" id="loginBtn">เข้าสู่ระบบ</button>
+      </form>
+
+      <form id="registerForm" class="tab-content">
+        <div class="field">
+          <label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label>
+          <input type="text" id="regUsername" class="input" placeholder="a-z, 0-9, _" required>
+        </div>
+        <div class="field">
+          <label class="field-label">ชื่อ-นามสกุล <span class="req">*</span></label>
+          <input type="text" id="regFullName" class="input" placeholder="เช่น สมชาย ใจดี" required>
+        </div>
+        <div class="field">
+          <label class="field-label">อีเมล</label>
+          <input type="email" id="regEmail" class="input">
+        </div>
+        <div class="field">
+          <label class="field-label">เบอร์โทร</label>
+          <input type="tel" id="regPhone" class="input">
+        </div>
+        <div class="field">
+          <label class="field-label">รหัสผ่าน <span class="req">*</span></label>
+          <input type="password" id="regPassword" class="input" required>
+        </div>
+        <div class="field">
+          <label class="field-label">ยืนยันรหัสผ่าน <span class="req">*</span></label>
+          <input type="password" id="regPassword2" class="input" required>
+        </div>
+        <div class="gps-status" id="regGpsStatus">
+          <span>📍</span><span>ระบบจะขอตำแหน่ง GPS ขณะลงทะเบียน</span>
+        </div>
+        <button type="submit" class="submit-btn" id="registerBtn">ลงทะเบียน</button>
+      </form>
+    </div>
+    <div class="footer-info" id="footerInfo" style="text-align:center;font-size:.78rem;color:var(--muted)">—</div>
+  </div>
+
+  <!-- ================= DASHBOARD / ATTENDANCE SCREEN ================= -->
+  <div id="dashboardScreen" class="screen">
+    <header class="app-header">
+      <div class="user-info">
+        <img id="dashPic" class="avatar" src="https://via.placeholder.com/40" alt="profile">
+        <div>
+          <div class="user-name" id="dashName">—</div>
+          <div class="user-role" id="dashRole">—</div>
+        </div>
+      </div>
+      <button class="icon-btn" id="adminBtn" style="display:none">⚙️</button>
+      <button class="icon-btn" id="logoutBtn" title="ออกจากระบบ">🚪</button>
+    </header>
+
+    <div class="card">
+      <div style="text-align:center;padding-bottom:16px;margin-bottom:16px;border-bottom:1px dashed rgba(255,255,255,.1)">
+        <div id="clockTime" style="font-family:'Inter',monospace;font-size:2.5rem;font-weight:600;letter-spacing:.04em;background:linear-gradient(135deg,#67e8f9,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">--:--:--</div>
+        <div id="clockDate" style="font-size:.84rem;color:var(--muted);margin-top:4px;font-weight:300"></div>
+      </div>
+
+      <div class="gps-status" id="gpsStatus">
+        <span>📍</span><span>เลือกประเภทเพื่อตรวจสอบตำแหน่ง</span>
+      </div>
+
+      <form id="attendanceForm" autocomplete="off">
+        <div class="field" style="margin-bottom:12px">
+          <span class="field-label">เลือกประเภทการลงเวลา <span class="req">*</span></span>
+          <div class="action-grid">
+            <button type="button" class="action-btn" data-action="เข้างาน"><span class="icon">🌅</span> เข้างาน</button>
+            <button type="button" class="action-btn" data-action="ออกงาน"><span class="icon">🌇</span> ออกงาน</button>
+            <button type="button" class="action-btn" data-action="ลา"><span class="icon">🌴</span> ลา</button>
+            <button type="button" class="action-btn" data-action="มาสาย"><span class="icon">⏰</span> มาสาย</button>
+          </div>
+        </div>
+        <div class="reason-section" id="reasonSection">
+          <div class="field" style="margin-bottom:12px">
+            <label class="field-label">เหตุผล <span class="req">*</span></label>
+            <textarea id="reasonInput" class="textarea" placeholder="ระบุเหตุผล..."></textarea>
+          </div>
+        </div>
+        <div class="field">
+          <label class="field-label">หมายเหตุเพิ่มเติม</label>
+          <textarea id="noteInput" class="textarea" placeholder="ไม่บังคับ..." style="min-height:56px"></textarea>
+        </div>
+        <button type="submit" class="submit-btn" id="submitBtn">📍 บันทึกพร้อมตำแหน่ง</button>
+      </form>
+    </div>
+
+    <!-- Daily Dashboard Report (Admin & User) -->
+    <div class="card">
+      <div class="section-title">
+        <span>📊 รายงานประจำวัน</span>
+        <input type="date" id="dailyDate" class="input" style="width:auto;padding:6px 10px;font-size:.8rem">
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ชื่อ</th>
+              <th>เข้างาน</th>
+              <th>เหตุผล</th>
+              <th>ออกงาน</th>
+              <th>เหตุผล</th>
+            </tr>
+          </thead>
+          <tbody id="dailyReportBody">
+            <tr><td colspan="5" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= REPORTS SCREEN ================= -->
+  <div id="reportsScreen" class="screen">
+    <header class="app-header">
+      <div class="user-info">
+        <img id="reportPic" class="avatar" src="https://via.placeholder.com/40" alt="profile">
+        <div>
+          <div class="user-name" id="reportName">—</div>
+          <div class="user-role">รายงานการลงเวลาของฉัน</div>
+        </div>
+      </div>
+      <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
+    </header>
+
+    <div class="card">
+      <div class="section-title">📅 ปีการศึกษา <span id="academicYearText">—</span></div>
       
-      case 'updateProfile':         result = handleUpdateProfile(p); break;
-      case 'changePassword':        result = handleChangePassword(p); break;
+      <div class="tabs" style="margin-bottom:16px">
+        <button class="tab active" data-tab="term1">เทอม 1</button>
+        <button class="tab" data-tab="term2">เทอม 2</button>
+      </div>
+
+      <div class="tab-content active" id="term1Tab">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>วันที่</th><th>เวลา</th><th>กิจกรรม</th><th>เหตุผล</th></tr></thead>
+            <tbody id="term1Body"><tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
       
-      case 'getDailyReport':        result = handleGetDailyReport(p); break;
-      case 'getTermReports':        result = handleGetTermReports(p); break;
+      <div class="tab-content" id="term2Tab">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>วันที่</th><th>เวลา</th><th>กิจกรรม</th><th>เหตุผล</th></tr></thead>
+            <tbody id="term2Body"><tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
 
-      case 'admin_listPending':     result = handleAdminListPending(p); break;
-      case 'admin_listUsers':       result = handleAdminListUsers(p); break;
-      case 'admin_approve':         result = handleAdminApprove(p); break;
-      case 'admin_reject':          result = handleAdminReject(p); break;
-      case 'admin_deleteUser':      result = handleAdminDeleteUser(p); break;
-      case 'admin_resetPassword':   result = handleAdminResetPassword(p); break;
-      case 'admin_updateSettings':  result = handleAdminUpdateSettings(p); break;
+  <!-- ================= PROFILE SCREEN ================= -->
+  <div id="profileScreen" class="screen">
+    <header class="app-header">
+      <div class="user-info">
+        <div class="user-name">ตั้งค่าโปรไฟล์</div>
+        <div class="user-role">แก้ไขข้อมูลส่วนตัว</div>
+      </div>
+      <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
+    </header>
 
-      default: result = { success: false, message: 'Unknown cmd: ' + cmd };
-    }
-    return jsonResponse(result);
+    <div class="card">
+      <form id="profileForm">
+        <div class="profile-pic-upload">
+          <img id="profilePicPreview" class="avatar-lg" src="https://via.placeholder.com/90" alt="profile">
+          <label class="btn-sm btn-cyan" style="cursor:pointer">
+            เปลี่ยนรูปภาพ
+            <input type="file" id="profilePicInput" accept="image/*" style="display:none">
+          </label>
+        </div>
+
+        <div class="field">
+          <label class="field-label">ชื่อผู้ใช้ (Username) <span class="req">*</span></label>
+          <input type="text" id="profUsername" class="input" required>
+        </div>
+        <div class="field">
+          <label class="field-label">ชื่อ-นามสกุล <span class="req">*</span></label>
+          <input type="text" id="profFullName" class="input" required>
+        </div>
+        <div class="field">
+          <label class="field-label">อีเมล</label>
+          <input type="email" id="profEmail" class="input">
+        </div>
+
+        <button type="submit" class="submit-btn" id="saveProfileBtn">💾 บันทึกข้อมูล</button>
+      </form>
+    </div>
+
+    <div class="card">
+      <div class="section-title">🔑 เปลี่ยนรหัสผ่าน</div>
+      <form id="passwordForm">
+        <div class="field">
+          <label class="field-label">รหัสผ่านเดิม</label>
+          <input type="password" id="oldPw" class="input" required>
+        </div>
+        <div class="field">
+          <label class="field-label">รหัสผ่านใหม่ (6+)</label>
+          <input type="password" id="newPw" class="input" required>
+        </div>
+        <button type="submit" class="submit-btn" style="background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff" id="savePwBtn">เปลี่ยนรหัสผ่าน</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= ADMIN SCREEN ================= -->
+  <div id="adminScreen" class="screen">
+    <header class="app-header">
+      <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
+      <div class="user-info">
+        <div class="user-name">Admin Panel</div>
+        <div class="user-role">จัดการระบบ</div>
+      </div>
+    </header>
+
+    <div class="card">
+      <div class="tabs" style="margin-bottom:16px">
+        <button class="tab active" data-tab="pending">รออนุมัติ</button>
+        <button class="tab" data-tab="users">ผู้ใช้</button>
+        <button class="tab" data-tab="settings">ตั้งค่า</button>
+      </div>
+
+      <div class="tab-content active" id="pendingTab">
+        <div class="section-title">👥 ผู้ใช้รออนุมัติ</div>
+        <div id="pendingList" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+      <div class="tab-content" id="usersTab">
+        <div class="section-title">👤 ผู้ใช้ทั้งหมด</div>
+        <div id="usersList" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
+
+      <div class="tab-content" id="settingsTab">
+        <div class="section-title">⚙️ ตั้งค่าสำนักงาน</div>
+        <div class="field"><label class="field-label">ชื่อสำนักงาน</label><input type="text" id="setOfficeName" class="input"></div>
+        <div class="field"><label class="field-label">ละติจูด</label><input type="number" id="setOfficeLat" class="input" step="any"></div>
+        <div class="field"><label class="field-label">ลองจิจูด</label><input type="number" id="setOfficeLng" class="input" step="any"></div>
+        <div class="field"><label class="field-label">รัศมี (เมตร)</label><input type="number" id="setRadius" class="input"></div>
+        <div class="field" style="margin-bottom:24px"><label class="checkbox-group"><input type="checkbox" id="setStrictReg"> บังคับรัศมีตอนลงทะเบียน</label></div>
+        
+        <div class="section-title" style="margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:16px">📅 ตั้งค่าปีการศึกษา</div>
+        <div class="field"><label class="field-label">ปีการศึกษา (พ.ศ.)</label><input type="text" id="setAcademicYear" class="input" placeholder="เช่น 2567"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="field"><label class="field-label">เปิดเทอม 1</label><input type="date" id="setTerm1Start" class="input"></div>
+          <div class="field"><label class="field-label">ปิดเทอม 1</label><input type="date" id="setTerm1End" class="input"></div>
+          <div class="field"><label class="field-label">เปิดเทอม 2</label><input type="date" id="setTerm2Start" class="input"></div>
+          <div class="field"><label class="field-label">ปิดเทอม 2</label><input type="date" id="setTerm2End" class="input"></div>
+        </div>
+
+        <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- NAVIGATION BAR (User only) -->
+<div class="bottom-nav" id="bottomNav">
+  <div class="nav-item active" onclick="navTo('dashboardScreen', this)">
+    <span class="nav-icon">🏠</span> หน้าหลัก
+  </div>
+  <div class="nav-item" onclick="navTo('reportsScreen', this)">
+    <span class="nav-icon">📊</span> รายงาน
+  </div>
+  <div class="nav-item" onclick="navTo('profileScreen', this)">
+    <span class="nav-icon">👤</span> โปรไฟล์
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastIcon">✅</span><span id="toastMsg"></span></div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle" style="margin-bottom:14px;font-size:1.1rem"></h3>
+    <div class="modal-body" id="modalBody" style="font-size:.9rem;color:var(--muted);margin-bottom:18px;line-height:1.6"></div>
+    <div class="modal-actions" id="modalActions" style="display:flex;gap:10px;justify-content:flex-end"></div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
+
+const state = {
+  token: localStorage.getItem('tt_token') || '',
+  user: JSON.parse(localStorage.getItem('tt_user')) || null,
+  settings: null,
+  selectedAction: null,
+  currentPos: null,
+  posTimestamp: 0,
+  loadingAuth: false,
+  profilePicBase64: null
+};
+
+// ============================================================
+// API HELPER
+// ============================================================
+async function api(cmd, extra = {}) {
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ cmd, token: state.token, ...extra }),
+    });
+    return await res.json();
   } catch (err) {
-    return jsonResponse({ success: false, message: 'Server error: ' + err.toString() });
-  } finally {
-    try { lock.releaseLock(); } catch (e) {}
+    return { success: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ' };
   }
 }
 
-// =================================================================
-// CRYPTO / UTILITIES
-// =================================================================
-function hashPassword(password, salt) {
-  const raw = Utilities.computeDigest(
-    Utilities.DigestAlgorithm.SHA_256, salt + '::' + password
-  );
-  return raw.map(b => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('');
+// ============================================================
+// UI HELPERS
+// ============================================================
+function toast(msg, type = 'success') {
+  const el = document.getElementById('toast');
+  document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '⚠️';
+  document.getElementById('toastMsg').textContent = msg;
+  el.className = `toast ${type} show`;
+  setTimeout(() => el.classList.remove('show'), 4000);
 }
 
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  
+  // Manage Bottom Nav visibility
+  const nav = document.getElementById('bottomNav');
+  if (['dashboardScreen', 'reportsScreen', 'profileScreen'].includes(name)) {
+    nav.classList.add('show');
+  } else {
+    nav.classList.remove('show');
+  }
+  
+  // Update Nav Active State
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navItems = document.querySelectorAll('.nav-item');
+  if (name === 'dashboardScreen') navItems[0].classList.add('active');
+  if (name === 'reportsScreen') navItems[1].classList.add('active');
+  if (name === 'profileScreen') navItems[2].classList.add('active');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'reportsScreen') loadTermReports();
+  if (name === 'dashboardScreen' && state.user) loadDailyReport();
+}
+
+function navTo(screen, el) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  showScreen(screen);
+}
+
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+
+// ============================================================
+// CLOCK
+// ============================================================
+setInterval(() => {
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0'), mm = String(now.getMinutes()).padStart(2,'0'), ss = String(now.getSeconds()).padStart(2,'0');
+  if(document.getElementById('clockTime')) document.getElementById('clockTime').textContent = `${hh}:${mm}:${ss}`;
+  const days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
+  const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  if(document.getElementById('clockDate')) document.getElementById('clockDate').textContent = `วัน${days[now.getDay()]}ที่ ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()+543}`;
+}, 1000);
+
+// ============================================================
+// GPS
+// ============================================================
+function getGPS() {
+  return new Promise((resolve, reject) => {
+    if (!navigator.geolocation) return reject(new Error('เบราว์เซอร์ไม่รองรับ GPS'));
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      err => reject(new Error('กรุณาอนุญาต GPS หรือตรวจสอบสัญญาณ')),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  });
+}
+async function refreshPosition() {
+  const pos = await getGPS();
+  state.currentPos = pos;
+  state.posTimestamp = Date.now();
+  return pos;
+}
+function getFreshPosition() {
+  if (state.currentPos && Date.now() - state.posTimestamp < 60000) return Promise.resolve(state.currentPos);
+  return refreshPosition();
+}
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371000, toRad = d => d * Math.PI / 180;
   const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
@@ -189,511 +564,439 @@ function haversine(lat1, lon1, lat2, lon2) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-function formatDate(d, fmt = 'dd/MM/yyyy HH:mm:ss') {
-  if (!(d instanceof Date)) return String(d || '');
-  return Utilities.formatDate(d, Session.getScriptTimeZone(), fmt);
-}
+// ============================================================
+// AUTH LOGIC
+// ============================================================
+document.querySelectorAll('#authScreen .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#authScreen .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('#authScreen .tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(tab.dataset.tab + 'Form').classList.add('active');
+  });
+});
 
-function getSettingsMap() {
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_SETTINGS);
-  const data = sheet.getDataRange().getValues();
-  const map = {};
-  for (let i = 1; i < data.length; i++) map[String(data[i][0])] = String(data[i][1]);
-  return map;
-}
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (state.loadingAuth) return;
+  const btn = document.getElementById('loginBtn');
+  const username = document.getElementById('loginUsername').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const remember = document.getElementById('rememberMe').checked;
 
-function findUserRow(sheet, username) {
-  const data = sheet.getDataRange().getValues();
-  for (let i = 1; i < data.length; i++) {
-    if (String(data[i][0]).toLowerCase() === username.toLowerCase()) return i + 1;
+  if (!username || !password) return toast('กรอกข้อมูลให้ครบ', 'error');
+  state.loadingAuth = true; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังโหลด...';
+
+  const res = await api('login', { username, password });
+  state.loadingAuth = false; btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+
+  if (!res.success) return toast(res.message, 'error');
+
+  state.token = res.token; state.user = res.user;
+  if (remember) {
+    localStorage.setItem('tt_token', res.token);
+    localStorage.setItem('tt_user', JSON.stringify(res.user));
+  } else {
+    localStorage.removeItem('tt_token');
+    localStorage.removeItem('tt_user');
   }
-  return -1;
-}
+  
+  await initUserSession();
+});
 
-// =================================================================
-// TOKEN MANAGEMENT
-// =================================================================
-function createToken(username, role, fullName) {
-  cleanupExpiredTokens();
-  const token = Utilities.getUuid().replace(/-/g,'') + Utilities.getUuid().replace(/-/g,'');
-  const data = { username, role, fullName, exp: Date.now() + TOKEN_TTL_MS };
-  PropertiesService.getScriptProperties().setProperty('tok_' + token, JSON.stringify(data));
-  return token;
-}
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (state.loadingAuth) return;
+  const u = document.getElementById('regUsername').value.trim().toLowerCase();
+  const fn = document.getElementById('regFullName').value.trim();
+  const em = document.getElementById('regEmail').value.trim();
+  const ph = document.getElementById('regPhone').value.trim();
+  const p1 = document.getElementById('regPassword').value;
+  const p2 = document.getElementById('regPassword2').value;
 
-function verifyToken(token) {
-  if (!token) return null;
-  const raw = PropertiesService.getScriptProperties().getProperty('tok_' + token);
-  if (!raw) return null;
-  let data;
-  try { data = JSON.parse(raw); } catch (e) { return null; }
-  if (data.exp < Date.now()) {
-    PropertiesService.getScriptProperties().deleteProperty('tok_' + token);
-    return null;
+  if (p1 !== p2) return toast('รหัสผ่านไม่ตรงกัน', 'error');
+  
+  const btn = document.getElementById('registerBtn');
+  const statusEl = document.getElementById('regGpsStatus');
+  statusEl.className = 'gps-status loading'; statusEl.innerHTML = '<span>⏳</span><span>กำลังหา GPS...</span>';
+
+  try {
+    const pos = await refreshPosition();
+    statusEl.className = 'gps-status ok'; statusEl.innerHTML = '<span>✅</span><span>กำลังส่งข้อมูล...</span>';
+    state.loadingAuth = true; btn.disabled = true;
+    
+    const res = await api('register', { username:u, password:p1, fullName:fn, email:em, phone:ph, lat:pos.lat, lng:pos.lng });
+    
+    state.loadingAuth = false; btn.disabled = false;
+    if (!res.success) { statusEl.className = 'gps-status bad'; statusEl.innerHTML = `<span>❌</span><span>${res.message}</span>`; return; }
+    toast(res.message);
+    document.getElementById('registerForm').reset();
+    statusEl.className = 'gps-status'; statusEl.innerHTML = '<span>📍</span><span>ระบบจะขอตำแหน่ง GPS ขณะลงทะเบียน</span>';
+  } catch (err) {
+    state.loadingAuth = false; btn.disabled = false;
+    statusEl.className = 'gps-status bad'; statusEl.innerHTML = `<span>❌</span><span>${err.message}</span>`;
   }
-  return data;
+});
+
+async function initUserSession() {
+  if (!state.user || !state.token) return;
+  
+  document.getElementById('dashName').textContent = state.user.fullName;
+  document.getElementById('dashRole').textContent = state.user.username;
+  document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/40';
+  document.getElementById('adminBtn').style.display = state.user.role === 'admin' ? 'flex' : 'none';
+  
+  if (!state.settings) {
+    const s = await api('getSettings');
+    if (s.success) state.settings = s.settings;
+  }
+  
+  const defaultDate = new Date().toISOString().split('T')[0];
+  if(document.getElementById('dailyDate') && !document.getElementById('dailyDate').value) {
+    document.getElementById('dailyDate').value = defaultDate;
+  }
+
+  showScreen('dashboardScreen');
 }
 
-function cleanupExpiredTokens() {
-  const props = PropertiesService.getScriptProperties();
-  const all = props.getProperties();
-  const now = Date.now();
-  for (const k in all) {
-    if (k.indexOf('tok_') === 0) {
-      try {
-        const d = JSON.parse(all[k]);
-        if (d.exp < now) props.deleteProperty(k);
-      } catch (e) { props.deleteProperty(k); }
+// Auto Login
+(async function checkAuth() {
+  if (!state.token || !state.user) return;
+  const r = await api('getMyInfo');
+  if (r.success) {
+    state.user = r.user;
+    await initUserSession();
+  } else {
+    localStorage.removeItem('tt_token');
+    localStorage.removeItem('tt_user');
+  }
+})();
+
+document.getElementById('logoutBtn').addEventListener('click', async () => {
+  await api('logout');
+  localStorage.removeItem('tt_token');
+  localStorage.removeItem('tt_user');
+  state.token = ''; state.user = null;
+  showScreen('authScreen');
+  toast('ออกจากระบบแล้ว');
+});
+
+// ============================================================
+// DASHBOARD & ATTENDANCE LOGIC
+// ============================================================
+document.querySelectorAll('.action-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const action = btn.dataset.action;
+    if (state.selectedAction === action) {
+      state.selectedAction = null; btn.classList.remove('active');
+      document.getElementById('reasonSection').classList.remove('visible');
+      return;
     }
-  }
-}
-
-function requireAuth(p) { return verifyToken(p.token); }
-function requireAdmin(p) {
-  const a = verifyToken(p.token);
-  return (a && a.role === 'admin') ? a : null;
-}
-
-// =================================================================
-// HANDLERS — USER & PROFILE
-// =================================================================
-function handleRegister(p) {
-  const username = String(p.username || '').trim().toLowerCase();
-  const password = String(p.password || '');
-  const fullName = String(p.fullName || '').trim();
-  const email    = String(p.email || '').trim();
-  const phone    = String(p.phone || '').trim();
-  const lat      = Number(p.lat);
-  const lng      = Number(p.lng);
-
-  if (username.length < 3) return { success:false, message:'ชื่อผู้ใช้อย่างน้อย 3 ตัวอักษร' };
-  if (!/^[a-z0-9_]+$/.test(username)) return { success:false, message:'ใช้ได้เฉพาะ a-z 0-9 _' };
-  if (password.length < 6) return { success:false, message:'รหัสผ่านอย่างน้อย 6 ตัวอักษร' };
-  if (!fullName) return { success:false, message:'กรุณากรอกชื่อ-นามสกุล' };
-  if (isNaN(lat) || isNaN(lng)) return { success:false, message:'ต้องเปิด GPS เพื่อลงทะเบียน' };
-
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  if (findUserRow(sheet, username) > 0) return { success:false, message:'ชื่อผู้ใช้นี้ถูกใช้งานแล้ว' };
-
-  const settings = getSettingsMap();
-  const distance = haversine(lat, lng, Number(settings.office_lat), Number(settings.office_lng));
-  const strict = String(settings.strict_registration).toLowerCase() === 'true';
-  const radius = Number(settings.radius_meters);
-
-  if (strict && distance > radius) {
-    return { success:false, message:'อยู่นอกพื้นที่ลงทะเบียน (' + Math.round(distance) + ' ม. / รัศมี ' + radius + ' ม.)' };
-  }
-
-  const salt = Utilities.getUuid();
-  const hash = hashPassword(password, salt);
-  
-  sheet.appendRow([
-    username, salt + ':' + hash, fullName, 'user', 'pending',
-    new Date(), '', '', email, phone, lat, lng, Math.round(distance), ''
-  ]);
-
-  return { success:true, message:'ลงทะเบียนสำเร็จ กรุณารอการอนุมัติจากแอดมิน' };
-}
-
-function handleLogin(p) {
-  const username = String(p.username || '').trim().toLowerCase();
-  const password = String(p.password || '');
-
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  const data = sheet.getDataRange().getValues();
-
-  for (let i = 1; i < data.length; i++) {
-    if (String(data[i][0]).toLowerCase() === username) {
-      const stored = String(data[i][1] || '');
-      const parts = stored.split(':');
-      if (parts.length !== 2) return { success:false, message:'ข้อมูลบัญชีเสียหาย' };
-      if (hashPassword(password, parts[0]) !== parts[1]) {
-        return { success:false, message:'รหัสผ่านไม่ถูกต้อง' };
-      }
-      const status = String(data[i][4]).toLowerCase();
-      if (status === 'pending')  return { success:false, message:'บัญชีรอการอนุมัติจากแอดมิน' };
-      if (status !== 'approved') return { success:false, message:'บัญชีถูกระงับ' };
-
-      const token = createToken(username, data[i][3], data[i][2]);
-      return {
-        success:true, message:'เข้าสู่ระบบสำเร็จ', token,
-        user:{ username, fullName:data[i][2], role:data[i][3] }
-      };
-    }
-  }
-  return { success:false, message:'ไม่พบชื่อผู้ใช้นี้' };
-}
-
-function handleLogout(p) {
-  if (p.token) PropertiesService.getScriptProperties().deleteProperty('tok_' + p.token);
-  return { success:true, message:'ออกจากระบบแล้ว' };
-}
-
-function handleGetMyInfo(p) {
-  const a = requireAuth(p);
-  if (!a) return { success:false, message:'Session หมดอายุ' };
-  
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  const row = findUserRow(sheet, a.username);
-  if (row < 1) return { success:false, message:'ไม่พบผู้ใช้' };
-  
-  const data = sheet.getRange(row, 1, 1, 14).getValues()[0];
-  return { 
-    success:true, 
-    user: { 
-      username: data[0], fullName: data[2], role: data[3], 
-      email: data[8], phone: data[9], profilePic: data[13] 
-    } 
-  };
-}
-
-function handleUpdateProfile(p) {
-  const auth = requireAuth(p);
-  if (!auth) return { success:false, message:'Session หมดอายุ' };
-  
-  const newFullName = String(p.fullName || '').trim();
-  const newEmail = String(p.email || '').trim();
-  const newUsername = String(p.username || '').trim().toLowerCase();
-  const base64Img = p.profilePic; // รูปภาพแบบ Base64
-  
-  if (!newFullName) return { success:false, message:'กรุณากรอกชื่อ-นามสกุล' };
-  if (!/^[a-z0-9_]+$/.test(newUsername) || newUsername.length < 3) return { success:false, message:'Username ไม่ถูกต้อง' };
-
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  const row = findUserRow(sheet, auth.username);
-  if (row < 1) return { success:false, message:'ไม่พบผู้ใช้' };
-
-  // ตรวจสอบ Username ใหม่ซ้ำหรือไม่
-  if (newUsername !== auth.username) {
-    if (findUserRow(sheet, newUsername) > 0) return { success:false, message:'Username นี้ถูกใช้งานแล้ว' };
-  }
-
-  // จัดการรูปภาพ
-  let picUrl = sheet.getRange(row, 14).getValue();
-  if (base64Img && base64Img.indexOf('data:image') === 0) {
+    document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); state.selectedAction = action;
+    
+    const reasonSec = document.getElementById('reasonSection');
+    if (action === 'ลา' || action === 'มาสาย') { reasonSec.classList.add('visible'); }
+    else { reasonSec.classList.remove('visible'); document.getElementById('reasonInput').value = ''; }
+    
+    // Check GPS
+    const statusEl = document.getElementById('gpsStatus');
+    statusEl.className = 'gps-status loading'; statusEl.innerHTML = '<span>⏳</span><span>กำลังตรวจสอบ GPS...</span>';
     try {
-      const folder = getOrCreateProfileFolder();
-      const split = base64Img.split(',');
-      const type = split[0].match(/:(.*?);/)[1];
-      const bytes = Utilities.base64Decode(split[1]);
-      const blob = Utilities.newBlob(bytes, type, `profile_${newUsername}_${Date.now()}`);
-      const file = folder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
-      // ใช้ลิงก์ Thumbnail เพื่อประหยัดแบนด์วิดท์
-      picUrl = `https://drive.google.com/thumbnail?id=${file.getId()}&sz=w300`;
-    } catch (e) {
-      return { success:false, message:'อัปโหลดรูปภาพล้มเหลว: ' + e.toString() };
-    }
-  }
-
-  // อัปเดตข้อมูลใน Sheet
-  sheet.getRange(row, 1).setValue(newUsername);
-  sheet.getRange(row, 3).setValue(newFullName);
-  sheet.getRange(row, 9).setValue(newEmail);
-  sheet.getRange(row, 14).setValue(picUrl);
-
-  // อัปเดต Token ใหม่ (ถ้ามีการเปลี่ยน Username)
-  const newToken = createToken(newUsername, auth.role, newFullName);
-
-  return { 
-    success:true, message:'อัปเดตข้อมูลสำเร็จ', token: newToken,
-    user: { username: newUsername, fullName: newFullName, email: newEmail, profilePic: picUrl, role: auth.role }
-  };
-}
-
-function handleChangePassword(p) {
-  const auth = requireAuth(p);
-  if (!auth) return { success:false, message:'Session หมดอายุ' };
-  const oldPw = String(p.oldPassword || '');
-  const newPw = String(p.newPassword || '');
-  if (newPw.length < 6) return { success:false, message:'รหัสใหม่อย่างน้อย 6 ตัวอักษร' };
-
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  const row = findUserRow(sheet, auth.username);
-  if (row < 1) return { success:false, message:'ไม่พบผู้ใช้' };
-
-  const stored = String(sheet.getRange(row, 2).getValue());
-  const parts = stored.split(':');
-  if (hashPassword(oldPw, parts[0]) !== parts[1]) {
-    return { success:false, message:'รหัสผ่านเดิมไม่ถูกต้อง' };
-  }
-  const ns = Utilities.getUuid();
-  sheet.getRange(row, 2).setValue(ns + ':' + hashPassword(newPw, ns));
-  return { success:true, message:'เปลี่ยนรหัสผ่านสำเร็จ' };
-}
-
-// =================================================================
-// HANDLERS — ATTENDANCE & REPORTS
-// =================================================================
-function handleAttendance(p) {
-  const auth = requireAuth(p);
-  if (!auth) return { success:false, message:'Session หมดอายุ กรุณาเข้าสู่ระบบใหม่' };
-
-  const action = String(p.action || '').trim();
-  const reason = String(p.reason || '').trim();
-  const note   = String(p.note || '').trim();
-  const lat    = Number(p.lat);
-  const lng    = Number(p.lng);
-
-  const allowed = ['เข้างาน','ออกงาน','ลา','มาสาย'];
-  if (!allowed.includes(action)) return { success:false, message:'ประเภทไม่ถูกต้อง' };
-  if (isNaN(lat) || isNaN(lng)) return { success:false, message:'ไม่ได้รับพิกัด GPS' };
-  if ((action === 'ลา' || action === 'มาสาย') && !reason) return { success:false, message:'กรุณาระบุเหตุผล' };
-
-  const s = getSettingsMap();
-  const distance  = haversine(lat, lng, Number(s.office_lat), Number(s.office_lng));
-  const radius    = Number(s.radius_meters);
-
-  if (distance > radius) {
-    return { success:false, message:'❌ อยู่นอกพื้นที่ (' + Math.round(distance) + ' ม. / รัศมี ' + radius + ' ม.)' };
-  }
-
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_ATTENDANCE);
-  sheet.appendRow([
-    new Date(), auth.username, auth.fullName, action, reason, note,
-    lat, lng, Math.round(distance), 'YES'
-  ]);
-  
-  return { success:true, message:'✅ บันทึก "' + action + '" สำเร็จ (' + Math.round(distance) + ' ม.)' };
-}
-
-function handleGetRecent(p) {
-  const auth = requireAuth(p);
-  if (!auth) return { success:false, message:'Session หมดอายุ' };
-
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_ATTENDANCE);
-  const data = sheet.getDataRange().getValues();
-  const items = [];
-  for (let i = data.length - 1; i >= 1 && items.length < 10; i--) {
-    if (String(data[i][1]) === auth.username) {
-      items.push({
-        timestamp: formatDate(data[i][0]), action: data[i][3], reason: data[i][4]
-      });
-    }
-  }
-  return { success:true, items };
-}
-
-// 🔥 DASHBOARD: รายงานประจำวัน
-function handleGetDailyReport(p) {
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_ATTENDANCE);
-  const data = sheet.getDataRange().getValues();
-  
-  let targetDateStr = String(p.date || '').trim(); // YYYY-MM-DD
-  
-  // ถ้าไม่ได้ส่งวันที่มา ให้หาวันล่าสุด
-  if (!targetDateStr && data.length > 1) {
-    const lastDate = new Date(data[data.length - 1][0]);
-    targetDateStr = Utilities.formatDate(lastDate, Session.getScriptTimeZone(), 'yyyy-MM-dd');
-  }
-
-  if (!targetDateStr) return { success: true, date: '', records: [] };
-
-  const dailyMap = {}; // Group by Username
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    if (!row[0]) continue;
-    const rowDateStr = Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), 'yyyy-MM-dd');
-    
-    if (rowDateStr === targetDateStr) {
-      const username = row[1];
-      const action = row[3];
-      const reason = row[4];
-      const timeStr = Utilities.formatDate(new Date(row[0]), Session.getScriptTimeZone(), 'HH:mm');
-
-      if (!dailyMap[username]) {
-        dailyMap[username] = { fullName: row[2], checkIn: '-', inReason: '-', checkOut: '-', outReason: '-' };
+      const pos = await refreshPosition();
+      const dist = haversine(pos.lat, pos.lng, state.settings.officeLat, state.settings.officeLng);
+      if (dist <= state.settings.radius) {
+        statusEl.className = 'gps-status ok';
+        statusEl.innerHTML = `<span>✅</span><span>อยู่ในพื้นที่ (${Math.round(dist)} ม.)</span>`;
+      } else {
+        statusEl.className = 'gps-status bad';
+        statusEl.innerHTML = `<span>❌</span><span>อยู่นอกพื้นที่ (${Math.round(dist)} ม.)</span>`;
       }
-
-      if (action === 'เข้างาน' || action === 'มาสาย') {
-        dailyMap[username].checkIn = timeStr;
-        dailyMap[username].inReason = reason || (action === 'มาสาย' ? 'มาสาย' : '-');
-      } else if (action === 'ออกงาน') {
-        dailyMap[username].checkOut = timeStr;
-        dailyMap[username].outReason = reason || '-';
-      } else if (action === 'ลา') {
-        dailyMap[username].inReason = 'ลา: ' + reason;
-      }
+    } catch (err) {
+      statusEl.className = 'gps-status bad'; statusEl.innerHTML = `<span>❌</span><span>${err.message}</span>`;
     }
-  }
+  });
+});
 
-  const records = Object.values(dailyMap).sort((a, b) => a.fullName.localeCompare(b.fullName));
-  return { success: true, date: targetDateStr, records };
-}
+document.getElementById('attendanceForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (!state.selectedAction) return toast('เลือกประเภทการลงเวลา', 'error');
+  const reason = document.getElementById('reasonInput').value.trim();
+  if ((state.selectedAction === 'ลา' || state.selectedAction === 'มาสาย') && !reason) return toast('ระบุเหตุผล', 'error');
 
-// 🔥 USER REPORT: รายงานแยกตามเทอม
-function handleGetTermReports(p) {
-  const auth = requireAuth(p);
-  if (!auth) return { success:false, message:'Session หมดอายุ' };
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+
+  try {
+    const pos = await getFreshPosition();
+    const res = await api('attendance', { action: state.selectedAction, reason, note: document.getElementById('noteInput').value.trim(), lat: pos.lat, lng: pos.lng });
+    if (res.success) {
+      toast(res.message);
+      document.getElementById('attendanceForm').reset();
+      document.getElementById('reasonSection').classList.remove('visible');
+      document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+      state.selectedAction = null;
+      loadDailyReport(); // Refresh report
+    } else toast(res.message, 'error');
+  } catch (err) { toast(err.message, 'error'); } 
+  finally { btn.disabled = false; btn.innerHTML = '📍 บันทึกพร้อมตำแหน่ง'; }
+});
+
+document.getElementById('dailyDate').addEventListener('change', loadDailyReport);
+
+async function loadDailyReport() {
+  const dateVal = document.getElementById('dailyDate').value;
+  const tbody = document.getElementById('dailyReportBody');
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
   
-  const s = getSettingsMap();
-  const t1Start = new Date(s.term1_start).getTime();
-  const t1End = new Date(s.term1_end).setHours(23,59,59);
-  const t2Start = new Date(s.term2_start).getTime();
-  const t2End = new Date(s.term2_end).setHours(23,59,59);
+  const res = await api('getDailyReport', { date: dateVal });
+  if (!res.success) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--rose)">${res.message}</td></tr>`; return;
+  }
 
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_ATTENDANCE);
-  const data = sheet.getDataRange().getValues();
+  if (!dateVal && res.date) document.getElementById('dailyDate').value = res.date;
+
+  if (!res.records || res.records.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">ไม่มีข้อมูลในวันนี้</td></tr>'; return;
+  }
+
+  tbody.innerHTML = res.records.map(r => `
+    <tr>
+      <td class="table-name">${r.fullName}</td>
+      <td>${r.checkIn}</td>
+      <td class="table-sub">${r.inReason}</td>
+      <td>${r.checkOut}</td>
+      <td class="table-sub">${r.outReason}</td>
+    </tr>
+  `).join('');
+}
+
+// ============================================================
+// REPORTS LOGIC (Term 1 & 2)
+// ============================================================
+document.querySelectorAll('#reportsScreen .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#reportsScreen .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('#reportsScreen .tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+  });
+});
+
+async function loadTermReports() {
+  document.getElementById('term1Body').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+  document.getElementById('term2Body').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
   
-  const term1 = [], term2 = [];
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-    if (String(row[1]) !== auth.username) continue;
-    
-    const t = new Date(row[0]).getTime();
-    const dateStr = formatDate(row[0], 'dd/MM/yyyy');
-    const timeStr = formatDate(row[0], 'HH:mm');
-    const action = row[3];
-    const reason = row[4] || '-';
-
-    const record = { date: dateStr, time: timeStr, action, reason };
-
-    if (t >= t1Start && t <= t1End) {
-      term1.push(record);
-    } else if (t >= t2Start && t <= t2End) {
-      term2.push(record);
-    }
+  const res = await api('getTermReports');
+  if (!res.success) {
+    toast(res.message, 'error'); return;
   }
 
-  // เรียงจากใหม่ไปเก่า
-  term1.reverse();
-  term2.reverse();
-
-  return { success:true, academicYear: s.academic_year, term1, term2 };
-}
-
-// =================================================================
-// HANDLERS — ADMIN
-// =================================================================
-function handleAdminListPending(p) {
-  if (!requireAdmin(p)) return { success:false, message:'ไม่มีสิทธิ์' };
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  const data = sheet.getDataRange().getValues();
-  const users = [];
-  for (let i = 1; i < data.length; i++) {
-    if (String(data[i][4]).toLowerCase() === 'pending') {
-      users.push({
-        username: data[i][0], fullName: data[i][2], email: data[i][8], phone: data[i][9],
-        registeredAt: formatDate(data[i][5]), regDistance: data[i][12]
-      });
-    }
-  }
-  return { success:true, users };
-}
-
-function handleAdminApprove(p) {
-  const admin = requireAdmin(p);
-  if (!admin) return { success:false, message:'ไม่มีสิทธิ์' };
-  const username = String(p.username || '').toLowerCase();
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  const row = findUserRow(sheet, username);
-  if (row < 1) return { success:false, message:'ไม่พบผู้ใช้' };
-  sheet.getRange(row, 5).setValue('approved');
-  sheet.getRange(row, 7).setValue(new Date());
-  sheet.getRange(row, 8).setValue(admin.username);
-  return { success:true, message:'อนุมัติ ' + username + ' สำเร็จ' };
-}
-
-function handleAdminReject(p) {
-  if (!requireAdmin(p)) return { success:false, message:'ไม่มีสิทธิ์' };
-  const username = String(p.username || '').toLowerCase();
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  const row = findUserRow(sheet, username);
-  if (row < 1) return { success:false, message:'ไม่พบผู้ใช้' };
-  sheet.getRange(row, 5).setValue('rejected');
-  return { success:true, message:'ปฏิเสธ ' + username + ' สำเร็จ' };
-}
-
-function handleAdminUpdateSettings(p) {
-  if (!requireAdmin(p)) return { success:false, message:'ไม่มีสิทธิ์' };
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_SETTINGS);
-  const data = sheet.getDataRange().getValues();
-
-  const updates = {};
-  if (p.officeName !== undefined) updates.office_name = String(p.officeName);
-  if (p.officeLat !== undefined)   updates.office_lat  = String(p.officeLat);
-  if (p.officeLng !== undefined)   updates.office_lng  = String(p.officeLng);
-  if (p.radius !== undefined)      updates.radius_meters = String(p.radius);
-  if (p.strictRegistration !== undefined) updates.strict_registration = p.strictRegistration ? 'true' : 'false';
+  document.getElementById('academicYearText').textContent = res.academicYear || '—';
   
-  // Academic Terms
-  if (p.academicYear !== undefined) updates.academic_year = String(p.academicYear);
-  if (p.term1Start !== undefined)   updates.term1_start = String(p.term1Start);
-  if (p.term1End !== undefined)     updates.term1_end = String(p.term1End);
-  if (p.term2Start !== undefined)   updates.term2_start = String(p.term2Start);
-  if (p.term2End !== undefined)     updates.term2_end = String(p.term2End);
-
-  for (let i = 1; i < data.length; i++) {
-    const key = String(data[i][0]);
-    if (key in updates) {
-      sheet.getRange(i + 1, 2).setValue(updates[key]);
-    }
-  }
-  return { success:true, message:'อัปเดตการตั้งค่าสำเร็จ' };
-}
-
-// Fallbacks
-function handleGetSettings() {
-  const s = getSettingsMap();
-  return {
-    success:true,
-    settings:{
-      officeName: s.office_name, officeLat: Number(s.office_lat), officeLng: Number(s.office_lng),
-      radius: Number(s.radius_meters), strictRegistration: String(s.strict_registration).toLowerCase() === 'true',
-      academicYear: s.academic_year, term1Start: s.term1_start, term1End: s.term1_end,
-      term2Start: s.term2_start, term2End: s.term2_end
-    }
+  const renderTable = (records) => {
+    if (records.length === 0) return '<tr><td colspan="4" style="text-align:center;color:var(--muted)">ไม่มีข้อมูล</td></tr>';
+    return records.map(r => `
+      <tr>
+        <td>${r.date}</td>
+        <td>${r.time}</td>
+        <td><span style="color:${r.action==='เข้างาน'?'var(--emerald)':r.action==='ออกงาน'?'var(--rose)':'var(--amber)'}">${r.action}</span></td>
+        <td>${r.reason}</td>
+      </tr>
+    `).join('');
   };
+
+  document.getElementById('term1Body').innerHTML = renderTable(res.term1);
+  document.getElementById('term2Body').innerHTML = renderTable(res.term2);
 }
-function handleAdminListUsers(p) {
-  if (!requireAdmin(p)) return { success:false, message:'ไม่มีสิทธิ์' };
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  const data = sheet.getDataRange().getValues();
-  const users = [];
-  for (let i = 1; i < data.length; i++) {
-    users.push({ username: data[i][0], fullName: data[i][2], role: data[i][3], status: data[i][4], email: data[i][8] });
-  }
-  return { success:true, users };
+
+// ============================================================
+// PROFILE LOGIC
+// ============================================================
+function updateProfileUI() {
+  if(!state.user) return;
+  document.getElementById('profUsername').value = state.user.username;
+  document.getElementById('profFullName').value = state.user.fullName;
+  document.getElementById('profEmail').value = state.user.email || '';
+  document.getElementById('profilePicPreview').src = state.user.profilePic || 'https://via.placeholder.com/90';
+  document.getElementById('reportName').textContent = state.user.fullName;
+  document.getElementById('reportPic').src = state.user.profilePic || 'https://via.placeholder.com/40';
 }
-function handleAdminDeleteUser(p) {
-  const admin = requireAdmin(p);
-  if (!admin) return { success:false, message:'ไม่มีสิทธิ์' };
-  const username = String(p.username || '').toLowerCase();
-  if (username === 'admin') return { success:false, message:'ไม่สามารถลบ admin หลัก' };
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  const row = findUserRow(sheet, username);
-  if (row < 1) return { success:false, message:'ไม่พบผู้ใช้' };
-  sheet.deleteRow(row);
-  return { success:true, message:'ลบผู้ใช้สำเร็จ' };
+
+document.querySelector('.nav-item:nth-child(3)').addEventListener('click', updateProfileUI);
+
+document.getElementById('profilePicInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    // Resize image using Canvas
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const MAX_WIDTH = 300;
+      const scale = MAX_WIDTH / img.width;
+      canvas.width = MAX_WIDTH;
+      canvas.height = img.height * scale;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+      
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      state.profilePicBase64 = dataUrl;
+      document.getElementById('profilePicPreview').src = dataUrl;
+    };
+    img.src = evt.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('profileForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('saveProfileBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+  
+  const payload = {
+    username: document.getElementById('profUsername').value.trim().toLowerCase(),
+    fullName: document.getElementById('profFullName').value.trim(),
+    email: document.getElementById('profEmail').value.trim(),
+    profilePic: state.profilePicBase64
+  };
+  
+  const res = await api('updateProfile', payload);
+  btn.disabled = false; btn.textContent = '💾 บันทึกข้อมูล';
+  
+  if (res.success) {
+    toast(res.message);
+    state.user = res.user;
+    state.token = res.token;
+    localStorage.setItem('tt_token', res.token);
+    localStorage.setItem('tt_user', JSON.stringify(res.user));
+    state.profilePicBase64 = null; // Clear buffer
+    initUserSession(); // Refresh UI
+    updateProfileUI();
+  } else toast(res.message, 'error');
+});
+
+document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const btn = document.getElementById('savePwBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังเปลี่ยน...';
+  const r = await api('changePassword', {
+    oldPassword: document.getElementById('oldPw').value,
+    newPassword: document.getElementById('newPw').value
+  });
+  btn.disabled = false; btn.textContent = 'เปลี่ยนรหัสผ่าน';
+  if (r.success) { toast(r.message); document.getElementById('passwordForm').reset(); }
+  else toast(r.message, 'error');
+});
+
+// ============================================================
+// ADMIN LOGIC
+// ============================================================
+document.getElementById('adminBtn').addEventListener('click', () => {
+  showScreen('adminScreen');
+  loadAdminSettings();
+  loadPending();
+});
+
+document.querySelectorAll('#adminScreen .tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('#adminScreen .tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('#adminScreen .tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+    if (tab.dataset.tab === 'pending') loadPending();
+    if (tab.dataset.tab === 'users') loadUsers();
+    if (tab.dataset.tab === 'settings') loadAdminSettings();
+  });
+});
+
+async function loadPending() {
+  const box = document.getElementById('pendingList');
+  box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  const res = await api('admin_listPending');
+  if (!res.success) return;
+  if (res.users.length === 0) return box.innerHTML = '<div class="empty-state">ไม่มีผู้ใช้รออนุมัติ 🎉</div>';
+  
+  box.innerHTML = res.users.map(u => `
+    <div style="padding:12px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.06)">
+      <div style="font-weight:500">${u.fullName} <span style="color:var(--muted);font-size:.75rem">@${u.username}</span></div>
+      <div style="color:var(--muted);font-size:.75rem;margin-top:2px">${u.registeredAt} · ระยะ ${u.regDistance} ม.</div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn-sm btn-approve" style="flex:1;background:rgba(52,211,153,.2);color:var(--emerald);border:none" onclick="approveUser('${u.username}')">อนุมัติ</button>
+        <button class="btn-sm btn-reject" style="flex:1;background:rgba(251,113,133,.2);color:var(--rose);border:none" onclick="rejectUser('${u.username}')">ปฏิเสธ</button>
+      </div>
+    </div>
+  `).join('');
 }
-function handleAdminResetPassword(p) {
-  if (!requireAdmin(p)) return { success:false, message:'ไม่มีสิทธิ์' };
-  const username = String(p.username || '').toLowerCase();
-  const newPw = String(p.newPassword || '');
-  if (newPw.length < 6) return { success:false, message:'รหัสอย่างน้อย 6 ตัว' };
-  const ss = getOrCreateSpreadsheet();
-  const sheet = ss.getSheetByName(SHEET_USERS);
-  const row = findUserRow(sheet, username);
-  if (row < 1) return { success:false, message:'ไม่พบผู้ใช้' };
-  const ns = Utilities.getUuid();
-  sheet.getRange(row, 2).setValue(ns + ':' + hashPassword(newPw, ns));
-  return { success:true, message:'รีเซ็ตรหัสผ่านสำเร็จ' };
+
+window.approveUser = async (u) => { const r = await api('admin_approve', {username:u}); toast(r.message, r.success?'success':'error'); loadPending(); };
+window.rejectUser = async (u) => { const r = await api('admin_reject', {username:u}); toast(r.message, r.success?'success':'error'); loadPending(); };
+
+async function loadUsers() {
+  const box = document.getElementById('usersList');
+  box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  const res = await api('admin_listUsers');
+  if (!res.success) return;
+  
+  box.innerHTML = res.users.map(u => `
+    <div style="padding:12px;background:rgba(255,255,255,.03);border-radius:12px;display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-weight:500">${u.fullName}</div>
+        <div style="color:var(--muted);font-size:.75rem">@${u.username} · ${u.role} · ${u.status}</div>
+      </div>
+      <button class="btn-sm btn-danger" onclick="delUser('${u.username}')" ${u.username==='admin'?'disabled':''}>ลบ</button>
+    </div>
+  `).join('');
 }
+window.delUser = async (u) => { 
+  if(!confirm('ยืนยันลบผู้ใช้ '+u+'?')) return;
+  const r = await api('admin_deleteUser', {username:u}); 
+  toast(r.message, r.success?'success':'error'); loadUsers(); 
+};
+
+async function loadAdminSettings() {
+  const s = await api('getSettings');
+  if (!s.success) return toast(s.message, 'error');
+  state.settings = s.settings;
+  document.getElementById('setOfficeName').value = s.settings.officeName || '';
+  document.getElementById('setOfficeLat').value = s.settings.officeLat || '';
+  document.getElementById('setOfficeLng').value = s.settings.officeLng || '';
+  document.getElementById('setRadius').value = s.settings.radius || '';
+  document.getElementById('setStrictReg').checked = !!s.settings.strictRegistration;
+  
+  document.getElementById('setAcademicYear').value = s.settings.academicYear || '';
+  document.getElementById('setTerm1Start').value = s.settings.term1Start || '';
+  document.getElementById('setTerm1End').value = s.settings.term1End || '';
+  document.getElementById('setTerm2Start').value = s.settings.term2Start || '';
+  document.getElementById('setTerm2End').value = s.settings.term2End || '';
+}
+
+document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
+  const btn = document.getElementById('saveSettingsBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+  
+  const payload = {
+    officeName: document.getElementById('setOfficeName').value.trim(),
+    officeLat: Number(document.getElementById('setOfficeLat').value),
+    officeLng: Number(document.getElementById('setOfficeLng').value),
+    radius: Number(document.getElementById('setRadius').value),
+    strictRegistration: document.getElementById('setStrictReg').checked,
+    
+    academicYear: document.getElementById('setAcademicYear').value.trim(),
+    term1Start: document.getElementById('setTerm1Start').value,
+    term1End: document.getElementById('setTerm1End').value,
+    term2Start: document.getElementById('setTerm2Start').value,
+    term2End: document.getElementById('setTerm2End').value
+  };
+  
+  const res = await api('admin_updateSettings', payload);
+  btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
+  
+  if (res.success) { toast(res.message); state.settings = null; }
+  else toast(res.message, 'error');
+});
+
+</script>
+</body>
+</html>
