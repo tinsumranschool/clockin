@@ -351,11 +351,11 @@ body{
       <form id="loginForm" class="tab-content active">
         <div class="field">
           <label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label>
-          <input type="text" id="loginUsername" class="input" placeholder="username" required>
+          <input type="text" id="loginUsername" class="input" placeholder="username" required autocomplete="username">
         </div>
         <div class="field">
           <label class="field-label">รหัสผ่าน <span class="req">*</span></label>
-          <input type="password" id="loginPassword" class="input" placeholder="••••••••" required>
+          <input type="password" id="loginPassword" class="input" placeholder="••••••••" required autocomplete="current-password">
         </div>
         <button type="submit" class="submit-btn" id="loginBtn">เข้าสู่ระบบ</button>
       </form>
@@ -363,7 +363,7 @@ body{
       <form id="registerForm" class="tab-content">
         <div class="field">
           <label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label>
-          <input type="text" id="regUsername" class="input" placeholder="a-z, 0-9, _ (3+ ตัว)" required>
+          <input type="text" id="regUsername" class="input" placeholder="a-z, 0-9, _ (3+ ตัว)" required autocomplete="username">
         </div>
         <div class="field">
           <label class="field-label">ชื่อ-นามสกุล <span class="req">*</span></label>
@@ -379,11 +379,11 @@ body{
         </div>
         <div class="field">
           <label class="field-label">รหัสผ่าน <span class="req">*</span></label>
-          <input type="password" id="regPassword" class="input" placeholder="อย่างน้อย 6 ตัว" required>
+          <input type="password" id="regPassword" class="input" placeholder="อย่างน้อย 6 ตัว" required autocomplete="new-password">
         </div>
         <div class="field">
           <label class="field-label">ยืนยันรหัสผ่าน <span class="req">*</span></label>
-          <input type="password" id="regPassword2" class="input" placeholder="พิมพ์ซ้ำ" required>
+          <input type="password" id="regPassword2" class="input" placeholder="พิมพ์ซ้ำ" required autocomplete="new-password">
         </div>
         <div class="gps-status" id="regGpsStatus">
           <span>📍</span><span>ระบบจะขอตำแหน่ง GPS ขณะลงทะเบียน</span>
@@ -543,9 +543,9 @@ body{
 
 <script>
 // ============================================================
-// CONFIG (ใส่ URL ของคุณเรียบร้อยแล้ว)
+// CONFIG (ใส่ URL ล่าสุดของคุณเรียบร้อยแล้ว)
 // ============================================================
-const API_URL = 'https://script.google.com/macros/s/AKfycbzWYTvLaLC7odux6JIyP3ZFTAbRrpDu93zFekwKzPPQUait2LYK1_v69onuzdaQOqThXg/exec';
+const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
