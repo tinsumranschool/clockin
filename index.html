@@ -85,8 +85,9 @@ input[type="checkbox"]{width:16px;height:16px;cursor:pointer}
 .submit-btn{width:100%;padding:16px;border:none;border-radius:var(--radius-lg);font-family:inherit;font-size:.98rem;font-weight:600;cursor:pointer;color:#06121f;background:linear-gradient(135deg,#22d3ee,#818cf8);box-shadow:0 10px 30px rgba(34,211,238,.25);transition:all .2s}
 .submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 16px 40px rgba(34,211,238,.35)}
 .submit-btn:disabled{opacity:.6;cursor:not-allowed}
-.btn-sm{padding:6px 12px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:.75rem;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-sm{padding:8px 14px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn-cyan{background:rgba(34,211,238,.15);color:var(--cyan);border-color:rgba(34,211,238,.4)}
+.btn-cyan:hover{background:rgba(34,211,238,.3)}
 .btn-neutral{background:rgba(255,255,255,.06);color:var(--muted);border-color:rgba(255,255,255,.15)}
 .btn-danger{background:rgba(251,113,133,.15);color:var(--rose);border-color:rgba(251,113,133,.4)}
 
@@ -402,8 +403,17 @@ tr:last-child td{border-bottom:none}
       <div class="tab-content" id="settingsTab">
         <div class="section-title">⚙️ ตั้งค่าสำนักงาน</div>
         <div class="field"><label class="field-label">ชื่อสำนักงาน</label><input type="text" id="setOfficeName" class="input"></div>
-        <div class="field"><label class="field-label">ละติจูด</label><input type="number" id="setOfficeLat" class="input" step="any"></div>
-        <div class="field"><label class="field-label">ลองจิจูด</label><input type="number" id="setOfficeLng" class="input" step="any"></div>
+        
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div class="field"><label class="field-label">ละติจูด (Lat)</label><input type="number" id="setOfficeLat" class="input" step="any"></div>
+          <div class="field"><label class="field-label">ลองจิจูด (Lng)</label><input type="number" id="setOfficeLng" class="input" step="any"></div>
+        </div>
+        
+        <!-- ปุ่มดึงตำแหน่ง GPS ปัจจุบัน -->
+        <button type="button" class="btn-sm btn-cyan" id="btnUseCurrentGps" style="width:100%;margin-bottom:16px;">
+          📍 ใช้ตำแหน่ง GPS ปัจจุบัน (มือถือแอดมิน)
+        </button>
+
         <div class="field"><label class="field-label">รัศมี (เมตร)</label><input type="number" id="setRadius" class="input"></div>
         <div class="field" style="margin-bottom:24px"><label class="checkbox-group"><input type="checkbox" id="setStrictReg"> บังคับรัศมีตอนลงทะเบียน</label></div>
         
@@ -971,6 +981,26 @@ async function loadAdminSettings() {
   document.getElementById('setTerm2Start').value = s.settings.term2Start || '';
   document.getElementById('setTerm2End').value = s.settings.term2End || '';
 }
+
+// ปุ่มดึงตำแหน่ง GPS ปัจจุบัน (แอดมิน)
+document.getElementById('btnUseCurrentGps').addEventListener('click', async () => {
+  const btn = document.getElementById('btnUseCurrentGps');
+  const originalText = btn.innerHTML;
+  btn.disabled = true; 
+  btn.innerHTML = '<span class="spinner"></span> กำลังค้นหาตำแหน่ง...';
+  
+  try {
+    const pos = await refreshPosition();
+    document.getElementById('setOfficeLat').value = pos.lat.toFixed(6);
+    document.getElementById('setOfficeLng').value = pos.lng.toFixed(6);
+    toast('ดึงพิกัดปัจจุบันสำเร็จ!');
+  } catch (err) {
+    toast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+});
 
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
   const btn = document.getElementById('saveSettingsBtn');
