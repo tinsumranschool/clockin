@@ -3,158 +3,281 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>TimeTrack Pro v2 — ระบบลงเวลาทำงาน</title>
+<title>TimeTrack Pro — ระบบลงเวลาทำงาน</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ===================================================================
+   CARTOON / HAND-DRAWN LIGHT THEME
+=================================================================== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg-deep:#0a0e27; --bg-card:rgba(255,255,255,.06); --border-glass:rgba(255,255,255,.12);
-  --text:#f0f2ff; --muted:#8b92b8; --cyan:#22d3ee; --violet:#a78bfa;
-  --rose:#fb7185; --emerald:#34d399; --amber:#fbbf24;
-  --radius-xl:24px; --radius-lg:18px; --radius-md:12px;
-  --nav-height:70px;
+  --bg-color: #fdfbf7;
+  --bg-pattern: #f0ece1;
+  --text-main: #3b3a4a;
+  --text-muted: #7a788c;
+  --primary: #ff9a62; /* ส้มพาสเทล */
+  --primary-hover: #ff8642;
+  --secondary: #6cd4ff; /* ฟ้าพาสเทล */
+  --accent: #b983ff; /* ม่วงพาสเทล */
+  --success: #6ddf9a; /* เขียวพาสเทล */
+  --danger: #ff7b93; /* แดงพาสเทล */
+  --warning: #ffd166; /* เหลืองพาสเทล */
+  --border-color: #3b3a4a;
+  --border-width: 2px;
+  --card-bg: #ffffff;
+  --radius-xl: 24px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --nav-height: 75px;
+  --shadow-hard: 4px 4px 0px var(--border-color);
+  --shadow-soft: 6px 6px 0px rgba(59, 58, 74, 0.1);
 }
+
 body{
-  font-family:'Prompt','Inter',sans-serif; background:var(--bg-deep); color:var(--text);
+  font-family:'Mali', 'Prompt', sans-serif; 
+  background-color:var(--bg-color); 
+  background-image: radial-gradient(var(--bg-pattern) 2px, transparent 2px);
+  background-size: 24px 24px;
+  color:var(--text-main);
   min-height:100vh; display:flex; flex-direction:column; align-items:center;
-  padding:20px 16px calc(var(--nav-height) + 30px) 16px; position:relative; overflow-x:hidden;
+  padding:20px 16px calc(var(--nav-height) + 30px) 16px; 
+  position:relative; overflow-x:hidden;
 }
-.orb{position:fixed;border-radius:50%;filter:blur(100px);opacity:.4;pointer-events:none;z-index:0;animation:float 14s ease-in-out infinite alternate}
-.orb-1{width:520px;height:520px;background:#06b6d4;top:-180px;left:-140px}
-.orb-2{width:460px;height:460px;background:#8b5cf6;bottom:-160px;right:-120px;animation-delay:-4s}
-.orb-3{width:320px;height:320px;background:#f43f5e;top:40%;left:60%;opacity:.18;animation-delay:-8s}
-@keyframes float{0%{transform:translate(0,0) scale(1)}100%{transform:translate(30px,-40px) scale(1.08)}}
 
-.wrapper{position:relative;z-index:1;width:100%;max-width:620px;display:flex;flex-direction:column;gap:16px}
-.screen{display:none;flex-direction:column;gap:16px;width:100%;animation:fadeIn .35s ease}
+.wrapper{position:relative;z-index:1;width:100%;max-width:620px;display:flex;flex-direction:column;gap:20px}
+.screen{display:none;flex-direction:column;gap:20px;width:100%;animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
 .screen.active{display:flex}
-@keyframes fadeIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
-.brand{text-align:center;padding:8px 0 4px}
-.brand-title{font-size:clamp(2rem,6vw,2.6rem);font-weight:700;background:linear-gradient(135deg,#fff,#a5b4fc 50%,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em}
+.brand{text-align:center;padding:10px 0 0}
+.brand-title{
+  font-size:clamp(2.2rem,6vw,2.8rem); font-weight:700; 
+  color:var(--text-main); 
+  text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--primary);
+  letter-spacing:-.02em;
+  transform: rotate(-2deg);
+}
 
-.card{background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-xl);padding:24px 22px;
-  backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);
-  box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 60px rgba(34,211,238,.08),inset 0 1px 0 rgba(255,255,255,.06)}
+/* การ์ดแบบวาดมือ */
+.card{
+  background:var(--card-bg);
+  border:var(--border-width) solid var(--border-color);
+  border-radius:var(--radius-xl);
+  padding:24px 22px;
+  box-shadow:var(--shadow-hard);
+  position:relative;
+  transition: transform .2s;
+}
+.card::after {
+  content:''; position:absolute; inset:4px; border-radius:20px; border:1px dashed rgba(59,58,74,0.2); pointer-events:none;
+}
 
-.app-header{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border-glass);padding:12px 16px;border-radius:var(--radius-lg);backdrop-filter:blur(16px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
-.user-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
-.avatar{border-radius:50%;width:40px;height:40px;object-fit:cover;border:2px solid var(--cyan);background:#1e293b}
-.user-name{font-weight:600;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.user-role{font-size:.72rem;color:var(--muted);margin-top:2px}
-.icon-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);cursor:pointer;font-size:1rem;transition:all .2s}
-.icon-btn:hover{background:rgba(34,211,238,.15);border-color:var(--cyan);color:var(--cyan);transform:translateY(-1px)}
+.app-header{
+  display:flex; align-items:center; gap:12px;
+  background:var(--card-bg);
+  border:var(--border-width) solid var(--border-color);
+  border-radius:var(--radius-lg);
+  padding:12px 16px;
+  box-shadow:var(--shadow-hard);
+}
+.user-info{flex:1;min-width:0;display:flex;align-items:center;gap:12px}
+.avatar{
+  border-radius:50%; width:46px; height:46px; object-fit:cover;
+  border:var(--border-width) solid var(--border-color);
+  background:#eee; box-shadow: 2px 2px 0px var(--border-color);
+}
+.user-name{font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.user-role{font-size:.8rem;color:var(--text-muted);margin-top:2px}
 
-.tabs{display:flex;gap:6px;background:rgba(255,255,255,.04);padding:5px;border-radius:14px;border:1px solid var(--border-glass)}
-.tab{flex:1;padding:10px 12px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:.85rem;font-weight:500;cursor:pointer;border-radius:10px;transition:all .2s}
-.tab.active{background:linear-gradient(135deg,rgba(34,211,238,.25),rgba(167,139,250,.25));color:#fff;box-shadow:0 4px 12px rgba(34,211,238,.2),inset 0 1px 0 rgba(255,255,255,.15)}
+.icon-btn{
+  width:40px;height:40px; display:flex;align-items:center;justify-content:center;
+  background:var(--card-bg);
+  border:var(--border-width) solid var(--border-color);
+  border-radius:12px; color:var(--text-main); cursor:pointer; font-size:1.1rem;
+  box-shadow: 2px 2px 0px var(--border-color);
+  transition: all .1s;
+}
+.icon-btn:hover{ background:var(--bg-pattern); }
+.icon-btn:active{ transform:translate(2px, 2px); box-shadow: 0px 0px 0px var(--border-color); }
+
+/* Tabs */
+.tabs{
+  display:flex; gap:8px; background:var(--bg-pattern);
+  padding:6px; border-radius:var(--radius-lg);
+  border:var(--border-width) solid var(--border-color);
+}
+.tab{
+  flex:1; padding:10px 12px; border:var(--border-width) solid transparent;
+  background:transparent; color:var(--text-muted); font-family:inherit;
+  font-size:.9rem; font-weight:600; cursor:pointer; border-radius:12px; transition:all .2s;
+}
+.tab.active{
+  background:var(--card-bg); color:var(--text-main);
+  border-color:var(--border-color); box-shadow: 2px 2px 0px var(--border-color);
+}
 .tab-content{display:none}
 .tab-content.active{display:block}
 
+/* Forms */
 .field{margin-bottom:16px}
-.field-label{display:flex;align-items:center;gap:6px;font-size:.82rem;font-weight:500;color:var(--muted);margin-bottom:8px}
-.req{color:var(--rose);font-size:.9rem}
-.input,.textarea,.select{width:100%;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:var(--radius-md);padding:12px 14px;color:var(--text);font-family:inherit;font-size:.92rem;outline:none;transition:border-color .25s,box-shadow .25s,background .25s}
-.input:focus,.textarea:focus,.select:focus{border-color:rgba(34,211,238,.55);background:rgba(34,211,238,.05);box-shadow:0 0 0 4px rgba(34,211,238,.1)}
-.input::placeholder,.textarea::placeholder{color:#5a6285}
-.checkbox-group{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);cursor:pointer}
-input[type="checkbox"]{width:16px;height:16px;cursor:pointer}
+.field-label{display:flex;align-items:center;gap:6px;font-size:.9rem;font-weight:600;color:var(--text-main);margin-bottom:8px}
+.req{color:var(--danger);font-size:1rem}
+.input,.textarea,.select{
+  width:100%; background:var(--bg-color);
+  border:var(--border-width) solid var(--border-color);
+  border-radius:var(--radius-md); padding:12px 14px;
+  color:var(--text-main); font-family:inherit; font-size:.95rem; outline:none;
+  transition:all .2s; box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);
+}
+.input:focus,.textarea:focus,.select:focus{
+  background:#fff; box-shadow: 3px 3px 0px var(--secondary);
+  border-color:var(--border-color); transform: translate(-1px, -1px);
+}
+.input::placeholder,.textarea::placeholder{color:#a9a7b8}
+.checkbox-group{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-main);cursor:pointer;font-weight:500}
+input[type="checkbox"]{width:18px;height:18px;cursor:pointer;accent-color:var(--primary);}
 
-.action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
-.action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 8px;border-radius:var(--radius-lg);
-  border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
-  color:var(--muted);font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;
-  transition:all .2s ease; position:relative;
-  box-shadow:0 4px 0 rgba(0,0,0,.25),0 6px 16px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.1)}
-.action-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.25),0 10px 22px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.15);border-color:rgba(255,255,255,.25)}
-.action-btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.25),0 4px 10px rgba(0,0,0,.25)}
-.action-btn:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.8)}
-.action-btn .icon{font-size:1.4rem;line-height:1}
-.action-btn[data-action="เข้างาน"]:not(:disabled):hover{color:var(--emerald);border-color:rgba(52,211,153,.5)}
-.action-btn[data-action="ออกงาน"]:not(:disabled):hover{color:var(--rose);border-color:rgba(251,113,133,.5)}
-.action-btn[data-action="มาสาย"]:not(:disabled):hover{color:var(--violet);border-color:rgba(167,139,250,.5)}
-.action-btn[data-action="ลา"]:not(:disabled):hover{color:var(--amber);border-color:rgba(251,191,36,.5)}
-.action-btn[data-action="ไปราชการ"]:not(:disabled):hover{color:var(--cyan);border-color:rgba(34,211,238,.5)}
-.action-btn.active{color:#fff}
-.action-btn[data-action="เข้างาน"].active{background:linear-gradient(180deg,rgba(52,211,153,.35),rgba(52,211,153,.1));border-color:var(--emerald);color:var(--emerald)}
-.action-btn[data-action="ออกงาน"].active{background:linear-gradient(180deg,rgba(251,113,133,.35),rgba(251,113,133,.1));border-color:var(--rose);color:var(--rose)}
-.action-btn[data-action="มาสาย"].active{background:linear-gradient(180deg,rgba(167,139,250,.35),rgba(167,139,250,.1));border-color:var(--violet);color:var(--violet)}
-.action-btn[data-action="ลา"].active{background:linear-gradient(180deg,rgba(251,191,36,.35),rgba(251,191,36,.1));border-color:var(--amber);color:var(--amber)}
-.action-btn[data-action="ไปราชการ"].active{background:linear-gradient(180deg,rgba(34,211,238,.35),rgba(34,211,238,.1));border-color:var(--cyan);color:var(--cyan)}
+/* Action Grid (ปุ่มกดลงเวลา) */
+.action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px}
+.action-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  padding:16px 8px; border-radius:var(--radius-lg);
+  border:var(--border-width) solid var(--border-color);
+  background:var(--card-bg);
+  color:var(--text-main); font-family:inherit; font-size:.85rem; font-weight:700;
+  cursor:pointer; transition:all .15s; position:relative;
+  box-shadow: 3px 3px 0px var(--border-color);
+}
+.action-btn .icon{font-size:1.6rem;line-height:1; transition: transform .2s;}
+.action-btn:hover:not(:disabled) .icon{ transform: scale(1.15) rotate(5deg); }
+.action-btn:active:not(:disabled){ transform:translate(3px, 3px); box-shadow: 0px 0px 0px var(--border-color); }
+.action-btn:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(1);background:var(--bg-pattern)}
 
-.submit-btn{width:100%;padding:16px;border:none;border-radius:var(--radius-lg);font-family:inherit;font-size:.98rem;font-weight:600;cursor:pointer;color:#06121f;
-  background:linear-gradient(135deg,#22d3ee,#818cf8);
-  box-shadow:0 6px 0 rgba(15,23,42,.5),0 10px 30px rgba(34,211,238,.35),inset 0 1px 0 rgba(255,255,255,.3);
-  transition:all .15s ease}
-.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 0 rgba(15,23,42,.5),0 16px 40px rgba(34,211,238,.45),inset 0 1px 0 rgba(255,255,255,.3)}
-.submit-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 3px 0 rgba(15,23,42,.5),0 6px 20px rgba(34,211,238,.3)}
-.submit-btn:disabled{opacity:.6;cursor:not-allowed}
-.btn-sm{padding:8px 14px;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
-.btn-cyan{background:rgba(34,211,238,.15);color:var(--cyan);border-color:rgba(34,211,238,.4)}
-.btn-cyan:hover{background:rgba(34,211,238,.3)}
-.btn-neutral{background:rgba(255,255,255,.06);color:var(--muted);border-color:rgba(255,255,255,.15)}
-.btn-danger{background:rgba(251,113,133,.15);color:var(--rose);border-color:rgba(251,113,133,.4)}
-.btn-emerald{background:rgba(52,211,153,.15);color:var(--emerald);border-color:rgba(52,211,153,.4)}
+.action-btn[data-action="เข้างาน"].active{ background:#e6fbf0; border-color:var(--success); box-shadow: 3px 3px 0px var(--success);}
+.action-btn[data-action="ออกงาน"].active{ background:#ffe6eb; border-color:var(--danger); box-shadow: 3px 3px 0px var(--danger);}
+.action-btn[data-action="มาสาย"].active{ background:#f4e6ff; border-color:var(--accent); box-shadow: 3px 3px 0px var(--accent);}
+.action-btn[data-action="ลา"].active{ background:#fff3d6; border-color:var(--warning); box-shadow: 3px 3px 0px var(--warning);}
+.action-btn[data-action="ไปราชการ"].active{ background:#e6f7ff; border-color:var(--secondary); box-shadow: 3px 3px 0px var(--secondary);}
 
-.gps-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;font-size:.82rem;font-weight:500;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);margin-bottom:16px;color:var(--muted);transition:all .3s}
-.gps-status.ok{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.4);color:var(--emerald)}
-.gps-status.bad{background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.4);color:var(--rose)}
-.gps-status.loading{background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.4);color:var(--cyan)}
+.submit-btn{
+  width:100%; padding:16px; border:var(--border-width) solid var(--border-color);
+  border-radius:var(--radius-lg); font-family:inherit; font-size:1.05rem; font-weight:700;
+  cursor:pointer; color:var(--text-main);
+  background:var(--primary);
+  box-shadow: 4px 4px 0px var(--border-color);
+  transition:all .1s ease; display:flex; justify-content:center; align-items:center; gap:8px;
+}
+.submit-btn:hover:not(:disabled){ background:var(--primary-hover); }
+.submit-btn:active:not(:disabled){ transform:translate(4px, 4px); box-shadow: 0px 0px 0px var(--border-color); }
+.submit-btn:disabled{opacity:.6;cursor:not-allowed; filter:grayscale(0.5);}
 
-.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border-glass);margin-top:12px;background:rgba(0,0,0,.15)}
-table{width:100%;border-collapse:collapse;font-size:.8rem;text-align:left}
-th{background:rgba(255,255,255,.06);padding:10px 8px;font-weight:600;color:var(--muted);white-space:nowrap;font-size:.78rem}
-td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
+.btn-sm{
+  padding:8px 14px; border-radius:10px; border:var(--border-width) solid var(--border-color);
+  font-family:inherit; font-size:.85rem; font-weight:600; cursor:pointer;
+  transition:all .1s; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  box-shadow: 2px 2px 0px var(--border-color); background:var(--card-bg); color:var(--text-main);
+}
+.btn-sm:active{ transform:translate(2px, 2px); box-shadow: 0px 0px 0px var(--border-color); }
+.btn-cyan{background:#e6f7ff; color:#0088cc;}
+.btn-emerald{background:#e6fbf0; color:#00a854;}
+.btn-danger{background:#ffe6eb; color:#cc0033;}
+.btn-neutral{background:var(--bg-pattern); color:var(--text-main);}
+
+/* GPS Status */
+.gps-status{
+  display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;
+  font-size:.88rem;font-weight:600;
+  background:var(--bg-pattern);
+  border:2px dashed var(--border-color);
+  margin-bottom:16px;color:var(--text-muted);transition:all .3s;
+}
+.gps-status.ok{ background:#e6fbf0; border-style:solid; border-color:var(--success); color:#008040; }
+.gps-status.bad{ background:#ffe6eb; border-style:solid; border-color:var(--danger); color:#cc0033; }
+.gps-status.loading{ background:#e6f7ff; border-style:solid; border-color:var(--secondary); color:#0088cc; }
+
+/* Tables */
+.table-wrap{
+  overflow-x:auto; border-radius:12px;
+  border:var(--border-width) solid var(--border-color);
+  margin-top:12px; background:var(--card-bg);
+  box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);
+}
+table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left}
+th{background:var(--bg-pattern);padding:12px 10px;font-weight:700;color:var(--text-main);white-space:nowrap;border-bottom:var(--border-width) solid var(--border-color);}
+td{padding:12px 10px;border-bottom:1px solid var(--bg-pattern);vertical-align:top}
 tr:last-child td{border-bottom:none}
-.table-name{font-weight:500;color:var(--text)}
-.table-sub{font-size:.72rem;color:var(--rose);margin-top:2px}
-.badge-status{padding:3px 8px;border-radius:6px;font-size:.72rem;font-weight:600;display:inline-block}
-.badge-ok{background:rgba(52,211,153,.15);color:var(--emerald)}
-.badge-late{background:rgba(167,139,250,.15);color:var(--violet)}
-.badge-leave{background:rgba(251,113,133,.15);color:var(--rose)}
-.badge-trip{background:rgba(34,211,238,.15);color:var(--cyan)}
+.table-name{font-weight:600;color:var(--text-main)}
+.table-sub{font-size:.75rem;color:var(--danger);margin-top:2px; font-weight:500;}
 
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
+.badge-status{padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:700;display:inline-block;border:1px solid var(--border-color)}
+.badge-ok{background:#e6fbf0; color:#008040;}
+.badge-late{background:#f4e6ff; color:#7a00cc;}
+.badge-leave{background:#ffe6eb; color:#cc0033;}
+.badge-trip{background:#e6f7ff; color:#0088cc;}
+
+/* Modals & Toasts */
+.modal-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
-.modal{background:#151b3d;border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:24px;max-width:420px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6)}
+.modal{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:20px;padding:24px;max-width:420px;width:100%;box-shadow:6px 6px 0px var(--border-color)}
 
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:rgba(15,23,42,.9);backdrop-filter:blur(20px);border-top:1px solid var(--border-glass);display:none;justify-content:space-around;align-items:center;z-index:90;padding:0 6px}
+.toast{
+  position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%;
+  transform:translateX(-50%) translateY(120%);
+  z-index:99;padding:14px 24px;border-radius:16px;
+  background:var(--card-bg); border:var(--border-width) solid var(--border-color);
+  font-size:.95rem;font-weight:700;
+  transition:all .4s cubic-bezier(.34,1.56,.64,1);
+  max-width:calc(100vw - 40px);display:flex;align-items:center;gap:10px;
+  box-shadow: 4px 4px 0px var(--border-color);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.success{color:var(--text-main); border-color:var(--success); box-shadow: 4px 4px 0px var(--success);}
+.toast.error{color:var(--text-main); border-color:var(--danger); box-shadow: 4px 4px 0px var(--danger);}
+
+/* Nav Bar */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);
+  background:var(--card-bg); border-top:var(--border-width) solid var(--border-color);
+  display:none;justify-content:space-around;align-items:center;z-index:90;padding:0 10px;
+}
 .bottom-nav.show{display:flex}
-.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.65rem;font-weight:500;cursor:pointer;transition:all .2s;padding:8px 8px;border-radius:12px;min-width:60px}
-.nav-item.active{color:var(--cyan);background:rgba(34,211,238,.12)}
-.nav-icon{font-size:1.25rem}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  color:var(--text-muted);font-size:.75rem;font-weight:700;cursor:pointer;
+  transition:all .2s;padding:8px 16px;border-radius:12px;border:2px solid transparent;
+}
+.nav-item.active{color:var(--text-main);background:var(--bg-pattern); border-color:var(--border-color);}
+.nav-icon{font-size:1.4rem;}
 
-.section-title{font-size:1rem;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.section-title{font-size:1.05rem;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.empty-state{text-align:center;padding:30px 12px;color:var(--text-muted);font-size:.9rem;border:2px dashed var(--border-color);border-radius:12px; background:var(--bg-color); font-weight:500;}
+
 .reason-section,.date-range-section{max-height:0;overflow:hidden;opacity:0;transition:all .35s;margin-bottom:0}
 .reason-section.visible,.date-range-section.visible{max-height:400px;opacity:1;margin-bottom:16px}
-.empty-state{text-align:center;padding:30px 12px;color:var(--muted);font-size:.85rem;border:1px dashed rgba(255,255,255,.1);border-radius:12px}
-.avatar-lg{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--cyan);background:#1e293b}
+
 .profile-pic-upload{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px}
-.toast{position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%;transform:translateX(-50%) translateY(120%);z-index:99;padding:14px 22px;border-radius:12px;background:rgba(15,23,42,.97);border:1px solid rgba(255,255,255,.12);font-size:.88rem;font-weight:500;transition:all .4s cubic-bezier(.34,1.56,.64,1);max-width:calc(100vw - 40px);display:flex;align-items:center;gap:8px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
-.toast.show{transform:translateX(-50%) translateY(0)}
-.toast.success{border-color:rgba(52,211,153,.5);color:var(--emerald)}
-.toast.error{border-color:rgba(251,113,133,.5);color:var(--rose)}
-.spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(6,18,31,.25);border-top-color:#06121f;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
+.avatar-lg{width:100px;height:100px;border-radius:50%;object-fit:cover;border:var(--border-width) solid var(--border-color);background:#eee; box-shadow: var(--shadow-hard);}
+
+.spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(0,0,0,.15);border-top-color:var(--text-main);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
 
-.user-row{display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.03);border-radius:12px;gap:10px;border:1px solid rgba(255,255,255,.05)}
+.user-row{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--card-bg);border-radius:12px;gap:10px;border:2px solid var(--border-color); margin-bottom:8px; box-shadow: 2px 2px 0 var(--border-color);}
 .user-row-info{flex:1;min-width:0}
 .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+
+/* Switch Toggle Cartoon */
+.switch{position:relative;display:inline-block;width:50px;height:28px;flex-shrink:0}
 .switch input{opacity:0;width:0;height:0}
-.slider{position:absolute;cursor:pointer;inset:0;background-color:rgba(255,255,255,.15);transition:.3s;border-radius:24px}
-.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background-color:white;transition:.3s;border-radius:50%}
-input:checked + .slider{background-color:var(--emerald)}
-input:checked + .slider:before{transform:translateX(20px)}
+.slider{position:absolute;cursor:pointer;inset:0;background-color:var(--bg-pattern);transition:.3s;border-radius:24px;border:2px solid var(--border-color); box-shadow: inset 1px 1px 3px rgba(0,0,0,0.1);}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background-color:#fff;transition:.3s;border-radius:50%; border:2px solid var(--border-color);}
+input:checked + .slider{background-color:var(--success)}
+input:checked + .slider:before{transform:translateX(22px)}
+
 </style>
 </head>
 <body>
-
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
-<div class="orb orb-3"></div>
 
 <div class="wrapper">
 
@@ -165,7 +288,7 @@ input:checked + .slider:before{transform:translateX(20px)}
     </header>
 
     <div class="card">
-      <div class="tabs" style="margin-bottom:18px">
+      <div class="tabs" style="margin-bottom:20px">
         <button class="tab active" data-tab="login">เข้าสู่ระบบ</button>
         <button class="tab" data-tab="register">ลงทะเบียน</button>
       </div>
@@ -182,7 +305,7 @@ input:checked + .slider:before{transform:translateX(20px)}
         <div class="field">
           <label class="checkbox-group"><input type="checkbox" id="rememberMe" checked> จดจำการเข้าสู่ระบบ (30 วัน)</label>
         </div>
-        <button type="submit" class="submit-btn" id="loginBtn">เข้าสู่ระบบ</button>
+        <button type="submit" class="submit-btn" id="loginBtn">🚀 เข้าสู่ระบบ</button>
       </form>
 
       <form id="registerForm" class="tab-content">
@@ -197,10 +320,10 @@ input:checked + .slider:before{transform:translateX(20px)}
         <div class="field">
           <label class="field-label">บทบาท <span class="req">*</span></label>
           <select id="regRole" class="select">
-            <option value="teacher">ครู</option>
-            <option value="director">ผู้อำนวยการ</option>
-            <option value="employee">พนักงาน</option>
-            <option value="worker">ลูกจ้าง</option>
+            <option value="teacher">🧑‍🏫 ครู</option>
+            <option value="director">👑 ผู้อำนวยการ</option>
+            <option value="employee">💼 พนักงาน</option>
+            <option value="worker">🛠️ ลูกจ้าง</option>
           </select>
         </div>
         <div class="field">
@@ -222,7 +345,7 @@ input:checked + .slider:before{transform:translateX(20px)}
         <div class="gps-status" id="regGpsStatus">
           <span>📍</span><span>ระบบจะขอตำแหน่ง GPS ขณะลงทะเบียน</span>
         </div>
-        <button type="submit" class="submit-btn" id="registerBtn">ลงทะเบียน</button>
+        <button type="submit" class="submit-btn" id="registerBtn">✨ ลงทะเบียน</button>
       </form>
     </div>
   </div>
@@ -243,13 +366,14 @@ input:checked + .slider:before{transform:translateX(20px)}
     </header>
 
     <div class="card">
-      <div style="text-align:center;padding-bottom:16px;margin-bottom:16px;border-bottom:1px dashed rgba(255,255,255,.1)">
-        <div id="clockTime" style="font-family:'Inter',monospace;font-size:2.6rem;font-weight:600;letter-spacing:.04em;background:linear-gradient(135deg,#67e8f9,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">--:--:--</div>
-        <div id="clockDate" style="font-size:.84rem;color:var(--muted);margin-top:4px;font-weight:300"></div>
+      <div style="text-align:center;padding-bottom:16px;margin-bottom:16px;border-bottom:2px dashed var(--border-color)">
+        <div id="clockTime" style="font-family:'Prompt',monospace;font-size:2.8rem;font-weight:700;letter-spacing:.02em;color:var(--text-main);text-shadow: 2px 2px 0px #fff, 3px 3px 0px var(--secondary);">--:--:--</div>
+        <div id="clockDate" style="font-size:.9rem;color:var(--text-muted);margin-top:4px;font-weight:600;"></div>
       </div>
 
-      <div class="gps-status" id="gpsStatus">
-        <span>📍</span><span>เลือกประเภทเพื่อตรวจสอบตำแหน่ง</span>
+      <!-- ลบข้อความ "เลือกประเภทเพื่อตรวจสอบตำแหน่ง" ออกแล้ว -->
+      <div class="gps-status" id="gpsStatus" style="display:none;">
+        <span>📍</span><span></span>
       </div>
 
       <form id="attendanceForm" autocomplete="off">
@@ -296,13 +420,13 @@ input:checked + .slider:before{transform:translateX(20px)}
     <div class="card">
       <div class="section-title">
         <span>📊 รายงานประจำวัน</span>
-        <input type="date" id="dailyDate" class="input" style="width:auto;padding:6px 10px;font-size:.8rem">
+        <input type="date" id="dailyDate" class="input" style="width:auto;padding:6px 10px;font-size:.85rem">
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>ชื่อ</th><th>เข้า</th><th>สถานะ</th><th>ออก</th></tr></thead>
           <tbody id="dailyReportBody">
-            <tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>
+            <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>
           </tbody>
         </table>
       </div>
@@ -316,11 +440,11 @@ input:checked + .slider:before{transform:translateX(20px)}
         <div class="user-name">📈 รายงานผล</div>
         <div class="user-role" id="reportScope">ข้อมูลของฉัน</div>
       </div>
-      <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
+      <button class="icon-btn" onclick="showScreen('dashboardScreen')">🔙</button>
     </header>
 
     <div class="card">
-      <div class="tabs" id="reportTypeTabs" style="margin-bottom:14px">
+      <div class="tabs" id="reportTypeTabs" style="margin-bottom:16px">
         <button class="tab active" data-rtype="week">สัปดาห์</button>
         <button class="tab" data-rtype="month">เดือน</button>
         <button class="tab" data-rtype="term">เทอม</button>
@@ -336,12 +460,12 @@ input:checked + .slider:before{transform:translateX(20px)}
           <option value="">— ทั้งหมด —</option>
         </select>
       </div>
-      <div style="text-align:center;margin-bottom:10px;color:var(--muted);font-size:.82rem" id="reportLabel">—</div>
+      <div style="text-align:center;margin-bottom:12px;color:var(--text-main);font-weight:700;font-size:.95rem" id="reportLabel">—</div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>ชื่อ</th><th>ปกติ</th><th>สาย</th><th>ลา</th><th>ไปราชการ</th><th>รวม</th></tr></thead>
           <tbody id="reportBody">
-            <tr><td colspan="6" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>
+            <tr><td colspan="6" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>
           </tbody>
         </table>
       </div>
@@ -355,10 +479,10 @@ input:checked + .slider:before{transform:translateX(20px)}
         <div class="user-name">✈️ อนุมัติไปราชการ</div>
         <div class="user-role">เฉพาะผู้อำนวยการ/แอดมิน</div>
       </div>
-      <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
+      <button class="icon-btn" onclick="showScreen('dashboardScreen')">🔙</button>
     </header>
     <div class="card">
-      <div class="tabs" style="margin-bottom:14px">
+      <div class="tabs" style="margin-bottom:16px">
         <button class="tab active" data-ttab="pending">รออนุมัติ</button>
         <button class="tab" data-ttab="all">ทั้งหมด</button>
       </div>
@@ -373,7 +497,7 @@ input:checked + .slider:before{transform:translateX(20px)}
         <div class="user-name">👤 ตั้งค่าโปรไฟล์</div>
         <div class="user-role">แก้ไขข้อมูลส่วนตัว</div>
       </div>
-      <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
+      <button class="icon-btn" onclick="showScreen('dashboardScreen')">🔙</button>
     </header>
 
     <div class="card">
@@ -381,7 +505,7 @@ input:checked + .slider:before{transform:translateX(20px)}
         <div class="profile-pic-upload">
           <img id="profilePicPreview" class="avatar-lg" src="" alt="profile">
           <label class="btn-sm btn-cyan" style="cursor:pointer">
-            เปลี่ยนรูปภาพ
+            📷 เปลี่ยนรูปภาพ
             <input type="file" id="profilePicInput" accept="image/*" style="display:none">
           </label>
         </div>
@@ -412,7 +536,7 @@ input:checked + .slider:before{transform:translateX(20px)}
           <label class="field-label">รหัสผ่านใหม่ (6+)</label>
           <input type="password" id="newPw" class="input" required>
         </div>
-        <button type="submit" class="submit-btn" style="background:linear-gradient(135deg,#a78bfa,#ec4899);color:#fff" id="savePwBtn">เปลี่ยนรหัสผ่าน</button>
+        <button type="submit" class="submit-btn" style="background:var(--accent);" id="savePwBtn">เปลี่ยนรหัสผ่าน</button>
       </form>
     </div>
   </div>
@@ -420,7 +544,7 @@ input:checked + .slider:before{transform:translateX(20px)}
   <!-- ADMIN SCREEN -->
   <div id="adminScreen" class="screen">
     <header class="app-header">
-      <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
+      <button class="icon-btn" onclick="showScreen('dashboardScreen')">🔙</button>
       <div class="user-info">
         <div class="user-name">Admin Panel</div>
         <div class="user-role">จัดการระบบ</div>
@@ -436,12 +560,12 @@ input:checked + .slider:before{transform:translateX(20px)}
 
       <div class="tab-content active" id="pendingTab">
         <div class="section-title">👥 ผู้ใช้รออนุมัติ</div>
-        <div id="pendingList" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div id="pendingList" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
 
       <div class="tab-content" id="usersTab">
         <div class="section-title">👤 ผู้ใช้ทั้งหมด</div>
-        <div id="usersList" style="display:flex;flex-direction:column;gap:8px"></div>
+        <div id="usersList" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
 
       <div class="tab-content" id="settingsTab">
@@ -455,20 +579,17 @@ input:checked + .slider:before{transform:translateX(20px)}
         <div class="field"><label class="field-label">รัศมี (เมตร)</label><input type="number" id="setRadius" class="input"></div>
         <div class="field"><label class="checkbox-group"><input type="checkbox" id="setStrictReg"> บังคับรัศมีตอนลงทะเบียน</label></div>
 
-        <div class="section-title" style="margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:16px">
-          🌍 สิทธิ์ลงเวลานอกพื้นที่ (Flexible Anywhere)
+        <div class="section-title" style="margin-top:20px;border-top:2px dashed var(--border-color);padding-top:16px">
+          🌍 สิทธิ์ลงเวลานอกพื้นที่
         </div>
         <div class="field">
-          <label class="checkbox-group" style="padding:12px;background:rgba(34,211,238,.05);border-radius:12px;border:1px solid rgba(34,211,238,.2)">
+          <label class="checkbox-group" style="padding:12px;background:#f4e6ff;border-radius:12px;border:2px solid var(--accent)">
             <input type="checkbox" id="setGlobalAnywhere">
-            <span style="flex:1">เปิดให้ <b>ทุกคน</b> ลงเวลาได้ทุกที่บนโลก (Global Override)</span>
+            <span style="flex:1;color:var(--text-main);font-weight:700">เปิดให้ <b>ทุกคน</b> ลงเวลาได้ทุกที่</span>
           </label>
         </div>
-        <p style="font-size:.75rem;color:var(--muted);margin-bottom:16px;line-height:1.5">
-          💡 ผู้อำนวยการและแอดมิน ได้สิทธิ์นี้โดยอัตโนมัติเสมอ — ส่วนรายบุคคลสามารถเปิด/ปิดได้ที่แท็บ "ผู้ใช้"
-        </p>
-
-        <div class="section-title" style="margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:16px">📅 ปีการศึกษา / เทอม</div>
+        
+        <div class="section-title" style="margin-top:20px;border-top:2px dashed var(--border-color);padding-top:16px">📅 ปีการศึกษา / เทอม</div>
         <div class="field"><label class="field-label">ปีการศึกษา (พ.ศ.)</label><input type="text" id="setAcademicYear" class="input" placeholder="เช่น 2567"></div>
         <div class="form-row-2">
           <div class="field"><label class="field-label">เปิดเทอม 1</label><input type="date" id="setTerm1Start" class="input"></div>
@@ -479,15 +600,12 @@ input:checked + .slider:before{transform:translateX(20px)}
 
         <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
 
-        <div class="section-title" style="margin-top:24px;border-top:1px solid rgba(255,255,255,.1);padding-top:16px">🤖 Automation</div>
-        <button type="button" class="btn-sm btn-emerald" id="setupTriggersBtn" style="width:100%;margin-bottom:10px;">⚡ ตั้ง Auto Check-in/out (08:00 / 21:00)</button>
+        <div class="section-title" style="margin-top:24px;border-top:2px dashed var(--border-color);padding-top:16px">🤖 Automation</div>
+        <button type="button" class="btn-sm btn-emerald" id="setupTriggersBtn" style="width:100%;margin-bottom:10px;">⚡ ตั้ง Auto Check-in/out</button>
         <div class="form-row-2">
           <button type="button" class="btn-sm btn-cyan" data-archive="week">📄 PDF สัปดาห์นี้</button>
           <button type="button" class="btn-sm btn-cyan" data-archive="month">📄 PDF เดือนนี้</button>
         </div>
-        <p style="font-size:.72rem;color:var(--muted);margin-top:8px;line-height:1.5">
-          การตั้งค่า Auto-trigger ต้องรันบน Google Apps Script (มีผลหลังตั้งแล้ว 5 นาที) • PDF ถูกเก็บในโฟลเดอร์ที่แอดมินกำหนด
-        </p>
       </div>
     </div>
   </div>
@@ -501,12 +619,13 @@ input:checked + .slider:before{transform:translateX(20px)}
   <div class="nav-item" onclick="navTo('profileScreen', this)"><span class="nav-icon">👤</span> โปรไฟล์</div>
 </div>
 
-<div class="toast" id="toast"><span id="toastIcon">✅</span><span id="toastMsg"></span></div>
+<!-- Toast (อีโมจิรายงาน) -->
+<div class="toast" id="toast"><span id="toastIcon">📋</span><span id="toastMsg"></span></div>
 
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
-    <h3 id="modalTitle" style="margin-bottom:14px;font-size:1.1rem"></h3>
-    <div class="modal-body" id="modalBody" style="font-size:.9rem;color:var(--muted);margin-bottom:18px;line-height:1.6"></div>
+    <h3 id="modalTitle" style="margin-bottom:14px;font-size:1.1rem;font-weight:700;"></h3>
+    <div class="modal-body" id="modalBody" style="font-size:.95rem;color:var(--text-muted);margin-bottom:18px;line-height:1.6;font-weight:500;"></div>
     <div class="modal-actions" id="modalActions" style="display:flex;gap:10px;justify-content:flex-end"></div>
   </div>
 </div>
@@ -546,11 +665,13 @@ async function api(cmd, extra = {}) {
 // ============ UI HELPERS ============
 function toast(msg, type = 'success') {
   const el = document.getElementById('toast');
-  document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '⚠️';
+  // เปลี่ยนเป็นอีโมจิรายงาน 📋 / 📝
+  document.getElementById('toastIcon').textContent = type === 'success' ? '📋' : '📝';
   document.getElementById('toastMsg').textContent = msg;
   el.className = `toast ${type} show`;
   setTimeout(() => el.classList.remove('show'), 4000);
 }
+
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   const el = document.getElementById(name); if (el) el.classList.add('active');
@@ -661,7 +782,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   if (!username || !password) return toast('กรอกข้อมูลให้ครบ', 'error');
   state.loadingAuth = true; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังโหลด...';
   const res = await api('login', { username, password });
-  state.loadingAuth = false; btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
+  state.loadingAuth = false; btn.disabled = false; btn.textContent = '🚀 เข้าสู่ระบบ';
   if (!res.success) return toast(res.message, 'error');
   state.token = res.token; state.user = res.user;
   if (remember) {
@@ -776,16 +897,19 @@ document.querySelectorAll('.action-btn').forEach(btn => {
       reasonSec.classList.add('visible');
       document.getElementById('fromDate').value = document.getElementById('fromDate').value || new Date().toISOString().split('T')[0];
       document.getElementById('toDate').value = document.getElementById('toDate').value || new Date().toISOString().split('T')[0];
+      gpsEl.style.display = 'flex';
       gpsEl.className = 'gps-status';
       gpsEl.innerHTML = '<span>📅</span><span>' + (action === 'ลา' ? 'ไม่ต้องใช้ GPS (ลาได้ทุกที่)' : 'ไม่ต้องใช้ GPS (ไปราชการทุกที่ได้)') + '</span>';
     } else if (action === 'มาสาย') {
       dateSec.classList.remove('visible');
       reasonSec.classList.add('visible');
+      gpsEl.style.display = 'flex';
       await checkGPS();
     } else {
       dateSec.classList.remove('visible');
       reasonSec.classList.remove('visible');
       document.getElementById('reasonInput').value = '';
+      gpsEl.style.display = 'flex';
       await checkGPS();
     }
   });
@@ -886,17 +1010,17 @@ document.getElementById('dailyDate').addEventListener('change', loadDailyReport)
 async function loadDailyReport() {
   const dateVal = document.getElementById('dailyDate').value;
   const tbody = document.getElementById('dailyReportBody');
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>';
   const res = await api('getDailyReport', { date: dateVal });
-  if (!res.success) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--rose)">${res.message}</td></tr>`; return; }
+  if (!res.success) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`; return; }
   if (!dateVal && res.date) document.getElementById('dailyDate').value = res.date;
-  if (!res.records || res.records.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">ไม่มีข้อมูล</td></tr>'; return; }
+  if (!res.records || res.records.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>'; return; }
   tbody.innerHTML = res.records.map(r => {
     const st = r.status;
     const badge = st === 'มาปกติ' ? '<span class="badge-status badge-ok">มา</span>' :
                   st === 'มาสาย' ? '<span class="badge-status badge-late">สาย</span>' :
                   st === 'ลา' ? '<span class="badge-status badge-leave">ลา</span>' :
-                  st === 'ไปราชการ' ? '<span class="badge-status badge-trip">ไปราชการ</span>' : '<span style="color:var(--muted)">-</span>';
+                  st === 'ไปราชการ' ? '<span class="badge-status badge-trip">ไปราชการ</span>' : '<span style="color:var(--text-muted)">-</span>';
     return `<tr><td class="table-name">${r.fullName}</td><td>${r.checkIn}</td><td>${badge}${r.inReason && r.inReason !== '-' && r.inReason !== 'มาสาย' ? `<div class="table-sub">${r.inReason}</div>` : ''}</td><td>${r.checkOut}</td></tr>`;
   }).join('');
 }
@@ -933,14 +1057,14 @@ async function populateReportTarget() {
 async function loadReports() {
   await populateReportTarget();
   const tbody = document.getElementById('reportBody');
-  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>';
   const refDate = document.getElementById('reportRefDate').value || new Date().toISOString().split('T')[0];
   const targetUser = document.getElementById('reportTargetUser').value || '';
   const res = await api('getReports', { periodType: state.reportType, refDate, targetUser });
-  if (!res.success) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--rose)">${res.message}</td></tr>`; return; }
+  if (!res.success) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`; return; }
   document.getElementById('reportLabel').textContent = res.label;
   if (!res.records || res.records.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">ไม่มีข้อมูลในช่วงนี้</td></tr>'; return;
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงนี้</td></tr>'; return;
   }
   tbody.innerHTML = res.records.map(r => `
     <tr>
@@ -980,19 +1104,19 @@ async function loadTravelList() {
                 r.status === 'APPROVED' ? '<span class="badge-status badge-ok">อนุมัติแล้ว</span>' :
                 '<span class="badge-status badge-leave">ปฏิเสธ</span>';
     const actions = r.status === 'PENDING'
-      ? `<div style="display:flex;gap:8px;margin-top:10px">
+      ? `<div style="display:flex;gap:10px;margin-top:12px">
            <button class="btn-sm btn-emerald" style="flex:1" onclick="approveTravel('${r.id}')">✓ อนุมัติ</button>
            <button class="btn-sm btn-danger" style="flex:1" onclick="rejectTravel('${r.id}')">✕ ปฏิเสธ</button>
          </div>`
       : '';
-    return `<div style="padding:12px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.06);margin-bottom:10px">
-      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
-        <div style="font-weight:500">${r.fullName}</div>
+    return `<div style="padding:16px;background:var(--bg-color);border-radius:12px;border:2px solid var(--border-color);margin-bottom:12px; box-shadow: 2px 2px 0 var(--border-color);">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;">
+        <div style="font-weight:700;font-size:1rem;">${r.fullName}</div>
         ${st}
       </div>
-      <div style="color:var(--muted);font-size:.78rem;margin-top:4px">${r.fromDate} → ${r.toDate}</div>
-      <div style="font-size:.82rem;margin-top:6px"><b>เหตุผล:</b> ${r.reason}</div>
-      ${r.approvedBy ? `<div style="color:var(--muted);font-size:.75rem;margin-top:4px">โดย ${r.approvedBy} · ${r.approvedAt}</div>` : ''}
+      <div style="color:var(--text-muted);font-size:.85rem;margin-top:6px;font-weight:600;">📅 ${r.fromDate} → ${r.toDate}</div>
+      <div style="font-size:.9rem;margin-top:8px;"><b>เหตุผล:</b> ${r.reason}</div>
+      ${r.approvedBy ? `<div style="color:var(--text-muted);font-size:.8rem;margin-top:6px;font-weight:500;">อนุมัติโดย ${r.approvedBy} · ${r.approvedAt}</div>` : ''}
       ${actions}
     </div>`;
   }).join('');
@@ -1099,10 +1223,10 @@ async function loadPending() {
   if (!res.users.length) return box.innerHTML = '<div class="empty-state">ไม่มีผู้ใช้รออนุมัติ 🎉</div>';
   const roleName = { teacher:'ครู', director:'ผู้อำนวยการ', employee:'พนักงาน', worker:'ลูกจ้าง', admin:'แอดมิน' };
   box.innerHTML = res.users.map(u => `
-    <div style="padding:12px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.06)">
-      <div style="font-weight:500">${u.fullName} <span style="color:var(--muted);font-size:.75rem">@${u.username}</span></div>
-      <div style="color:var(--muted);font-size:.75rem;margin-top:2px">${roleName[u.role]||u.role} · ${u.registeredAt} · ระยะ ${u.regDistance} ม.</div>
-      <div style="display:flex;gap:8px;margin-top:10px">
+    <div style="padding:14px;background:var(--bg-color);border-radius:12px;border:2px solid var(--border-color); box-shadow: 2px 2px 0 var(--border-color);">
+      <div style="font-weight:700;font-size:1rem;">${u.fullName} <span style="color:var(--text-muted);font-size:.8rem;font-weight:500;">@${u.username}</span></div>
+      <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px;font-weight:500;">${roleName[u.role]||u.role} · ${u.registeredAt} · ระยะ ${u.regDistance} ม.</div>
+      <div style="display:flex;gap:10px;margin-top:12px;">
         <button class="btn-sm btn-emerald" style="flex:1" onclick="adminApprove('${u.username}')">✓ อนุมัติ</button>
         <button class="btn-sm btn-danger" style="flex:1" onclick="adminReject('${u.username}')">✕ ปฏิเสธ</button>
       </div>
@@ -1127,8 +1251,8 @@ async function loadUsers() {
   box.innerHTML = res.users.map(u => `
     <div class="user-row">
       <div class="user-row-info">
-        <div style="font-weight:500;font-size:.9rem">${u.fullName}</div>
-        <div style="color:var(--muted);font-size:.72rem">@${u.username} · ${roleName[u.role]||u.role} · ${u.status}</div>
+        <div style="font-weight:700;font-size:.95rem">${u.fullName}</div>
+        <div style="color:var(--text-muted);font-size:.75rem;margin-top:2px;">@${u.username} · ${roleName[u.role]||u.role} · ${u.status}</div>
       </div>
       <label class="switch" title="ลงเวลานอกพื้นที่">
         <input type="checkbox" ${u.canAnywhere?'checked':''} onchange="setUserPerm('${u.username}', this.checked)" ${u.username==='admin'?'disabled':''}>
