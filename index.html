@@ -222,17 +222,26 @@ tr:last-child td{border-bottom:none}
 .modal-overlay.show{display:flex}
 .modal{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:20px;padding:24px;max-width:420px;width:100%;box-shadow:6px 6px 0px var(--border-color)}
 
+/* แก้ไขกล่อง Toast ไม่ให้โผล่ตอนซ่อน */
 .toast{
   position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%;
-  transform:translateX(-50%) translateY(120%);
+  transform:translate(-50%, 150%);
   z-index:99;padding:14px 24px;border-radius:16px;
   background:var(--card-bg); border:var(--border-width) solid var(--border-color);
   font-size:.95rem;font-weight:700;
   transition:all .4s cubic-bezier(.34,1.56,.64,1);
   max-width:calc(100vw - 40px);display:flex;align-items:center;gap:10px;
   box-shadow: 4px 4px 0px var(--border-color);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
-.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.show{
+  transform:translate(-50%, 0);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
 .toast.success{color:var(--text-main); border-color:var(--success); box-shadow: 4px 4px 0px var(--success);}
 .toast.error{color:var(--text-main); border-color:var(--danger); box-shadow: 4px 4px 0px var(--danger);}
 
@@ -244,9 +253,10 @@ tr:last-child td{border-bottom:none}
 }
 .bottom-nav.show{display:flex}
 .nav-item{
-  display:flex;flex-direction:column;align-items:center;gap:4px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
   color:var(--text-muted);font-size:.75rem;font-weight:700;cursor:pointer;
-  transition:all .2s;padding:8px 16px;border-radius:12px;border:2px solid transparent;
+  transition:all .2s; border-radius:12px; border:2px solid transparent;
+  height: 60px; width: 80px;
 }
 .nav-item.active{color:var(--text-main);background:var(--bg-pattern); border-color:var(--border-color);}
 .nav-icon{font-size:1.4rem;}
@@ -665,7 +675,6 @@ async function api(cmd, extra = {}) {
 // ============ UI HELPERS ============
 function toast(msg, type = 'success') {
   const el = document.getElementById('toast');
-  // เปลี่ยนเป็นอีโมจิรายงาน 📋 / 📝
   document.getElementById('toastIcon').textContent = type === 'success' ? '📋' : '📝';
   document.getElementById('toastMsg').textContent = msg;
   el.className = `toast ${type} show`;
