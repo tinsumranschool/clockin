@@ -213,7 +213,7 @@ tr:last-child td{border-bottom:none}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
-.modal{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:20px;padding:24px;max-width:420px;width:100%;box-shadow:6px 6px 0px var(--border-color)}
+.modal{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:20px;padding:24px;max-width:420px;width:100%;box-shadow:6px 6px 0px var(--border-color); max-height:90vh; overflow-y:auto;}
 
 .toast{
   position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%;
@@ -258,7 +258,12 @@ tr:last-child td{border-bottom:none}
 
 .user-row{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--card-bg);border-radius:12px;gap:10px;border:2px solid var(--border-color); margin-bottom:8px; box-shadow: 2px 2px 0 var(--border-color);}
 .user-row-info{flex:1;min-width:0}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+@media (max-width: 480px) {
+  .form-row-3 { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
@@ -412,34 +417,54 @@ tr:last-child td{border-bottom:none}
       <button class="icon-btn" onclick="showScreen('dashboardScreen')">🔙</button>
     </header>
 
-    <div class="card" style="padding: 0; background: transparent; box-shadow: none; border:none;">
-      <div class="tabs" style="margin-bottom:16px; background:var(--card-bg); border:var(--border-width) solid var(--border-color); box-shadow: var(--shadow-hard);">
-        <button class="tab active" data-tab="term1">เทอม 1</button>
-        <button class="tab" data-tab="term2">เทอม 2</button>
+    <div class="card">
+      <div class="form-row-3" style="margin-bottom:16px">
+        <div class="field" style="margin:0">
+          <label class="field-label">ปีการศึกษา</label>
+          <select id="reportYear" class="select">
+            <option value="2567">2567</option>
+            <option value="2568">2568</option>
+            <option value="2569">2569</option>
+            <option value="2570">2570</option>
+          </select>
+        </div>
+        <div class="field" style="margin:0">
+          <label class="field-label">เทอม</label>
+          <select id="reportTerm" class="select">
+            <option value="all">ทั้งหมด</option>
+            <option value="1">เทอม 1</option>
+            <option value="2">เทอม 2</option>
+          </select>
+        </div>
+        <div class="field" style="margin:0">
+          <label class="field-label">เดือน</label>
+          <select id="reportMonth" class="select">
+            <option value="all">ทั้งหมด</option>
+            <option value="01">มกราคม</option>
+            <option value="02">กุมภาพันธ์</option>
+            <option value="03">มีนาคม</option>
+            <option value="04">เมษายน</option>
+            <option value="05">พฤษภาคม</option>
+            <option value="06">มิถุนายน</option>
+            <option value="07">กรกฎาคม</option>
+            <option value="08">สิงหาคม</option>
+            <option value="09">กันยายน</option>
+            <option value="10">ตุลาคม</option>
+            <option value="11">พฤศจิกายน</option>
+            <option value="12">ธันวาคม</option>
+          </select>
+        </div>
       </div>
       
-      <div class="card tab-content active" id="term1Tab">
-        <div class="section-title" style="margin-bottom:10px; justify-content:flex-end">
-          <button class="btn-sm btn-cyan" id="exportPdfBtn1">📄 ดาวน์โหลด PDF (เลือกเดือน)</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>วันที่</th><th>เวลา</th><th>กิจกรรม</th><th>เหตุผล</th></tr></thead>
-            <tbody id="term1Body"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
-          </table>
-        </div>
+      <div class="section-title" style="margin-bottom:10px; justify-content:flex-end">
+        <button class="btn-sm btn-cyan" id="exportPdfBtn">📄 ดาวน์โหลด PDF (เลือกเดือน)</button>
       </div>
-      
-      <div class="card tab-content" id="term2Tab">
-        <div class="section-title" style="margin-bottom:10px; justify-content:flex-end">
-          <button class="btn-sm btn-cyan" id="exportPdfBtn2">📄 ดาวน์โหลด PDF (เลือกเดือน)</button>
-        </div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>วันที่</th><th>เวลา</th><th>กิจกรรม</th><th>เหตุผล</th></tr></thead>
-            <tbody id="term2Body"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
-          </table>
-        </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>วันที่</th><th>เวลา</th><th>กิจกรรม</th><th>เหตุผล</th></tr></thead>
+          <tbody id="termReportBody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -520,12 +545,18 @@ tr:last-child td{border-bottom:none}
     <div class="card">
       <div class="tabs" style="margin-bottom:16px">
         <button class="tab active" data-tab="pending">รออนุมัติ</button>
+        <button class="tab" data-tab="users">ผู้ใช้</button>
         <button class="tab" data-tab="settings">ตั้งค่า</button>
       </div>
 
       <div class="tab-content active" id="pendingTab">
         <div class="section-title">👥 ผู้ใช้รออนุมัติ</div>
         <div id="pendingList" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
+      <div class="tab-content" id="usersTab">
+        <div class="section-title">👤 ผู้ใช้ทั้งหมด</div>
+        <div id="usersList" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
 
       <div class="tab-content" id="settingsTab">
@@ -579,6 +610,37 @@ tr:last-child td{border-bottom:none}
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
       <button class="btn-sm btn-neutral" onclick="closePdfModal()">ยกเลิก</button>
       <button class="btn-sm btn-emerald" id="confirmPdfBtn" onclick="downloadPdf()">ดาวน์โหลด</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL EDIT USER (ADMIN) -->
+<div class="modal-overlay" id="editUserModal">
+  <div class="modal">
+    <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">✏️ แก้ไขข้อมูลผู้ใช้</h3>
+    <input type="hidden" id="editTargetUsername">
+    <div class="field"><label class="field-label">ชื่อ-นามสกุล</label><input type="text" id="editUserFullName" class="input"></div>
+    <div class="field"><label class="field-label">ตำแหน่ง</label><input type="text" id="editUserPosition" class="input"></div>
+    <div class="field">
+      <label class="field-label">บทบาท (Role)</label>
+      <select id="editUserRole" class="select">
+        <option value="user">User ทั่วไป</option>
+        <option value="teacher">ครู</option>
+        <option value="director">ผู้อำนวยการ</option>
+        <option value="admin">แอดมิน</option>
+      </select>
+    </div>
+    <div class="field">
+      <label class="field-label">สถานะ (Status)</label>
+      <select id="editUserStatus" class="select">
+        <option value="approved">อนุมัติแล้ว</option>
+        <option value="pending">รออนุมัติ</option>
+        <option value="rejected">ถูกระงับ</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn-sm btn-neutral" onclick="closeEditUserModal()">ยกเลิก</button>
+      <button class="btn-sm btn-emerald" id="saveEditUserBtn" onclick="saveEditUser()">บันทึก</button>
     </div>
   </div>
 </div>
@@ -650,7 +712,7 @@ function showScreen(name) {
 
   if (state.pollTimer) clearInterval(state.pollTimer);
 
-  if (name === 'reportsScreen') loadTermReports();
+  if (name === 'reportsScreen') loadReports();
   if (name === 'dashboardScreen' && state.user) {
     loadDailyReport();
     state.pollTimer = setInterval(loadDailyReport, 10000);
@@ -790,7 +852,11 @@ async function initUserSession() {
   
   if (!state.settings) {
     const s = await api('getSettings');
-    if (s.success) state.settings = s.settings;
+    if (s.success) {
+      state.settings = s.settings;
+      // ตั้งค่าเริ่มต้นให้กับตัวกรองรายงาน
+      document.getElementById('reportYear').value = s.settings.academicYear || '2567';
+    }
   }
   
   const dd = document.getElementById('dailyDate');
@@ -921,10 +987,10 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
       document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
       state.selectedAction = null;
       
-      // Refresh both tables after successful attendance
+      // 🟢 โหลดข้อมูลใหม่ทันทีแบบ Real-time
       loadDailyReport(); 
       if(document.getElementById('reportsScreen').classList.contains('active')) {
-        loadTermReports();
+        loadReports();
       }
     } else toast(res.message, 'error');
   } catch (err) { toast(err.message, 'error'); } 
@@ -964,40 +1030,36 @@ async function loadDailyReport() {
 // ============================================================
 // REPORTS LOGIC
 // ============================================================
-document.querySelectorAll('#reportsScreen .tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('#reportsScreen .tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('#reportsScreen .tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
-  });
-});
+document.getElementById('reportYear').addEventListener('change', loadReports);
+document.getElementById('reportTerm').addEventListener('change', loadReports);
+document.getElementById('reportMonth').addEventListener('change', loadReports);
 
-async function loadTermReports() {
-  document.getElementById('term1Body').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>';
-  document.getElementById('term2Body').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>';
+async function loadReports() {
+  const tbody = document.getElementById('termReportBody');
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>';
   
-  const res = await api('getTermReports');
+  const year = document.getElementById('reportYear').value;
+  const term = document.getElementById('reportTerm').value;
+  const month = document.getElementById('reportMonth').value;
+
+  const res = await api('getReports', { year, term, month });
   if (!res.success) { toast(res.message, 'error'); return; }
   
-  const renderTable = (records) => {
-    if (records.length === 0) return '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูล</td></tr>';
-    return records.map(r => `
-      <tr>
-        <td>${r.date}</td>
-        <td>${r.time}</td>
-        <td style="color:${r.action==='เข้างาน'?'var(--success)':r.action==='ออกงาน'?'var(--danger)':'var(--warning)'}; font-weight:700">${r.action}</td>
-        <td>${r.reason}</td>
-      </tr>
-    `).join('');
-  };
+  if (!res.records || res.records.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>'; return;
+  }
 
-  document.getElementById('term1Body').innerHTML = renderTable(res.term1);
-  document.getElementById('term2Body').innerHTML = renderTable(res.term2);
+  tbody.innerHTML = res.records.map(r => `
+    <tr>
+      <td>${r.date}</td>
+      <td>${r.time}</td>
+      <td style="color:${r.action==='เข้างาน'?'var(--success)':r.action==='ออกงาน'?'var(--danger)':'var(--warning)'}; font-weight:700">${r.action}</td>
+      <td>${r.reason}</td>
+    </tr>
+  `).join('');
 }
 
 // PDF Download Logic
-let currentPdfMonth = "";
 function openPdfModal() {
   const d = new Date();
   document.getElementById('pdfMonth').value = d.toISOString().slice(0, 7);
@@ -1031,8 +1093,7 @@ async function downloadPdf() {
   }
 }
 
-document.getElementById('exportPdfBtn1').addEventListener('click', openPdfModal);
-document.getElementById('exportPdfBtn2').addEventListener('click', openPdfModal);
+document.getElementById('exportPdfBtn').addEventListener('click', openPdfModal);
 
 // ============================================================
 // PROFILE LOGIC
@@ -1136,6 +1197,7 @@ document.querySelectorAll('#adminScreen .tab').forEach(tab => {
     document.querySelectorAll('#adminScreen .tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
     if (tab.dataset.tab === 'pending') loadPending();
+    if (tab.dataset.tab === 'users') loadUsers();
     if (tab.dataset.tab === 'settings') loadAdminSettings();
   });
 });
@@ -1161,6 +1223,61 @@ async function loadPending() {
 
 window.approveUser = async (u) => { const r = await api('admin_approve', {username:u}); toast(r.message, r.success?'success':'error'); loadPending(); };
 window.rejectUser = async (u) => { const r = await api('admin_reject', {username:u}); toast(r.message, r.success?'success':'error'); loadPending(); };
+
+async function loadUsers() {
+  const box = document.getElementById('usersList');
+  box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  const res = await api('admin_listUsers');
+  if (!res.success) return;
+  
+  box.innerHTML = res.users.map(u => `
+    <div class="user-row">
+      <div class="user-row-info">
+        <div style="font-weight:700;font-size:.95rem">${u.fullName}</div>
+        <div style="color:var(--text-muted);font-size:.75rem;margin-top:2px;">@${u.username} · ${u.role} · ${u.status}</div>
+      </div>
+      <button class="btn-sm btn-cyan" onclick="openEditUser('${u.username}', '${u.fullName}', '${u.role}', '${u.status}', '${u.position}')">✏️ แก้ไข</button>
+    </div>
+  `).join('');
+}
+
+// 🟢 ฟังก์ชันแก้ไขผู้ใช้
+function openEditUser(username, fullName, role, status, position) {
+  document.getElementById('editTargetUsername').value = username;
+  document.getElementById('editUserFullName').value = fullName;
+  document.getElementById('editUserRole').value = role;
+  document.getElementById('editUserStatus').value = status;
+  document.getElementById('editUserPosition').value = position !== '-' ? position : '';
+  document.getElementById('editUserModal').classList.add('show');
+}
+
+function closeEditUserModal() {
+  document.getElementById('editUserModal').classList.remove('show');
+}
+
+async function saveEditUser() {
+  const btn = document.getElementById('saveEditUserBtn');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
+  
+  const payload = {
+    targetUsername: document.getElementById('editTargetUsername').value,
+    fullName: document.getElementById('editUserFullName').value.trim(),
+    role: document.getElementById('editUserRole').value,
+    status: document.getElementById('editUserStatus').value,
+    position: document.getElementById('editUserPosition').value.trim()
+  };
+  
+  const res = await api('admin_updateUser', payload);
+  btn.disabled = false; btn.textContent = 'บันทึก';
+  
+  if (res.success) {
+    toast(res.message);
+    closeEditUserModal();
+    loadUsers(); // รีเฟรชรายชื่อทันที
+  } else {
+    toast(res.message, 'error');
+  }
+}
 
 async function loadAdminSettings() {
   const s = await api('getSettings');
@@ -1211,7 +1328,12 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   const res = await api('admin_updateSettings', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
   
-  if (res.success) { toast(res.message); state.settings = null; }
+  if (res.success) { 
+    toast(res.message); 
+    state.settings = null; 
+    // อัปเดตปีในหน้า Report ทันที
+    document.getElementById('reportYear').value = payload.academicYear;
+  }
   else toast(res.message, 'error');
 });
 
