@@ -3,21 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>TimeTrack Pro — ระบบลงเวลาทำงาน</title>
+<title>TimeTrack Pro v2 — ระบบลงเวลาทำงาน</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* ===================================================================
-   CSS VARIABLES & RESET
-=================================================================== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg-deep:#0a0e27; --bg-card:rgba(255,255,255,.06); --border-glass:rgba(255,255,255,.12);
   --text:#f0f2ff; --muted:#8b92b8; --cyan:#22d3ee; --violet:#a78bfa;
   --rose:#fb7185; --emerald:#34d399; --amber:#fbbf24;
   --radius-xl:24px; --radius-lg:18px; --radius-md:12px;
-  --nav-height: 70px;
+  --nav-height:70px;
 }
 body{
   font-family:'Prompt','Inter',sans-serif; background:var(--bg-deep); color:var(--text);
@@ -30,13 +27,10 @@ body{
 .orb-3{width:320px;height:320px;background:#f43f5e;top:40%;left:60%;opacity:.18;animation-delay:-8s}
 @keyframes float{0%{transform:translate(0,0) scale(1)}100%{transform:translate(30px,-40px) scale(1.08)}}
 
-/* ===================================================================
-   LAYOUT & COMPONENTS
-=================================================================== */
-.wrapper{position:relative;z-index:1;width:100%;max-width:580px;display:flex;flex-direction:column;gap:16px}
-.screen{display:none;flex-direction:column;gap:16px;width:100%;animation:fadeIn .3s ease}
+.wrapper{position:relative;z-index:1;width:100%;max-width:620px;display:flex;flex-direction:column;gap:16px}
+.screen{display:none;flex-direction:column;gap:16px;width:100%;animation:fadeIn .35s ease}
 .screen.active{display:flex}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
 
 .brand{text-align:center;padding:8px 0 4px}
 .brand-badge{display:inline-flex;align-items:center;gap:8px;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);background:rgba(34,211,238,.08);border:1px solid rgba(34,211,238,.25);padding:6px 14px;border-radius:999px;margin-bottom:12px}
@@ -45,21 +39,21 @@ body{
 .brand-title{font-size:clamp(1.8rem,5vw,2.2rem);font-weight:700;background:linear-gradient(135deg,#fff,#a5b4fc 50%,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em}
 .brand-sub{font-size:.88rem;color:var(--muted);margin-top:6px;font-weight:300}
 
-.card{background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-xl);padding:24px 22px;backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 60px rgba(34,211,238,.08)}
+.card{background:var(--bg-card);border:1px solid var(--border-glass);border-radius:var(--radius-xl);padding:24px 22px;
+  backdrop-filter:blur(24px) saturate(140%);-webkit-backdrop-filter:blur(24px) saturate(140%);
+  box-shadow:0 24px 60px rgba(0,0,0,.45),0 0 60px rgba(34,211,238,.08),inset 0 1px 0 rgba(255,255,255,.06)}
 
-/* Header */
-.app-header{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border-glass);padding:12px 16px;border-radius:var(--radius-lg);backdrop-filter:blur(16px)}
+.app-header{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--border-glass);padding:12px 16px;border-radius:var(--radius-lg);backdrop-filter:blur(16px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .user-info{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
 .avatar{border-radius:50%;width:40px;height:40px;object-fit:cover;border:2px solid var(--cyan);background:#1e293b}
 .user-name{font-weight:600;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .user-role{font-size:.72rem;color:var(--muted);margin-top:2px}
 .icon-btn{width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:var(--text);cursor:pointer;font-size:1rem;transition:all .2s}
-.icon-btn:hover{background:rgba(34,211,238,.15);border-color:var(--cyan);color:var(--cyan)}
+.icon-btn:hover{background:rgba(34,211,238,.15);border-color:var(--cyan);color:var(--cyan);transform:translateY(-1px)}
 
-/* Tabs & Forms */
 .tabs{display:flex;gap:6px;background:rgba(255,255,255,.04);padding:5px;border-radius:14px;border:1px solid var(--border-glass)}
 .tab{flex:1;padding:10px 12px;border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:.85rem;font-weight:500;cursor:pointer;border-radius:10px;transition:all .2s}
-.tab.active{background:linear-gradient(135deg,rgba(34,211,238,.2),rgba(167,139,250,.2));color:#fff;box-shadow:0 4px 12px rgba(34,211,238,.15)}
+.tab.active{background:linear-gradient(135deg,rgba(34,211,238,.25),rgba(167,139,250,.25));color:#fff;box-shadow:0 4px 12px rgba(34,211,238,.2),inset 0 1px 0 rgba(255,255,255,.15)}
 .tab-content{display:none}
 .tab-content.active{display:block}
 
@@ -72,65 +66,92 @@ body{
 .checkbox-group{display:flex;align-items:center;gap:8px;font-size:.85rem;color:var(--muted);cursor:pointer}
 input[type="checkbox"]{width:16px;height:16px;cursor:pointer}
 
-/* Actions */
-.action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:8px}
-.action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 10px;border-radius:var(--radius-lg);border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);color:var(--muted);font-family:inherit;font-size:.85rem;font-weight:500;cursor:pointer;transition:all .3s}
-.action-btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,.25)}
+.action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px}
+.action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 8px;border-radius:var(--radius-lg);
+  border:1px solid rgba(255,255,255,.1);background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  color:var(--muted);font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;
+  transition:all .2s ease; position:relative;
+  box-shadow:0 4px 0 rgba(0,0,0,.25),0 6px 16px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.1)}
+.action-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 6px 0 rgba(0,0,0,.25),0 10px 22px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,255,255,.15);border-color:rgba(255,255,255,.25)}
+.action-btn:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.25),0 4px 10px rgba(0,0,0,.25)}
+.action-btn:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.8)}
 .action-btn .icon{font-size:1.4rem;line-height:1}
-.action-btn[data-action="เข้างาน"].active{background:linear-gradient(145deg,rgba(52,211,153,.22),rgba(52,211,153,.06));border-color:var(--emerald);color:var(--emerald)}
-.action-btn[data-action="ออกงาน"].active{background:linear-gradient(145deg,rgba(251,113,133,.22),rgba(251,113,133,.06));border-color:var(--rose);color:var(--rose)}
-.action-btn[data-action="ลา"].active{background:linear-gradient(145deg,rgba(251,191,36,.22),rgba(251,191,36,.06));border-color:var(--amber);color:var(--amber)}
-.action-btn[data-action="มาสาย"].active{background:linear-gradient(145deg,rgba(167,139,250,.22),rgba(167,139,250,.06));border-color:var(--violet);color:var(--violet)}
+.action-btn[data-action="เข้างาน"]:not(:disabled):hover{color:var(--emerald);border-color:rgba(52,211,153,.5)}
+.action-btn[data-action="ออกงาน"]:not(:disabled):hover{color:var(--rose);border-color:rgba(251,113,133,.5)}
+.action-btn[data-action="มาสาย"]:not(:disabled):hover{color:var(--violet);border-color:rgba(167,139,250,.5)}
+.action-btn[data-action="ลา"]:not(:disabled):hover{color:var(--amber);border-color:rgba(251,191,36,.5)}
+.action-btn[data-action="ไปราชการ"]:not(:disabled):hover{color:var(--cyan);border-color:rgba(34,211,238,.5)}
+.action-btn.active{color:#fff}
+.action-btn[data-action="เข้างาน"].active{background:linear-gradient(180deg,rgba(52,211,153,.35),rgba(52,211,153,.1));border-color:var(--emerald);color:var(--emerald)}
+.action-btn[data-action="ออกงาน"].active{background:linear-gradient(180deg,rgba(251,113,133,.35),rgba(251,113,133,.1));border-color:var(--rose);color:var(--rose)}
+.action-btn[data-action="มาสาย"].active{background:linear-gradient(180deg,rgba(167,139,250,.35),rgba(167,139,250,.1));border-color:var(--violet);color:var(--violet)}
+.action-btn[data-action="ลา"].active{background:linear-gradient(180deg,rgba(251,191,36,.35),rgba(251,191,36,.1));border-color:var(--amber);color:var(--amber)}
+.action-btn[data-action="ไปราชการ"].active{background:linear-gradient(180deg,rgba(34,211,238,.35),rgba(34,211,238,.1));border-color:var(--cyan);color:var(--cyan)}
 
-.submit-btn{width:100%;padding:16px;border:none;border-radius:var(--radius-lg);font-family:inherit;font-size:.98rem;font-weight:600;cursor:pointer;color:#06121f;background:linear-gradient(135deg,#22d3ee,#818cf8);box-shadow:0 10px 30px rgba(34,211,238,.25);transition:all .2s}
-.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 16px 40px rgba(34,211,238,.35)}
+.submit-btn{width:100%;padding:16px;border:none;border-radius:var(--radius-lg);font-family:inherit;font-size:.98rem;font-weight:600;cursor:pointer;color:#06121f;
+  background:linear-gradient(135deg,#22d3ee,#818cf8);
+  box-shadow:0 6px 0 rgba(15,23,42,.5),0 10px 30px rgba(34,211,238,.35),inset 0 1px 0 rgba(255,255,255,.3);
+  transition:all .15s ease}
+.submit-btn:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 0 rgba(15,23,42,.5),0 16px 40px rgba(34,211,238,.45),inset 0 1px 0 rgba(255,255,255,.3)}
+.submit-btn:active:not(:disabled){transform:translateY(3px);box-shadow:0 3px 0 rgba(15,23,42,.5),0 6px 20px rgba(34,211,238,.3)}
 .submit-btn:disabled{opacity:.6;cursor:not-allowed}
-.btn-sm{padding:8px 14px;border-radius:8px;border:1px solid transparent;font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-sm{padding:8px 14px;border-radius:10px;border:1px solid transparent;font-family:inherit;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .btn-cyan{background:rgba(34,211,238,.15);color:var(--cyan);border-color:rgba(34,211,238,.4)}
 .btn-cyan:hover{background:rgba(34,211,238,.3)}
 .btn-neutral{background:rgba(255,255,255,.06);color:var(--muted);border-color:rgba(255,255,255,.15)}
 .btn-danger{background:rgba(251,113,133,.15);color:var(--rose);border-color:rgba(251,113,133,.4)}
+.btn-emerald{background:rgba(52,211,153,.15);color:var(--emerald);border-color:rgba(52,211,153,.4)}
 
-/* GPS Status */
 .gps-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;font-size:.82rem;font-weight:500;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);margin-bottom:16px;color:var(--muted);transition:all .3s}
 .gps-status.ok{background:rgba(52,211,153,.1);border-color:rgba(52,211,153,.4);color:var(--emerald)}
 .gps-status.bad{background:rgba(251,113,133,.1);border-color:rgba(251,113,133,.4);color:var(--rose)}
 .gps-status.loading{background:rgba(34,211,238,.1);border-color:rgba(34,211,238,.4);color:var(--cyan)}
 
-/* Tables */
-.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border-glass);margin-top:12px}
-table{width:100%;border-collapse:collapse;font-size:.82rem;text-align:left}
-th{background:rgba(255,255,255,.05);padding:12px 10px;font-weight:600;color:var(--muted);white-space:nowrap}
-td{padding:12px 10px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
+.table-wrap{overflow-x:auto;border-radius:12px;border:1px solid var(--border-glass);margin-top:12px;background:rgba(0,0,0,.15)}
+table{width:100%;border-collapse:collapse;font-size:.8rem;text-align:left}
+th{background:rgba(255,255,255,.06);padding:10px 8px;font-weight:600;color:var(--muted);white-space:nowrap;font-size:.78rem}
+td{padding:10px 8px;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top}
 tr:last-child td{border-bottom:none}
 .table-name{font-weight:500;color:var(--text)}
-.table-sub{font-size:.75rem;color:var(--rose);margin-top:2px}
+.table-sub{font-size:.72rem;color:var(--rose);margin-top:2px}
+.badge-status{padding:3px 8px;border-radius:6px;font-size:.72rem;font-weight:600;display:inline-block}
+.badge-ok{background:rgba(52,211,153,.15);color:var(--emerald)}
+.badge-late{background:rgba(167,139,250,.15);color:var(--violet)}
+.badge-leave{background:rgba(251,113,133,.15);color:var(--rose)}
+.badge-trip{background:rgba(34,211,238,.15);color:var(--cyan)}
 
-/* Modal */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
-.modal{background:#151b3d;border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:24px;max-width:420px;width:100%}
+.modal{background:#151b3d;border:1px solid rgba(255,255,255,.15);border-radius:20px;padding:24px;max-width:420px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.6)}
 
-/* Navigation Bar */
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:rgba(15,23,42,.85);backdrop-filter:blur(20px);border-top:1px solid var(--border-glass);display:none;justify-content:space-around;align-items:center;z-index:90;padding:0 10px}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:rgba(15,23,42,.9);backdrop-filter:blur(20px);border-top:1px solid var(--border-glass);display:none;justify-content:space-around;align-items:center;z-index:90;padding:0 6px}
 .bottom-nav.show{display:flex}
-.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.7rem;font-weight:500;cursor:pointer;transition:all .2s;padding:8px 12px;border-radius:12px}
-.nav-item.active{color:var(--cyan);background:rgba(34,211,238,.1)}
-.nav-icon{font-size:1.3rem}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:4px;color:var(--muted);font-size:.65rem;font-weight:500;cursor:pointer;transition:all .2s;padding:8px 8px;border-radius:12px;min-width:60px}
+.nav-item.active{color:var(--cyan);background:rgba(34,211,238,.12)}
+.nav-icon{font-size:1.25rem}
 
-/* Misc */
-.section-title{font-size:1rem;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center}
-.reason-section{max-height:0;overflow:hidden;opacity:0;transition:all .3s;margin-bottom:0}
-.reason-section.visible{max-height:200px;opacity:1;margin-bottom:16px}
+.section-title{font-size:1rem;font-weight:600;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.reason-section,.date-range-section{max-height:0;overflow:hidden;opacity:0;transition:all .35s;margin-bottom:0}
+.reason-section.visible,.date-range-section.visible{max-height:400px;opacity:1;margin-bottom:16px}
 .empty-state{text-align:center;padding:30px 12px;color:var(--muted);font-size:.85rem;border:1px dashed rgba(255,255,255,.1);border-radius:12px}
-.profile-pic-upload{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px}
 .avatar-lg{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid var(--cyan);background:#1e293b}
-.toast{position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%;transform:translateX(-50%) translateY(120%);z-index:99;padding:14px 22px;border-radius:12px;background:rgba(15,23,42,.95);border:1px solid rgba(255,255,255,.12);font-size:.88rem;font-weight:500;transition:all .4s;max-width:calc(100vw - 40px);display:flex;align-items:center;gap:8px}
+.profile-pic-upload{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px}
+.toast{position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%;transform:translateX(-50%) translateY(120%);z-index:99;padding:14px 22px;border-radius:12px;background:rgba(15,23,42,.97);border:1px solid rgba(255,255,255,.12);font-size:.88rem;font-weight:500;transition:all .4s cubic-bezier(.34,1.56,.64,1);max-width:calc(100vw - 40px);display:flex;align-items:center;gap:8px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .toast.show{transform:translateX(-50%) translateY(0)}
 .toast.success{border-color:rgba(52,211,153,.5);color:var(--emerald)}
 .toast.error{border-color:rgba(251,113,133,.5);color:var(--rose)}
 .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(6,18,31,.25);border-top-color:#06121f;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+.user-row{display:flex;justify-content:space-between;align-items:center;padding:12px;background:rgba(255,255,255,.03);border-radius:12px;gap:10px;border:1px solid rgba(255,255,255,.05)}
+.user-row-info{flex:1;min-width:0}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.switch{position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.slider{position:absolute;cursor:pointer;inset:0;background-color:rgba(255,255,255,.15);transition:.3s;border-radius:24px}
+.slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;background-color:white;transition:.3s;border-radius:50%}
+input:checked + .slider{background-color:var(--emerald)}
+input:checked + .slider:before{transform:translateX(20px)}
 </style>
 </head>
 <body>
@@ -141,12 +162,12 @@ tr:last-child td{border-bottom:none}
 
 <div class="wrapper">
 
-  <!-- ================= AUTH SCREEN ================= -->
+  <!-- AUTH SCREEN -->
   <div id="authScreen" class="screen active">
     <header class="brand">
-      <div class="brand-badge"><span class="brand-dot"></span>TIME TRACK PRO</div>
+      <div class="brand-badge"><span class="brand-dot"></span>TIME TRACK PRO v2</div>
       <h1 class="brand-title">ลงเวลาทำงาน</h1>
-      <p class="brand-sub">ระบบบันทึกเวลาพร้อม GPS Geofence</p>
+      <p class="brand-sub">ระบบบันทึกเวลาพร้อม GPS และการอนุมัติที่ยืดหยุ่น</p>
     </header>
 
     <div class="card">
@@ -165,9 +186,7 @@ tr:last-child td{border-bottom:none}
           <input type="password" id="loginPassword" class="input" required>
         </div>
         <div class="field">
-          <label class="checkbox-group">
-            <input type="checkbox" id="rememberMe" checked> จดจำรหัสผ่าน (ล็อกอินอัตโนมัติ)
-          </label>
+          <label class="checkbox-group"><input type="checkbox" id="rememberMe" checked> จดจำการเข้าสู่ระบบ (30 วัน)</label>
         </div>
         <button type="submit" class="submit-btn" id="loginBtn">เข้าสู่ระบบ</button>
       </form>
@@ -179,7 +198,16 @@ tr:last-child td{border-bottom:none}
         </div>
         <div class="field">
           <label class="field-label">ชื่อ-นามสกุล <span class="req">*</span></label>
-          <input type="text" id="regFullName" class="input" placeholder="เช่น สมชาย ใจดี" required>
+          <input type="text" id="regFullName" class="input" required>
+        </div>
+        <div class="field">
+          <label class="field-label">บทบาท <span class="req">*</span></label>
+          <select id="regRole" class="select">
+            <option value="teacher">ครู</option>
+            <option value="director">ผู้อำนวยการ</option>
+            <option value="employee">พนักงาน</option>
+            <option value="worker">ลูกจ้าง</option>
+          </select>
         </div>
         <div class="field">
           <label class="field-label">อีเมล</label>
@@ -203,26 +231,26 @@ tr:last-child td{border-bottom:none}
         <button type="submit" class="submit-btn" id="registerBtn">ลงทะเบียน</button>
       </form>
     </div>
-    <div class="footer-info" id="footerInfo" style="text-align:center;font-size:.78rem;color:var(--muted)">—</div>
   </div>
 
-  <!-- ================= DASHBOARD / ATTENDANCE SCREEN ================= -->
+  <!-- DASHBOARD -->
   <div id="dashboardScreen" class="screen">
     <header class="app-header">
       <div class="user-info">
-        <img id="dashPic" class="avatar" src="https://via.placeholder.com/40" alt="profile">
+        <img id="dashPic" class="avatar" src="" alt="profile">
         <div>
           <div class="user-name" id="dashName">—</div>
           <div class="user-role" id="dashRole">—</div>
         </div>
       </div>
-      <button class="icon-btn" id="adminBtn" style="display:none">⚙️</button>
+      <button class="icon-btn" id="travelApproveBtn" style="display:none" title="อนุมัติไปราชการ">✈️</button>
+      <button class="icon-btn" id="adminBtn" style="display:none" title="Admin">⚙️</button>
       <button class="icon-btn" id="logoutBtn" title="ออกจากระบบ">🚪</button>
     </header>
 
     <div class="card">
       <div style="text-align:center;padding-bottom:16px;margin-bottom:16px;border-bottom:1px dashed rgba(255,255,255,.1)">
-        <div id="clockTime" style="font-family:'Inter',monospace;font-size:2.5rem;font-weight:600;letter-spacing:.04em;background:linear-gradient(135deg,#67e8f9,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">--:--:--</div>
+        <div id="clockTime" style="font-family:'Inter',monospace;font-size:2.6rem;font-weight:600;letter-spacing:.04em;background:linear-gradient(135deg,#67e8f9,#c4b5fd);-webkit-background-clip:text;-webkit-text-fill-color:transparent">--:--:--</div>
         <div id="clockDate" style="font-size:.84rem;color:var(--muted);margin-top:4px;font-weight:300"></div>
       </div>
 
@@ -236,25 +264,41 @@ tr:last-child td{border-bottom:none}
           <div class="action-grid">
             <button type="button" class="action-btn" data-action="เข้างาน"><span class="icon">🌅</span> เข้างาน</button>
             <button type="button" class="action-btn" data-action="ออกงาน"><span class="icon">🌇</span> ออกงาน</button>
-            <button type="button" class="action-btn" data-action="ลา"><span class="icon">🌴</span> ลา</button>
             <button type="button" class="action-btn" data-action="มาสาย"><span class="icon">⏰</span> มาสาย</button>
+            <button type="button" class="action-btn" data-action="ลา"><span class="icon">🌴</span> ลา</button>
+            <button type="button" class="action-btn" data-action="ไปราชการ"><span class="icon">✈️</span> ไปราชการ</button>
           </div>
         </div>
+
+        <div class="date-range-section" id="dateRangeSection">
+          <div class="form-row-2">
+            <div class="field" style="margin-bottom:12px">
+              <label class="field-label">จากวันที่ <span class="req">*</span></label>
+              <input type="date" id="fromDate" class="input">
+            </div>
+            <div class="field" style="margin-bottom:12px">
+              <label class="field-label">ถึงวันที่ <span class="req">*</span></label>
+              <input type="date" id="toDate" class="input">
+            </div>
+          </div>
+        </div>
+
         <div class="reason-section" id="reasonSection">
           <div class="field" style="margin-bottom:12px">
             <label class="field-label">เหตุผล <span class="req">*</span></label>
-            <textarea id="reasonInput" class="textarea" placeholder="ระบุเหตุผล..."></textarea>
+            <textarea id="reasonInput" class="textarea" placeholder="ระบุเหตุผล..." style="min-height:60px"></textarea>
           </div>
         </div>
+
         <div class="field">
           <label class="field-label">หมายเหตุเพิ่มเติม</label>
-          <textarea id="noteInput" class="textarea" placeholder="ไม่บังคับ..." style="min-height:56px"></textarea>
+          <textarea id="noteInput" class="textarea" placeholder="ไม่บังคับ..." style="min-height:50px"></textarea>
         </div>
+
         <button type="submit" class="submit-btn" id="submitBtn">📍 บันทึกพร้อมตำแหน่ง</button>
       </form>
     </div>
 
-    <!-- Daily Dashboard Report (Admin & User) -->
     <div class="card">
       <div class="section-title">
         <span>📊 รายงานประจำวัน</span>
@@ -262,69 +306,77 @@ tr:last-child td{border-bottom:none}
       </div>
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th>ชื่อ</th>
-              <th>เข้างาน</th>
-              <th>เหตุผล</th>
-              <th>ออกงาน</th>
-              <th>เหตุผล</th>
-            </tr>
-          </thead>
+          <thead><tr><th>ชื่อ</th><th>เข้า</th><th>สถานะ</th><th>ออก</th></tr></thead>
           <tbody id="dailyReportBody">
-            <tr><td colspan="5" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>
+            <tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>
           </tbody>
         </table>
       </div>
     </div>
   </div>
 
-  <!-- ================= REPORTS SCREEN ================= -->
+  <!-- REPORTS SCREEN -->
   <div id="reportsScreen" class="screen">
     <header class="app-header">
       <div class="user-info">
-        <img id="reportPic" class="avatar" src="https://via.placeholder.com/40" alt="profile">
-        <div>
-          <div class="user-name" id="reportName">—</div>
-          <div class="user-role">รายงานการลงเวลาของฉัน</div>
-        </div>
+        <div class="user-name">📈 รายงานผล</div>
+        <div class="user-role" id="reportScope">ข้อมูลของฉัน</div>
       </div>
       <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
     </header>
 
     <div class="card">
-      <div class="section-title">📅 ปีการศึกษา <span id="academicYearText">—</span></div>
-      
-      <div class="tabs" style="margin-bottom:16px">
-        <button class="tab active" data-tab="term1">เทอม 1</button>
-        <button class="tab" data-tab="term2">เทอม 2</button>
+      <div class="tabs" id="reportTypeTabs" style="margin-bottom:14px">
+        <button class="tab active" data-rtype="week">สัปดาห์</button>
+        <button class="tab" data-rtype="month">เดือน</button>
+        <button class="tab" data-rtype="term">เทอม</button>
+        <button class="tab" data-rtype="year">ปี</button>
       </div>
-
-      <div class="tab-content active" id="term1Tab">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>วันที่</th><th>เวลา</th><th>กิจกรรม</th><th>เหตุผล</th></tr></thead>
-            <tbody id="term1Body"><tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr></tbody>
-          </table>
-        </div>
+      <div class="field">
+        <label class="field-label">อ้างอิงวันที่</label>
+        <input type="date" id="reportRefDate" class="input">
       </div>
-      
-      <div class="tab-content" id="term2Tab">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>วันที่</th><th>เวลา</th><th>กิจกรรม</th><th>เหตุผล</th></tr></thead>
-            <tbody id="term2Body"><tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr></tbody>
-          </table>
-        </div>
+      <div class="field" id="reportTargetField" style="display:none">
+        <label class="field-label">ผู้ใช้ (เว้นว่าง = ทั้งหมด)</label>
+        <select id="reportTargetUser" class="select">
+          <option value="">— ทั้งหมด —</option>
+        </select>
+      </div>
+      <div style="text-align:center;margin-bottom:10px;color:var(--muted);font-size:.82rem" id="reportLabel">—</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>ชื่อ</th><th>ปกติ</th><th>สาย</th><th>ลา</th><th>ไปราชการ</th><th>รวม</th></tr></thead>
+          <tbody id="reportBody">
+            <tr><td colspan="6" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
 
-  <!-- ================= PROFILE SCREEN ================= -->
+  <!-- TRAVEL APPROVAL SCREEN -->
+  <div id="travelApprovalScreen" class="screen">
+    <header class="app-header">
+      <div class="user-info">
+        <div class="user-name">✈️ อนุมัติไปราชการ</div>
+        <div class="user-role">เฉพาะผู้อำนวยการ/แอดมิน</div>
+      </div>
+      <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
+    </header>
+    <div class="card">
+      <div class="tabs" style="margin-bottom:14px">
+        <button class="tab active" data-ttab="pending">รออนุมัติ</button>
+        <button class="tab" data-ttab="all">ทั้งหมด</button>
+      </div>
+      <div id="travelList"><div class="empty-state">กำลังโหลด...</div></div>
+    </div>
+  </div>
+
+  <!-- PROFILE SCREEN -->
   <div id="profileScreen" class="screen">
     <header class="app-header">
       <div class="user-info">
-        <div class="user-name">ตั้งค่าโปรไฟล์</div>
+        <div class="user-name">👤 ตั้งค่าโปรไฟล์</div>
         <div class="user-role">แก้ไขข้อมูลส่วนตัว</div>
       </div>
       <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
@@ -333,15 +385,14 @@ tr:last-child td{border-bottom:none}
     <div class="card">
       <form id="profileForm">
         <div class="profile-pic-upload">
-          <img id="profilePicPreview" class="avatar-lg" src="https://via.placeholder.com/90" alt="profile">
+          <img id="profilePicPreview" class="avatar-lg" src="" alt="profile">
           <label class="btn-sm btn-cyan" style="cursor:pointer">
             เปลี่ยนรูปภาพ
             <input type="file" id="profilePicInput" accept="image/*" style="display:none">
           </label>
         </div>
-
         <div class="field">
-          <label class="field-label">ชื่อผู้ใช้ (Username) <span class="req">*</span></label>
+          <label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label>
           <input type="text" id="profUsername" class="input" required>
         </div>
         <div class="field">
@@ -352,7 +403,6 @@ tr:last-child td{border-bottom:none}
           <label class="field-label">อีเมล</label>
           <input type="email" id="profEmail" class="input">
         </div>
-
         <button type="submit" class="submit-btn" id="saveProfileBtn">💾 บันทึกข้อมูล</button>
       </form>
     </div>
@@ -373,7 +423,7 @@ tr:last-child td{border-bottom:none}
     </div>
   </div>
 
-  <!-- ================= ADMIN SCREEN ================= -->
+  <!-- ADMIN SCREEN -->
   <div id="adminScreen" class="screen">
     <header class="app-header">
       <button class="icon-btn" onclick="showScreen('dashboardScreen')">←</button>
@@ -403,23 +453,30 @@ tr:last-child td{border-bottom:none}
       <div class="tab-content" id="settingsTab">
         <div class="section-title">⚙️ ตั้งค่าสำนักงาน</div>
         <div class="field"><label class="field-label">ชื่อสำนักงาน</label><input type="text" id="setOfficeName" class="input"></div>
-        
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-          <div class="field"><label class="field-label">ละติจูด (Lat)</label><input type="number" id="setOfficeLat" class="input" step="any"></div>
-          <div class="field"><label class="field-label">ลองจิจูด (Lng)</label><input type="number" id="setOfficeLng" class="input" step="any"></div>
+        <div class="form-row-2">
+          <div class="field"><label class="field-label">ละติจูด</label><input type="number" id="setOfficeLat" class="input" step="any"></div>
+          <div class="field"><label class="field-label">ลองจิจูด</label><input type="number" id="setOfficeLng" class="input" step="any"></div>
         </div>
-        
-        <!-- ปุ่มดึงตำแหน่ง GPS ปัจจุบัน -->
-        <button type="button" class="btn-sm btn-cyan" id="btnUseCurrentGps" style="width:100%;margin-bottom:16px;">
-          📍 ใช้ตำแหน่ง GPS ปัจจุบัน (มือถือแอดมิน)
-        </button>
-
+        <button type="button" class="btn-sm btn-cyan" id="btnUseCurrentGps" style="width:100%;margin-bottom:16px;">📍 ใช้ตำแหน่ง GPS ปัจจุบัน</button>
         <div class="field"><label class="field-label">รัศมี (เมตร)</label><input type="number" id="setRadius" class="input"></div>
-        <div class="field" style="margin-bottom:24px"><label class="checkbox-group"><input type="checkbox" id="setStrictReg"> บังคับรัศมีตอนลงทะเบียน</label></div>
-        
-        <div class="section-title" style="margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:16px">📅 ตั้งค่าปีการศึกษา</div>
+        <div class="field"><label class="checkbox-group"><input type="checkbox" id="setStrictReg"> บังคับรัศมีตอนลงทะเบียน</label></div>
+
+        <div class="section-title" style="margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:16px">
+          🌍 สิทธิ์ลงเวลานอกพื้นที่ (Flexible Anywhere)
+        </div>
+        <div class="field">
+          <label class="checkbox-group" style="padding:12px;background:rgba(34,211,238,.05);border-radius:12px;border:1px solid rgba(34,211,238,.2)">
+            <input type="checkbox" id="setGlobalAnywhere">
+            <span style="flex:1">เปิดให้ <b>ทุกคน</b> ลงเวลาได้ทุกที่บนโลก (Global Override)</span>
+          </label>
+        </div>
+        <p style="font-size:.75rem;color:var(--muted);margin-bottom:16px;line-height:1.5">
+          💡 ผู้อำนวยการและแอดมิน ได้สิทธิ์นี้โดยอัตโนมัติเสมอ — ส่วนรายบุคคลสามารถเปิด/ปิดได้ที่แท็บ "ผู้ใช้"
+        </p>
+
+        <div class="section-title" style="margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:16px">📅 ปีการศึกษา / เทอม</div>
         <div class="field"><label class="field-label">ปีการศึกษา (พ.ศ.)</label><input type="text" id="setAcademicYear" class="input" placeholder="เช่น 2567"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="form-row-2">
           <div class="field"><label class="field-label">เปิดเทอม 1</label><input type="date" id="setTerm1Start" class="input"></div>
           <div class="field"><label class="field-label">ปิดเทอม 1</label><input type="date" id="setTerm1End" class="input"></div>
           <div class="field"><label class="field-label">เปิดเทอม 2</label><input type="date" id="setTerm2Start" class="input"></div>
@@ -427,23 +484,27 @@ tr:last-child td{border-bottom:none}
         </div>
 
         <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
+
+        <div class="section-title" style="margin-top:24px;border-top:1px solid rgba(255,255,255,.1);padding-top:16px">🤖 Automation</div>
+        <button type="button" class="btn-sm btn-emerald" id="setupTriggersBtn" style="width:100%;margin-bottom:10px;">⚡ ตั้ง Auto Check-in/out (08:00 / 21:00)</button>
+        <div class="form-row-2">
+          <button type="button" class="btn-sm btn-cyan" data-archive="week">📄 PDF สัปดาห์นี้</button>
+          <button type="button" class="btn-sm btn-cyan" data-archive="month">📄 PDF เดือนนี้</button>
+        </div>
+        <p style="font-size:.72rem;color:var(--muted);margin-top:8px;line-height:1.5">
+          การตั้งค่า Auto-trigger ต้องรันบน Google Apps Script (มีผลหลังตั้งแล้ว 5 นาที) • PDF ถูกเก็บในโฟลเดอร์ "TimeTrack_Archives"
+        </p>
       </div>
     </div>
   </div>
 
 </div>
 
-<!-- NAVIGATION BAR (User only) -->
+<!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottomNav">
-  <div class="nav-item active" onclick="navTo('dashboardScreen', this)">
-    <span class="nav-icon">🏠</span> หน้าหลัก
-  </div>
-  <div class="nav-item" onclick="navTo('reportsScreen', this)">
-    <span class="nav-icon">📊</span> รายงาน
-  </div>
-  <div class="nav-item" onclick="navTo('profileScreen', this)">
-    <span class="nav-icon">👤</span> โปรไฟล์
-  </div>
+  <div class="nav-item active" onclick="navTo('dashboardScreen', this)"><span class="nav-icon">🏠</span> หน้าหลัก</div>
+  <div class="nav-item" onclick="navTo('reportsScreen', this)"><span class="nav-icon">📈</span> รายงานผล</div>
+  <div class="nav-item" onclick="navTo('profileScreen', this)"><span class="nav-icon">👤</span> โปรไฟล์</div>
 </div>
 
 <div class="toast" id="toast"><span id="toastIcon">✅</span><span id="toastMsg"></span></div>
@@ -458,30 +519,29 @@ tr:last-child td{border-bottom:none}
 
 <script>
 // ============================================================
-// CONFIG
-// ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
-  user: JSON.parse(localStorage.getItem('tt_user')) || null,
+  user: JSON.parse(localStorage.getItem('tt_user') || 'null'),
   settings: null,
   selectedAction: null,
   currentPos: null,
   posTimestamp: 0,
   loadingAuth: false,
-  profilePicBase64: null
+  profilePicBase64: null,
+  lockedActions: [],
+  reportType: 'week',
+  travelTab: 'pending'
 };
 
-// ============================================================
-// API HELPER
-// ============================================================
+// ============ API ============
 async function api(cmd, extra = {}) {
   try {
     const res = await fetch(API_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({ cmd, token: state.token, ...extra }),
+      body: JSON.stringify({ cmd, token: state.token, ...extra })
     });
     return await res.json();
   } catch (err) {
@@ -489,9 +549,7 @@ async function api(cmd, extra = {}) {
   }
 }
 
-// ============================================================
-// UI HELPERS
-// ============================================================
+// ============ UI HELPERS ============
 function toast(msg, type = 'success') {
   const el = document.getElementById('toast');
   document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '⚠️';
@@ -499,68 +557,82 @@ function toast(msg, type = 'success') {
   el.className = `toast ${type} show`;
   setTimeout(() => el.classList.remove('show'), 4000);
 }
-
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(name).classList.add('active');
-  
-  // Manage Bottom Nav visibility
+  const el = document.getElementById(name); if (el) el.classList.add('active');
   const nav = document.getElementById('bottomNav');
-  if (['dashboardScreen', 'reportsScreen', 'profileScreen'].includes(name)) {
-    nav.classList.add('show');
-  } else {
-    nav.classList.remove('show');
-  }
-  
-  // Update Nav Active State
+  const navScreens = ['dashboardScreen','reportsScreen','profileScreen'];
+  if (navScreens.includes(name)) nav.classList.add('show'); else nav.classList.remove('show');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const navItems = document.querySelectorAll('.nav-item');
-  if (name === 'dashboardScreen') navItems[0].classList.add('active');
-  if (name === 'reportsScreen') navItems[1].classList.add('active');
-  if (name === 'profileScreen') navItems[2].classList.add('active');
-
+  const items = document.querySelectorAll('.nav-item');
+  if (name === 'dashboardScreen' && items[0]) items[0].classList.add('active');
+  if (name === 'reportsScreen' && items[1]) items[1].classList.add('active');
+  if (name === 'profileScreen' && items[2]) items[2].classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  if (name === 'reportsScreen') loadTermReports();
-  if (name === 'dashboardScreen' && state.user) loadDailyReport();
+  if (name === 'reportsScreen') loadReports();
+  if (name === 'dashboardScreen' && state.user) { loadDailyReport(); refreshStatus(); }
+  if (name === 'profileScreen') updateProfileUI();
+  if (name === 'travelApprovalScreen') loadTravelList();
 }
-
 function navTo(screen, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  el.classList.add('active');
+  if (el) el.classList.add('active');
   showScreen(screen);
 }
 
-function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+// ============ SOUND ============
+let audioCtx = null;
+function playSound(type) {
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const notes = {
+      arrive: [523.25, 659.25, 783.99],
+      leave:  [783.99, 659.25, 523.25],
+      late:   [440, 554.37],
+      approve:[659.25, 783.99, 1046.5],
+      trip:   [392, 523.25, 659.25],
+      click:  [660]
+    };
+    const freqs = notes[type] || notes.click;
+    freqs.forEach((f, i) => {
+      const o = audioCtx.createOscillator();
+      const g = audioCtx.createGain();
+      o.connect(g); g.connect(audioCtx.destination);
+      o.frequency.value = f; o.type = 'sine';
+      const t = audioCtx.currentTime + i * 0.09;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.15, t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+      o.start(t); o.stop(t + 0.28);
+    });
+  } catch (e) { /* silent */ }
+}
 
-// ============================================================
-// CLOCK
-// ============================================================
+// ============ CLOCK ============
 setInterval(() => {
   const now = new Date();
   const hh = String(now.getHours()).padStart(2,'0'), mm = String(now.getMinutes()).padStart(2,'0'), ss = String(now.getSeconds()).padStart(2,'0');
-  if(document.getElementById('clockTime')) document.getElementById('clockTime').textContent = `${hh}:${mm}:${ss}`;
+  const ct = document.getElementById('clockTime'); if (ct) ct.textContent = `${hh}:${mm}:${ss}`;
   const days = ['อาทิตย์','จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์'];
   const months = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
-  if(document.getElementById('clockDate')) document.getElementById('clockDate').textContent = `วัน${days[now.getDay()]}ที่ ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()+543}`;
+  const cd = document.getElementById('clockDate');
+  if (cd) cd.textContent = `วัน${days[now.getDay()]}ที่ ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()+543}`;
 }, 1000);
 
-// ============================================================
-// GPS
-// ============================================================
+// ============ GPS ============
 function getGPS() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) return reject(new Error('เบราว์เซอร์ไม่รองรับ GPS'));
     navigator.geolocation.getCurrentPosition(
-      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      err => reject(new Error('กรุณาอนุญาต GPS หรือตรวจสอบสัญญาณ')),
+      p => resolve({ lat: p.coords.latitude, lng: p.coords.longitude }),
+      e => reject(new Error('กรุณาอนุญาต GPS')),
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
     );
   });
 }
 async function refreshPosition() {
   const pos = await getGPS();
-  state.currentPos = pos;
-  state.posTimestamp = Date.now();
+  state.currentPos = pos; state.posTimestamp = Date.now();
   return pos;
 }
 function getFreshPosition() {
@@ -569,14 +641,12 @@ function getFreshPosition() {
 }
 function haversine(lat1, lon1, lat2, lon2) {
   const R = 6371000, toRad = d => d * Math.PI / 180;
-  const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+  const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
   const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-// ============================================================
-// AUTH LOGIC
-// ============================================================
+// ============ AUTH TABS ============
 document.querySelectorAll('#authScreen .tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('#authScreen .tab').forEach(t => t.classList.remove('active'));
@@ -586,6 +656,7 @@ document.querySelectorAll('#authScreen .tab').forEach(tab => {
   });
 });
 
+// ============ LOGIN ============
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (state.loadingAuth) return;
@@ -593,53 +664,45 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   const username = document.getElementById('loginUsername').value.trim();
   const password = document.getElementById('loginPassword').value;
   const remember = document.getElementById('rememberMe').checked;
-
   if (!username || !password) return toast('กรอกข้อมูลให้ครบ', 'error');
   state.loadingAuth = true; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังโหลด...';
-
   const res = await api('login', { username, password });
   state.loadingAuth = false; btn.disabled = false; btn.textContent = 'เข้าสู่ระบบ';
-
   if (!res.success) return toast(res.message, 'error');
-
   state.token = res.token; state.user = res.user;
   if (remember) {
     localStorage.setItem('tt_token', res.token);
     localStorage.setItem('tt_user', JSON.stringify(res.user));
   } else {
-    localStorage.removeItem('tt_token');
-    localStorage.removeItem('tt_user');
+    localStorage.removeItem('tt_token'); localStorage.removeItem('tt_user');
   }
-  
+  playSound('approve');
   await initUserSession();
 });
 
+// ============ REGISTER ============
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (state.loadingAuth) return;
   const u = document.getElementById('regUsername').value.trim().toLowerCase();
   const fn = document.getElementById('regFullName').value.trim();
+  const role = document.getElementById('regRole').value;
   const em = document.getElementById('regEmail').value.trim();
   const ph = document.getElementById('regPhone').value.trim();
   const p1 = document.getElementById('regPassword').value;
   const p2 = document.getElementById('regPassword2').value;
-
   if (p1 !== p2) return toast('รหัสผ่านไม่ตรงกัน', 'error');
-  
   const btn = document.getElementById('registerBtn');
   const statusEl = document.getElementById('regGpsStatus');
   statusEl.className = 'gps-status loading'; statusEl.innerHTML = '<span>⏳</span><span>กำลังหา GPS...</span>';
-
   try {
     const pos = await refreshPosition();
     statusEl.className = 'gps-status ok'; statusEl.innerHTML = '<span>✅</span><span>กำลังส่งข้อมูล...</span>';
     state.loadingAuth = true; btn.disabled = true;
-    
-    const res = await api('register', { username:u, password:p1, fullName:fn, email:em, phone:ph, lat:pos.lat, lng:pos.lng });
-    
+    const res = await api('register', { username:u, password:p1, fullName:fn, email:em, phone:ph, role, lat:pos.lat, lng:pos.lng });
     state.loadingAuth = false; btn.disabled = false;
     if (!res.success) { statusEl.className = 'gps-status bad'; statusEl.innerHTML = `<span>❌</span><span>${res.message}</span>`; return; }
-    toast(res.message);
+    toast(res.message); playSound('approve');
     document.getElementById('registerForm').reset();
     statusEl.className = 'gps-status'; statusEl.innerHTML = '<span>📍</span><span>ระบบจะขอตำแหน่ง GPS ขณะลงทะเบียน</span>';
   } catch (err) {
@@ -648,210 +711,332 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
   }
 });
 
+// ============ INIT SESSION ============
 async function initUserSession() {
   if (!state.user || !state.token) return;
-  
   document.getElementById('dashName').textContent = state.user.fullName;
-  document.getElementById('dashRole').textContent = state.user.username;
-  document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/40';
+  document.getElementById('dashRole').textContent = `${state.user.username} · ${state.user.role}`;
+  document.getElementById('dashPic').src = state.user.profilePic || '';
   document.getElementById('adminBtn').style.display = state.user.role === 'admin' ? 'flex' : 'none';
-  
+  const showApprove = state.user.role === 'admin' || state.user.role === 'director';
+  document.getElementById('travelApproveBtn').style.display = showApprove ? 'flex' : 'none';
   if (!state.settings) {
     const s = await api('getSettings');
     if (s.success) state.settings = s.settings;
   }
-  
-  const defaultDate = new Date().toISOString().split('T')[0];
-  if(document.getElementById('dailyDate') && !document.getElementById('dailyDate').value) {
-    document.getElementById('dailyDate').value = defaultDate;
-  }
-
+  const dd = document.getElementById('dailyDate');
+  if (dd && !dd.value) dd.value = new Date().toISOString().split('T')[0];
+  const rd = document.getElementById('reportRefDate');
+  if (rd && !rd.value) rd.value = new Date().toISOString().split('T')[0];
   showScreen('dashboardScreen');
+  await refreshStatus();
 }
 
-// Auto Login
+// ============ AUTO LOGIN ============
 (async function checkAuth() {
-  if (!state.token || !state.user) return;
+  if (!state.token || !state.user) {
+    // Show auth screen (already active)
+    return;
+  }
   const r = await api('getMyInfo');
   if (r.success) {
     state.user = r.user;
+    localStorage.setItem('tt_user', JSON.stringify(r.user));
     await initUserSession();
   } else {
-    localStorage.removeItem('tt_token');
-    localStorage.removeItem('tt_user');
+    localStorage.removeItem('tt_token'); localStorage.removeItem('tt_user');
+    state.token = ''; state.user = null;
   }
 })();
 
 document.getElementById('logoutBtn').addEventListener('click', async () => {
   await api('logout');
-  localStorage.removeItem('tt_token');
-  localStorage.removeItem('tt_user');
-  state.token = ''; state.user = null;
+  localStorage.removeItem('tt_token'); localStorage.removeItem('tt_user');
+  state.token = ''; state.user = null; state.lockedActions = [];
   showScreen('authScreen');
   toast('ออกจากระบบแล้ว');
 });
 
-// ============================================================
-// DASHBOARD & ATTENDANCE LOGIC
-// ============================================================
+// ============ ATTENDANCE FORM ============
 document.querySelectorAll('.action-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
+    if (btn.disabled) return;
     const action = btn.dataset.action;
     if (state.selectedAction === action) {
-      state.selectedAction = null; btn.classList.remove('active');
+      state.selectedAction = null;
+      document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
       document.getElementById('reasonSection').classList.remove('visible');
+      document.getElementById('dateRangeSection').classList.remove('visible');
       return;
     }
     document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active'); state.selectedAction = action;
-    
+    btn.classList.add('active');
+    state.selectedAction = action;
+    playSound('click');
+
     const reasonSec = document.getElementById('reasonSection');
-    if (action === 'ลา' || action === 'มาสาย') { reasonSec.classList.add('visible'); }
-    else { reasonSec.classList.remove('visible'); document.getElementById('reasonInput').value = ''; }
-    
-    // Check GPS
-    const statusEl = document.getElementById('gpsStatus');
-    statusEl.className = 'gps-status loading'; statusEl.innerHTML = '<span>⏳</span><span>กำลังตรวจสอบ GPS...</span>';
-    try {
-      const pos = await refreshPosition();
-      const dist = haversine(pos.lat, pos.lng, state.settings.officeLat, state.settings.officeLng);
-      if (dist <= state.settings.radius) {
-        statusEl.className = 'gps-status ok';
-        statusEl.innerHTML = `<span>✅</span><span>อยู่ในพื้นที่ (${Math.round(dist)} ม.)</span>`;
-      } else {
-        statusEl.className = 'gps-status bad';
-        statusEl.innerHTML = `<span>❌</span><span>อยู่นอกพื้นที่ (${Math.round(dist)} ม.)</span>`;
-      }
-    } catch (err) {
-      statusEl.className = 'gps-status bad'; statusEl.innerHTML = `<span>❌</span><span>${err.message}</span>`;
+    const dateSec = document.getElementById('dateRangeSection');
+    const gpsEl = document.getElementById('gpsStatus');
+
+    if (action === 'ลา' || action === 'ไปราชการ') {
+      dateSec.classList.add('visible');
+      reasonSec.classList.add('visible');
+      document.getElementById('fromDate').value = document.getElementById('fromDate').value || new Date().toISOString().split('T')[0];
+      document.getElementById('toDate').value = document.getElementById('toDate').value || new Date().toISOString().split('T')[0];
+      gpsEl.className = 'gps-status';
+      gpsEl.innerHTML = '<span>📅</span><span>' + (action === 'ลา' ? 'ไม่ต้องใช้ GPS (ลาได้ทุกที่)' : 'ไม่ต้องใช้ GPS (ไปราชการทุกที่ได้)') + '</span>';
+    } else if (action === 'มาสาย') {
+      dateSec.classList.remove('visible');
+      reasonSec.classList.add('visible');
+      await checkGPS();
+    } else {
+      dateSec.classList.remove('visible');
+      reasonSec.classList.remove('visible');
+      document.getElementById('reasonInput').value = '';
+      await checkGPS();
     }
   });
 });
 
+async function checkGPS() {
+  const gpsEl = document.getElementById('gpsStatus');
+  gpsEl.className = 'gps-status loading';
+  gpsEl.innerHTML = '<span>⏳</span><span>กำลังตรวจสอบ GPS...</span>';
+  try {
+    const pos = await refreshPosition();
+    const s = state.settings || {};
+    const dist = haversine(pos.lat, pos.lng, Number(s.officeLat), Number(s.officeLng));
+    const anywhere = state.user.role === 'admin' || state.user.role === 'director' || state.user.canAnywhere || (s.globalAnywhere === true);
+    if (anywhere) {
+      gpsEl.className = 'gps-status ok';
+      gpsEl.innerHTML = `<span>🌍</span><span>สิทธิ์ลงเวลาทุกที่ · ระยะจากสำนักงาน ${Math.round(dist)} ม.</span>`;
+    } else if (dist <= Number(s.radius)) {
+      gpsEl.className = 'gps-status ok';
+      gpsEl.innerHTML = `<span>✅</span><span>อยู่ในพื้นที่ (${Math.round(dist)} ม.)</span>`;
+    } else {
+      gpsEl.className = 'gps-status bad';
+      gpsEl.innerHTML = `<span>❌</span><span>อยู่นอกพื้นที่ (${Math.round(dist)} ม.)</span>`;
+    }
+  } catch (err) {
+    gpsEl.className = 'gps-status bad';
+    gpsEl.innerHTML = `<span>❌</span><span>${err.message}</span>`;
+  }
+}
+
 document.getElementById('attendanceForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (!state.selectedAction) return toast('เลือกประเภทการลงเวลา', 'error');
+  const action = state.selectedAction;
   const reason = document.getElementById('reasonInput').value.trim();
-  if ((state.selectedAction === 'ลา' || state.selectedAction === 'มาสาย') && !reason) return toast('ระบุเหตุผล', 'error');
+  const note = document.getElementById('noteInput').value.trim();
+  const fromDate = document.getElementById('fromDate').value;
+  const toDate = document.getElementById('toDate').value;
+
+  if ((action === 'ลา' || action === 'มาสาย' || action === 'ไปราชการ') && !reason)
+    return toast('กรุณาระบุเหตุผล', 'error');
+  if ((action === 'ลา' || action === 'ไปราชการ') && (!fromDate || !toDate))
+    return toast('กรุณาระบุช่วงวันที่', 'error');
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
 
   try {
-    const pos = await getFreshPosition();
-    const res = await api('attendance', { action: state.selectedAction, reason, note: document.getElementById('noteInput').value.trim(), lat: pos.lat, lng: pos.lng });
+    let res;
+    if (action === 'ไปราชการ') {
+      res = await api('requestTravel', { fromDate, toDate, reason });
+    } else {
+      let lat = 0, lng = 0;
+      if (action !== 'ลา') {
+        try { const pos = await getFreshPosition(); lat = pos.lat; lng = pos.lng; }
+        catch (e) { toast('ไม่สามารถเข้าถึง GPS: ' + e.message, 'error'); btn.disabled = false; btn.innerHTML = '📍 บันทึก'; return; }
+      }
+      res = await api('attendance', { action, reason, note, lat, lng, fromDate, toDate });
+    }
+
     if (res.success) {
       toast(res.message);
+      if (action === 'เข้างาน') playSound('arrive');
+      else if (action === 'ออกงาน') playSound('leave');
+      else if (action === 'มาสาย') playSound('late');
+      else if (action === 'ลา') playSound('leave');
+      else if (action === 'ไปราชการ') playSound('trip');
+      else playSound('approve');
+
       document.getElementById('attendanceForm').reset();
       document.getElementById('reasonSection').classList.remove('visible');
+      document.getElementById('dateRangeSection').classList.remove('visible');
       document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
       state.selectedAction = null;
-      loadDailyReport(); // Refresh report
-    } else toast(res.message, 'error');
-  } catch (err) { toast(err.message, 'error'); } 
-  finally { btn.disabled = false; btn.innerHTML = '📍 บันทึกพร้อมตำแหน่ง'; }
+      loadDailyReport();
+      refreshStatus();
+    } else {
+      toast(res.message, 'error');
+    }
+  } catch (err) {
+    toast(err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.innerHTML = '📍 บันทึกพร้อมตำแหน่ง';
+  }
 });
 
-document.getElementById('dailyDate').addEventListener('change', loadDailyReport);
+async function refreshStatus() {
+  const res = await api('getMyStatus');
+  if (!res.success) return;
+  state.lockedActions = res.locked || [];
+  document.querySelectorAll('.action-btn').forEach(b => {
+    const act = b.dataset.action;
+    b.disabled = state.lockedActions.includes(act);
+  });
+}
 
+document.getElementById('dailyDate').addEventListener('change', loadDailyReport);
 async function loadDailyReport() {
   const dateVal = document.getElementById('dailyDate').value;
   const tbody = document.getElementById('dailyReportBody');
-  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
-  
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
   const res = await api('getDailyReport', { date: dateVal });
-  if (!res.success) {
-    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--rose)">${res.message}</td></tr>`; return;
-  }
-
+  if (!res.success) { tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--rose)">${res.message}</td></tr>`; return; }
   if (!dateVal && res.date) document.getElementById('dailyDate').value = res.date;
+  if (!res.records || res.records.length === 0) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">ไม่มีข้อมูล</td></tr>'; return; }
+  tbody.innerHTML = res.records.map(r => {
+    const st = r.status;
+    const badge = st === 'มาปกติ' ? '<span class="badge-status badge-ok">มา</span>' :
+                  st === 'มาสาย' ? '<span class="badge-status badge-late">สาย</span>' :
+                  st === 'ลา' ? '<span class="badge-status badge-leave">ลา</span>' :
+                  st === 'ไปราชการ' ? '<span class="badge-status badge-trip">ไปราชการ</span>' : '<span style="color:var(--muted)">-</span>';
+    return `<tr><td class="table-name">${r.fullName}</td><td>${r.checkIn}</td><td>${badge}${r.inReason && r.inReason !== '-' && r.inReason !== 'มาสาย' ? `<div class="table-sub">${r.inReason}</div>` : ''}</td><td>${r.checkOut}</td></tr>`;
+  }).join('');
+}
 
-  if (!res.records || res.records.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted)">ไม่มีข้อมูลในวันนี้</td></tr>'; return;
+// ============ REPORTS ============
+document.querySelectorAll('#reportTypeTabs .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#reportTypeTabs .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    state.reportType = t.dataset.rtype;
+    loadReports();
+  });
+});
+document.getElementById('reportRefDate').addEventListener('change', loadReports);
+document.getElementById('reportTargetUser').addEventListener('change', loadReports);
+
+async function populateReportTarget() {
+  const isAdmin = state.user.role === 'admin' || state.user.role === 'director';
+  document.getElementById('reportTargetField').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('reportScope').textContent = isAdmin ? 'ข้อมูลทั้งระบบ' : 'ข้อมูลของฉัน';
+  if (!isAdmin) return;
+  const sel = document.getElementById('reportTargetUser');
+  if (sel.options.length > 1) return;
+  const res = await api('admin_listUsers');
+  if (res.success) {
+    res.users.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.username; opt.textContent = `${u.fullName} (${u.username})`;
+      sel.appendChild(opt);
+    });
   }
+}
 
+async function loadReports() {
+  await populateReportTarget();
+  const tbody = document.getElementById('reportBody');
+  tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
+  const refDate = document.getElementById('reportRefDate').value || new Date().toISOString().split('T')[0];
+  const targetUser = document.getElementById('reportTargetUser').value || '';
+  const res = await api('getReports', { periodType: state.reportType, refDate, targetUser });
+  if (!res.success) { tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--rose)">${res.message}</td></tr>`; return; }
+  document.getElementById('reportLabel').textContent = res.label;
+  if (!res.records || res.records.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted)">ไม่มีข้อมูลในช่วงนี้</td></tr>'; return;
+  }
   tbody.innerHTML = res.records.map(r => `
     <tr>
       <td class="table-name">${r.fullName}</td>
-      <td>${r.checkIn}</td>
-      <td class="table-sub">${r.inReason}</td>
-      <td>${r.checkOut}</td>
-      <td class="table-sub">${r.outReason}</td>
+      <td><span class="badge-status badge-ok">${r.normal}</span></td>
+      <td><span class="badge-status badge-late">${r.late}</span></td>
+      <td><span class="badge-status badge-leave">${r.leave}</span></td>
+      <td><span class="badge-status badge-trip">${r.trip}</span></td>
+      <td>${r.totalDays}</td>
     </tr>
   `).join('');
 }
 
-// ============================================================
-// REPORTS LOGIC (Term 1 & 2)
-// ============================================================
-document.querySelectorAll('#reportsScreen .tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('#reportsScreen .tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('#reportsScreen .tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
+// ============ TRAVEL ============
+document.getElementById('travelApproveBtn').addEventListener('click', () => {
+  showScreen('travelApprovalScreen');
+});
+document.querySelectorAll('#travelApprovalScreen .tab').forEach(t => {
+  t.addEventListener('click', () => {
+    document.querySelectorAll('#travelApprovalScreen .tab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    state.travelTab = t.dataset.ttab;
+    loadTravelList();
   });
 });
 
-async function loadTermReports() {
-  document.getElementById('term1Body').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
-  document.getElementById('term2Body').innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--muted)">กำลังโหลด...</td></tr>';
-  
-  const res = await api('getTermReports');
-  if (!res.success) {
-    toast(res.message, 'error'); return;
-  }
-
-  document.getElementById('academicYearText').textContent = res.academicYear || '—';
-  
-  const renderTable = (records) => {
-    if (records.length === 0) return '<tr><td colspan="4" style="text-align:center;color:var(--muted)">ไม่มีข้อมูล</td></tr>';
-    return records.map(r => `
-      <tr>
-        <td>${r.date}</td>
-        <td>${r.time}</td>
-        <td><span style="color:${r.action==='เข้างาน'?'var(--emerald)':r.action==='ออกงาน'?'var(--rose)':'var(--amber)'}">${r.action}</span></td>
-        <td>${r.reason}</td>
-      </tr>
-    `).join('');
-  };
-
-  document.getElementById('term1Body').innerHTML = renderTable(res.term1);
-  document.getElementById('term2Body').innerHTML = renderTable(res.term2);
+async function loadTravelList() {
+  const box = document.getElementById('travelList');
+  box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  const res = await api('getTravelRequests', {});
+  if (!res.success) { box.innerHTML = `<div class="empty-state">${res.message}</div>`; return; }
+  let list = res.requests;
+  if (state.travelTab === 'pending') list = list.filter(r => r.status === 'PENDING');
+  if (list.length === 0) { box.innerHTML = '<div class="empty-state">ไม่มีรายการ</div>'; return; }
+  box.innerHTML = list.map(r => {
+    const st = r.status === 'PENDING' ? '<span class="badge-status badge-late">รออนุมัติ</span>' :
+                r.status === 'APPROVED' ? '<span class="badge-status badge-ok">อนุมัติแล้ว</span>' :
+                '<span class="badge-status badge-leave">ปฏิเสธ</span>';
+    const actions = r.status === 'PENDING'
+      ? `<div style="display:flex;gap:8px;margin-top:10px">
+           <button class="btn-sm btn-emerald" style="flex:1" onclick="approveTravel('${r.id}')">✓ อนุมัติ</button>
+           <button class="btn-sm btn-danger" style="flex:1" onclick="rejectTravel('${r.id}')">✕ ปฏิเสธ</button>
+         </div>`
+      : '';
+    return `<div style="padding:12px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.06);margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap">
+        <div style="font-weight:500">${r.fullName}</div>
+        ${st}
+      </div>
+      <div style="color:var(--muted);font-size:.78rem;margin-top:4px">${r.fromDate} → ${r.toDate}</div>
+      <div style="font-size:.82rem;margin-top:6px"><b>เหตุผล:</b> ${r.reason}</div>
+      ${r.approvedBy ? `<div style="color:var(--muted);font-size:.75rem;margin-top:4px">โดย ${r.approvedBy} · ${r.approvedAt}</div>` : ''}
+      ${actions}
+    </div>`;
+  }).join('');
 }
 
-// ============================================================
-// PROFILE LOGIC
-// ============================================================
+window.approveTravel = async (id) => {
+  const res = await api('approveTravel', { id });
+  toast(res.message, res.success ? 'success' : 'error');
+  if (res.success) { playSound('approve'); loadTravelList(); refreshStatus(); }
+};
+window.rejectTravel = async (id) => {
+  const res = await api('rejectTravel', { id });
+  toast(res.message, res.success ? 'success' : 'error');
+  if (res.success) loadTravelList();
+};
+
+// ============ PROFILE ============
 function updateProfileUI() {
-  if(!state.user) return;
+  if (!state.user) return;
   document.getElementById('profUsername').value = state.user.username;
   document.getElementById('profFullName').value = state.user.fullName;
   document.getElementById('profEmail').value = state.user.email || '';
-  document.getElementById('profilePicPreview').src = state.user.profilePic || 'https://via.placeholder.com/90';
-  document.getElementById('reportName').textContent = state.user.fullName;
-  document.getElementById('reportPic').src = state.user.profilePic || 'https://via.placeholder.com/40';
+  document.getElementById('profilePicPreview').src = state.user.profilePic || '';
 }
 
-document.querySelector('.nav-item:nth-child(3)').addEventListener('click', updateProfileUI);
-
 document.getElementById('profilePicInput').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (!file) return;
+  const file = e.target.files[0]; if (!file) return;
   const reader = new FileReader();
   reader.onload = function(evt) {
-    // Resize image using Canvas
     const img = new Image();
     img.onload = function() {
       const canvas = document.createElement('canvas');
-      const MAX_WIDTH = 300;
-      const scale = MAX_WIDTH / img.width;
-      canvas.width = MAX_WIDTH;
-      canvas.height = img.height * scale;
+      const MAX = 300, scale = MAX / img.width;
+      canvas.width = MAX; canvas.height = img.height * scale;
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
       state.profilePicBase64 = dataUrl;
       document.getElementById('profilePicPreview').src = dataUrl;
     };
@@ -864,25 +1049,21 @@ document.getElementById('profileForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const btn = document.getElementById('saveProfileBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
-  
   const payload = {
     username: document.getElementById('profUsername').value.trim().toLowerCase(),
     fullName: document.getElementById('profFullName').value.trim(),
     email: document.getElementById('profEmail').value.trim(),
     profilePic: state.profilePicBase64
   };
-  
   const res = await api('updateProfile', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกข้อมูล';
-  
   if (res.success) {
-    toast(res.message);
-    state.user = res.user;
-    state.token = res.token;
+    toast(res.message); playSound('approve');
+    state.user = res.user; state.token = res.token;
     localStorage.setItem('tt_token', res.token);
     localStorage.setItem('tt_user', JSON.stringify(res.user));
-    state.profilePicBase64 = null; // Clear buffer
-    initUserSession(); // Refresh UI
+    state.profilePicBase64 = null;
+    await initUserSession();
     updateProfileUI();
   } else toast(res.message, 'error');
 });
@@ -896,19 +1077,15 @@ document.getElementById('passwordForm').addEventListener('submit', async (e) => 
     newPassword: document.getElementById('newPw').value
   });
   btn.disabled = false; btn.textContent = 'เปลี่ยนรหัสผ่าน';
-  if (r.success) { toast(r.message); document.getElementById('passwordForm').reset(); }
+  if (r.success) { toast(r.message); playSound('approve'); document.getElementById('passwordForm').reset(); }
   else toast(r.message, 'error');
 });
 
-// ============================================================
-// ADMIN LOGIC
-// ============================================================
+// ============ ADMIN ============
 document.getElementById('adminBtn').addEventListener('click', () => {
   showScreen('adminScreen');
-  loadAdminSettings();
-  loadPending();
+  loadAdminSettings(); loadPending();
 });
-
 document.querySelectorAll('#adminScreen .tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('#adminScreen .tab').forEach(t => t.classList.remove('active'));
@@ -926,43 +1103,56 @@ async function loadPending() {
   box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
   const res = await api('admin_listPending');
   if (!res.success) return;
-  if (res.users.length === 0) return box.innerHTML = '<div class="empty-state">ไม่มีผู้ใช้รออนุมัติ 🎉</div>';
-  
+  if (!res.users.length) return box.innerHTML = '<div class="empty-state">ไม่มีผู้ใช้รออนุมัติ 🎉</div>';
+  const roleName = { teacher:'ครู', director:'ผู้อำนวยการ', employee:'พนักงาน', worker:'ลูกจ้าง', admin:'แอดมิน' };
   box.innerHTML = res.users.map(u => `
     <div style="padding:12px;background:rgba(255,255,255,.03);border-radius:12px;border:1px solid rgba(255,255,255,.06)">
       <div style="font-weight:500">${u.fullName} <span style="color:var(--muted);font-size:.75rem">@${u.username}</span></div>
-      <div style="color:var(--muted);font-size:.75rem;margin-top:2px">${u.registeredAt} · ระยะ ${u.regDistance} ม.</div>
+      <div style="color:var(--muted);font-size:.75rem;margin-top:2px">${roleName[u.role]||u.role} · ${u.registeredAt} · ระยะ ${u.regDistance} ม.</div>
       <div style="display:flex;gap:8px;margin-top:10px">
-        <button class="btn-sm btn-approve" style="flex:1;background:rgba(52,211,153,.2);color:var(--emerald);border:none" onclick="approveUser('${u.username}')">อนุมัติ</button>
-        <button class="btn-sm btn-reject" style="flex:1;background:rgba(251,113,133,.2);color:var(--rose);border:none" onclick="rejectUser('${u.username}')">ปฏิเสธ</button>
+        <button class="btn-sm btn-emerald" style="flex:1" onclick="adminApprove('${u.username}')">✓ อนุมัติ</button>
+        <button class="btn-sm btn-danger" style="flex:1" onclick="adminReject('${u.username}')">✕ ปฏิเสธ</button>
       </div>
     </div>
   `).join('');
 }
-
-window.approveUser = async (u) => { const r = await api('admin_approve', {username:u}); toast(r.message, r.success?'success':'error'); loadPending(); };
-window.rejectUser = async (u) => { const r = await api('admin_reject', {username:u}); toast(r.message, r.success?'success':'error'); loadPending(); };
+window.adminApprove = async (u) => {
+  const r = await api('admin_approve', { username:u });
+  toast(r.message, r.success?'success':'error'); if (r.success) playSound('approve'); loadPending();
+};
+window.adminReject = async (u) => {
+  const r = await api('admin_reject', { username:u });
+  toast(r.message, r.success?'success':'error'); loadPending();
+};
 
 async function loadUsers() {
   const box = document.getElementById('usersList');
   box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
   const res = await api('admin_listUsers');
   if (!res.success) return;
-  
+  const roleName = { teacher:'ครู', director:'ผอ.', employee:'พนักงาน', worker:'ลูกจ้าง', admin:'แอดมิน' };
   box.innerHTML = res.users.map(u => `
-    <div style="padding:12px;background:rgba(255,255,255,.03);border-radius:12px;display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-weight:500">${u.fullName}</div>
-        <div style="color:var(--muted);font-size:.75rem">@${u.username} · ${u.role} · ${u.status}</div>
+    <div class="user-row">
+      <div class="user-row-info">
+        <div style="font-weight:500;font-size:.9rem">${u.fullName}</div>
+        <div style="color:var(--muted);font-size:.72rem">@${u.username} · ${roleName[u.role]||u.role} · ${u.status}</div>
       </div>
+      <label class="switch" title="ลงเวลานอกพื้นที่">
+        <input type="checkbox" ${u.canAnywhere?'checked':''} onchange="setUserPerm('${u.username}', this.checked)" ${u.username==='admin'?'disabled':''}>
+        <span class="slider"></span>
+      </label>
       <button class="btn-sm btn-danger" onclick="delUser('${u.username}')" ${u.username==='admin'?'disabled':''}>ลบ</button>
     </div>
   `).join('');
 }
-window.delUser = async (u) => { 
-  if(!confirm('ยืนยันลบผู้ใช้ '+u+'?')) return;
-  const r = await api('admin_deleteUser', {username:u}); 
-  toast(r.message, r.success?'success':'error'); loadUsers(); 
+window.setUserPerm = async (u, can) => {
+  const r = await api('admin_setUserPermission', { username:u, canAnywhere:can });
+  toast(r.message, r.success?'success':'error'); if (r.success) playSound('approve');
+};
+window.delUser = async (u) => {
+  if (!confirm('ยืนยันลบ '+u+'?')) return;
+  const r = await api('admin_deleteUser', { username:u });
+  toast(r.message, r.success?'success':'error'); loadUsers();
 };
 
 async function loadAdminSettings() {
@@ -974,7 +1164,7 @@ async function loadAdminSettings() {
   document.getElementById('setOfficeLng').value = s.settings.officeLng || '';
   document.getElementById('setRadius').value = s.settings.radius || '';
   document.getElementById('setStrictReg').checked = !!s.settings.strictRegistration;
-  
+  document.getElementById('setGlobalAnywhere').checked = !!s.settings.globalAnywhere;
   document.getElementById('setAcademicYear').value = s.settings.academicYear || '';
   document.getElementById('setTerm1Start').value = s.settings.term1Start || '';
   document.getElementById('setTerm1End').value = s.settings.term1End || '';
@@ -982,51 +1172,59 @@ async function loadAdminSettings() {
   document.getElementById('setTerm2End').value = s.settings.term2End || '';
 }
 
-// ปุ่มดึงตำแหน่ง GPS ปัจจุบัน (แอดมิน)
 document.getElementById('btnUseCurrentGps').addEventListener('click', async () => {
   const btn = document.getElementById('btnUseCurrentGps');
-  const originalText = btn.innerHTML;
-  btn.disabled = true; 
-  btn.innerHTML = '<span class="spinner"></span> กำลังค้นหาตำแหน่ง...';
-  
+  const orig = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังค้นหา...';
   try {
     const pos = await refreshPosition();
     document.getElementById('setOfficeLat').value = pos.lat.toFixed(6);
     document.getElementById('setOfficeLng').value = pos.lng.toFixed(6);
-    toast('ดึงพิกัดปัจจุบันสำเร็จ!');
-  } catch (err) {
-    toast(err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = originalText;
-  }
+    toast('ดึงพิกัดปัจจุบันสำเร็จ');
+  } catch (err) { toast(err.message, 'error'); }
+  finally { btn.disabled = false; btn.innerHTML = orig; }
 });
 
 document.getElementById('saveSettingsBtn').addEventListener('click', async () => {
   const btn = document.getElementById('saveSettingsBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
-  
   const payload = {
     officeName: document.getElementById('setOfficeName').value.trim(),
     officeLat: Number(document.getElementById('setOfficeLat').value),
     officeLng: Number(document.getElementById('setOfficeLng').value),
     radius: Number(document.getElementById('setRadius').value),
     strictRegistration: document.getElementById('setStrictReg').checked,
-    
+    globalAnywhere: document.getElementById('setGlobalAnywhere').checked,
     academicYear: document.getElementById('setAcademicYear').value.trim(),
     term1Start: document.getElementById('setTerm1Start').value,
     term1End: document.getElementById('setTerm1End').value,
     term2Start: document.getElementById('setTerm2Start').value,
     term2End: document.getElementById('setTerm2End').value
   };
-  
   const res = await api('admin_updateSettings', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
-  
-  if (res.success) { toast(res.message); state.settings = null; }
+  if (res.success) { toast(res.message); playSound('approve'); state.settings = null; }
   else toast(res.message, 'error');
 });
 
+document.getElementById('setupTriggersBtn').addEventListener('click', async () => {
+  const r = await api('admin_setupTriggers');
+  toast(r.message, r.success?'success':'error'); if (r.success) playSound('approve');
+});
+
+document.querySelectorAll('[data-archive]').forEach(b => {
+  b.addEventListener('click', async () => {
+    const orig = b.innerHTML;
+    b.disabled = true; b.innerHTML = '<span class="spinner"></span> กำลังสร้าง...';
+    const r = await api('admin_generateArchive', { periodType: b.dataset.archive, refDate: new Date().toISOString().split('T')[0] });
+    b.disabled = false; b.innerHTML = orig;
+    if (r.success) {
+      toast('สร้าง PDF สำเร็จ');
+      playSound('approve');
+      window.open(r.url, '_blank');
+    } else toast(r.message, 'error');
+  });
+});
 </script>
 </body>
 </html>
