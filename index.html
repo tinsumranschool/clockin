@@ -8,123 +8,408 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ===================================================================
+   THEME VARIABLES (DYNAMIC MONTHLY)
+=================================================================== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg-color: #fdfbf7; --bg-pattern: #f0ece1; --text-main: #3b3a4a; --text-muted: #7a788c;
-  --primary: #ff9a62; --primary-hover: #ff8642; --secondary: #6cd4ff; --accent: #b983ff;
-  --success: #6ddf9a; --danger: #ff7b93; --warning: #ffd166;
-  --border-color: #3b3a4a; --border-width: 2px; --card-bg: #ffffff;
-  --radius-xl: 24px; --radius-lg: 16px; --radius-md: 12px; --nav-height: 75px;
+
+/* Default (Fallback) */
+:root {
+  --bg-color: #fdfbf7;
+  --bg-pattern: #f0ece1;
+  --text-main: #3b3a4a;
+  --text-muted: #7a788c;
+  --primary: #ff9a62;
+  --primary-hover: #ff8642;
+  --secondary: #6cd4ff;
+  --accent: #b983ff;
+  --success: #6ddf9a;
+  --danger: #ff7b93;
+  --warning: #ffd166;
+  --border-color: #3b3a4a;
+  --card-bg: #ffffff;
+  --nav-bg: #ffffff;
+  --border-width: 2px;
+  --radius-xl: 24px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --nav-height: 75px;
   --shadow-hard: 4px 4px 0px var(--border-color);
   --shadow-soft: 6px 6px 0px rgba(59, 58, 74, 0.1);
 }
-body{
-  font-family:'Mali', 'Prompt', sans-serif; background-color:var(--bg-color);
-  background-image: radial-gradient(var(--bg-pattern) 2px, transparent 2px);
-  background-size: 24px 24px; color:var(--text-main); min-height:100vh;
-  display:flex; flex-direction:column; align-items:center;
-  padding:20px 16px calc(var(--nav-height) + 30px) 16px; position:relative; overflow-x:hidden;
+
+/* 1. มกราคม (New Year) */
+body[data-theme="1"] {
+  --bg-color: #1a1a2e; --bg-pattern: #16213e; --text-main: #ffffff; --text-muted: #a8b2c1;
+  --primary: #ffd700; --primary-hover: #e6c200; --secondary: #ff4081; --accent: #00e5ff;
+  --border-color: #000000; --card-bg: #1a1a2e; --nav-bg: #1a1a2e;
 }
-.wrapper{position:relative;z-index:1;width:100%;max-width:620px;display:flex;flex-direction:column;gap:20px}
-.screen{display:none;flex-direction:column;gap:20px;width:100%;animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
+
+/* 2. กุมภาพันธ์ (Valentine) */
+body[data-theme="2"] {
+  --bg-color: #fff0f5; --bg-pattern: #ffd1dc; --text-main: #4a2c3a; --text-muted: #8a5a6a;
+  --primary: #ff4d6d; --primary-hover: #ff1a4b; --secondary: #ffb3c6; --accent: #ff8fa3;
+  --border-color: #4a2c3a; --card-bg: #fffafb; --nav-bg: #fffafb;
+}
+
+/* 3. มีนาคม (Spring) */
+body[data-theme="3"] {
+  --bg-color: #f0fdf4; --bg-pattern: #dcfce7; --text-main: #064e3b; --text-muted: #166534;
+  --primary: #22c55e; --primary-hover: #16a34a; --secondary: #f472b6; --accent: #facc15;
+  --border-color: #064e3b; --card-bg: #ffffff; --nav-bg: #ffffff;
+}
+
+/* 4. เมษายน (Songkran) */
+body[data-theme="4"] {
+  --bg-color: #f0f8ff; --bg-pattern: #b3e5fc; --text-main: #1a3b5c; --text-muted: #4a7a9a;
+  --primary: #03a9f4; --primary-hover: #0288d1; --secondary: #4dd0e1; --accent: #ffb74d;
+  --border-color: #1a3b5c; --card-bg: #ffffff; --nav-bg: #ffffff;
+}
+
+/* 5. พฤษภาคม (Summer) */
+body[data-theme="5"] {
+  --bg-color: #fffbeb; --bg-pattern: #fde68a; --text-main: #78350f; --text-muted: #b45309;
+  --primary: #f59e0b; --primary-hover: #d97706; --secondary: #38bdf8; --accent: #fb7185;
+  --border-color: #78350f; --card-bg: #ffffff; --nav-bg: #ffffff;
+}
+
+/* 6. มิถุนายน (Pride/Rain) */
+body[data-theme="6"] {
+  --bg-color: #f8fafc; --bg-pattern: #e2e8f0; --text-main: #1e293b; --text-muted: #64748b;
+  --primary: #ec4899; --primary-hover: #db2777; --secondary: #8b5cf6; --accent: #06b6d4;
+  --border-color: #334155; --card-bg: #ffffff; --nav-bg: #ffffff;
+}
+
+/* 7. กรกฎาคม (Candle) */
+body[data-theme="7"] {
+  --bg-color: #2e1065; --bg-pattern: #4c1d95; --text-main: #fdf4ff; --text-muted: #d8b4fe;
+  --primary: #fbbf24; --primary-hover: #f59e0b; --secondary: #ec4899; --accent: #a855f7;
+  --border-color: #0f172a; --card-bg: #2e1065; --nav-bg: #2e1065;
+}
+
+/* 8. สิงหาคม (Mother's Day) */
+body[data-theme="8"] {
+  --bg-color: #eff6ff; --bg-pattern: #dbeafe; --text-main: #1e3a8a; --text-muted: #3b82f6;
+  --primary: #3b82f6; --primary-hover: #2563eb; --secondary: #93c5fd; --accent: #f472b6;
+  --border-color: #1e3a8a; --card-bg: #ffffff; --nav-bg: #ffffff;
+}
+
+/* 9. กันยายน (Autumn) */
+body[data-theme="9"] {
+  --bg-color: #fff7ed; --bg-pattern: #ffedd5; --text-main: #431407; --text-muted: #9a3412;
+  --primary: #ea580c; --primary-hover: #c2410c; --secondary: #d97706; --accent: #fcd34d;
+  --border-color: #431407; --card-bg: #ffffff; --nav-bg: #ffffff;
+}
+
+/* 10. ตุลาคม (Halloween) */
+body[data-theme="10"] {
+  --bg-color: #1a0b2e; --bg-pattern: #2d1b4e; --text-main: #f5e6d3; --text-muted: #b8a3d1;
+  --primary: #ff7b00; --primary-hover: #e66a00; --secondary: #9333ea; --accent: #ffd166;
+  --border-color: #120524; --card-bg: #2d1b4e; --nav-bg: #1a0b2e;
+}
+
+/* 11. พฤศจิกายน (Loy Krathong) */
+body[data-theme="11"] {
+  --bg-color: #1a1a2e; --bg-pattern: #16213e; --text-main: #f8f9fa; --text-muted: #a8b2c1;
+  --primary: #f59e0b; --primary-hover: #d97706; --secondary: #8b5cf6; --accent: #ec4899;
+  --border-color: #0f0f1a; --card-bg: #16213e; --nav-bg: #1a1a2e;
+}
+
+/* 12. ธันวาคม (Christmas) */
+body[data-theme="12"] {
+  --bg-color: #f8f9fa; --bg-pattern: #e9ecef; --text-main: #2b2d42; --text-muted: #6c757d;
+  --primary: #e63946; --primary-hover: #c1121f; --secondary: #2a9d8f; --accent: #f4a261;
+  --border-color: #2b2d42; --card-bg: #ffffff; --nav-bg: #ffffff;
+}
+
+/* ===================================================================
+   BASE STYLES
+=================================================================== */
+body{
+  font-family:'Mali', 'Prompt', sans-serif; 
+  background-color:var(--bg-color);
+  background-image: radial-gradient(var(--bg-pattern) 2px, transparent 2px);
+  background-size: 24px 24px;
+  color:var(--text-main);
+  min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  padding:20px 16px calc(var(--nav-height) + 30px) 16px; 
+  position:relative; overflow-x:hidden;
+  transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+.wrapper{position:relative;z-index:10;width:100%;max-width:620px;display:flex;flex-direction:column;gap:20px}
+.screen{display:none;flex-direction:column;gap:20px;width:100%;animation:popIn .4s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
 .screen.active{display:flex}
-@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+/* ===================================================================
+   HOLIDAY DECORATIONS (FLOATING EMOJIS)
+=================================================================== */
+#holiday-decorations {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.floating-emoji {
+  position: absolute; font-size: 2rem; opacity: 0.6;
+  animation: floatUp 12s linear infinite;
+  bottom: -50px;
+  filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1));
+}
+@keyframes floatUp {
+  0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.7; }
+  90% { opacity: 0.7; }
+  100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; }
+}
+
+/* ===================================================================
+   COMPONENTS
+=================================================================== */
 .brand{text-align:center;padding:10px 0 0}
-.brand-title{font-size:clamp(2.2rem,6vw,2.8rem);font-weight:700;color:var(--text-main);text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--primary);letter-spacing:-.02em;transform: rotate(-2deg);}
-.card{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:var(--radius-xl);padding:24px 22px;box-shadow:var(--shadow-hard);position:relative;transition: transform .2s;}
-.card::after {content:'';position:absolute;inset:4px;border-radius:20px;border:1px dashed rgba(59,58,74,0.2);pointer-events:none;}
-.app-header{display:flex;align-items:center;gap:12px;background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:var(--radius-lg);padding:12px 16px;box-shadow:var(--shadow-hard);}
+.brand-title{
+  font-size:clamp(2.2rem,6vw,2.8rem); font-weight:700; 
+  color:var(--text-main); 
+  text-shadow: 2px 2px 0px var(--bg-color), 4px 4px 0px var(--primary);
+  letter-spacing:-.02em;
+  transform: rotate(-2deg);
+  animation: titleBounce 3s ease-in-out infinite;
+}
+@keyframes titleBounce {
+  0%, 100% { transform: rotate(-2deg) translateY(0); }
+  50% { transform: rotate(-2deg) translateY(-5px); }
+}
+
+.card{
+  background:var(--card-bg);
+  border:var(--border-width) solid var(--border-color);
+  border-radius:var(--radius-xl);
+  padding:24px 22px;
+  box-shadow:var(--shadow-hard);
+  position:relative;
+  transition: transform .2s, box-shadow .2s;
+}
+.card::after {
+  content:''; position:absolute; inset:4px; border-radius:20px; border:1px dashed rgba(128,128,128,0.3); pointer-events:none;
+}
+.card:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0px var(--border-color);
+}
+
+.app-header{
+  display:flex; align-items:center; gap:12px;
+  background:var(--card-bg);
+  border:var(--border-width) solid var(--border-color);
+  border-radius:var(--radius-lg);
+  padding:12px 16px;
+  box-shadow:var(--shadow-hard);
+}
 .user-info{flex:1;min-width:0;display:flex;align-items:center;gap:12px}
-.avatar{border-radius:50%;width:46px;height:46px;object-fit:cover;border:var(--border-width) solid var(--border-color);background:#eee;box-shadow: 2px 2px 0px var(--border-color);}
+.avatar{
+  border-radius:50%; width:46px; height:46px; object-fit:cover;
+  border:var(--border-width) solid var(--border-color);
+  background:#eee; box-shadow: 2px 2px 0px var(--border-color);
+  transition: transform 0.2s;
+}
+.avatar:hover { transform: scale(1.1) rotate(10deg); }
 .user-name{font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .user-role{font-size:.8rem;color:var(--text-muted);margin-top:2px}
-.icon-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:12px;color:var(--text-main);cursor:pointer;font-size:1.1rem;box-shadow: 2px 2px 0px var(--border-color);transition: all .1s;position:relative;}
-.icon-btn:hover{background:var(--bg-pattern);}
-.icon-btn:active{transform:translate(2px, 2px);box-shadow: 0px 0px 0px var(--border-color);}
-.tabs{display:flex;gap:8px;background:var(--bg-pattern);padding:6px;border-radius:var(--radius-lg);border:var(--border-width) solid var(--border-color);overflow-x:auto;}
-.tab{flex:1;padding:10px 12px;border:var(--border-width) solid transparent;background:transparent;color:var(--text-muted);font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer;border-radius:12px;transition:all .2s;white-space:nowrap;}
-.tab.active{background:var(--card-bg);color:var(--text-main);border-color:var(--border-color);box-shadow: 2px 2px 0px var(--border-color);}
+
+.icon-btn{
+  width:40px;height:40px; display:flex;align-items:center;justify-content:center;
+  background:var(--card-bg);
+  border:var(--border-width) solid var(--border-color);
+  border-radius:12px; color:var(--text-main); cursor:pointer; font-size:1.1rem;
+  box-shadow: 2px 2px 0px var(--border-color);
+  transition: all .1s; position:relative;
+}
+.icon-btn:hover{ background:var(--bg-pattern); transform: scale(1.05); }
+.icon-btn:active{ transform:translate(2px, 2px); box-shadow: 0px 0px 0px var(--border-color); }
+
+.tabs{
+  display:flex; gap:8px; background:var(--bg-pattern);
+  padding:6px; border-radius:var(--radius-lg);
+  border:var(--border-width) solid var(--border-color);
+  overflow-x:auto;
+}
+.tab{
+  flex:1; padding:10px 12px; border:var(--border-width) solid transparent;
+  background:transparent; color:var(--text-muted); font-family:inherit;
+  font-size:.9rem; font-weight:600; cursor:pointer; border-radius:12px; transition:all .2s;
+  white-space:nowrap;
+}
+.tab.active{
+  background:var(--card-bg); color:var(--text-main);
+  border-color:var(--border-color); box-shadow: 2px 2px 0px var(--border-color);
+  transform: scale(1.02);
+}
 .tab-content{display:none}
-.tab-content.active{display:block}
+.tab-content.active{display:block; animation: fadeIn 0.3s ease;}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
 .field{margin-bottom:16px}
 .field-label{display:flex;align-items:center;gap:6px;font-size:.9rem;font-weight:600;color:var(--text-main);margin-bottom:8px}
-.req{color:var(--danger);font-size:1rem}
-.input,.textarea,.select{width:100%;background:var(--bg-color);border:var(--border-width) solid var(--border-color);border-radius:var(--radius-md);padding:12px 14px;color:var(--text-main);font-family:inherit;font-size:.95rem;outline:none;transition:all .2s;box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);}
-.input:focus,.textarea:focus,.select:focus{background:#fff;box-shadow: 3px 3px 0px var(--secondary);border-color:var(--border-color);transform: translate(-1px, -1px);}
-.input::placeholder,.textarea::placeholder{color:#a9a7b8}
+.req{color:var(--danger);font-size:1rem; animation: pulse 1s infinite;}
+.input,.textarea,.select{
+  width:100%; background:var(--bg-color);
+  border:var(--border-width) solid var(--border-color);
+  border-radius:var(--radius-md); padding:12px 14px;
+  color:var(--text-main); font-family:inherit; font-size:.95rem; outline:none;
+  transition:all .2s; box-shadow: inset 2px 2px 0px rgba(0,0,0,0.05);
+}
+.input:focus,.textarea:focus,.select:focus{
+  background:var(--card-bg); box-shadow: 4px 4px 0px var(--primary);
+  border-color:var(--border-color); transform: translate(-2px, -2px);
+}
+.input::placeholder,.textarea::placeholder{color:var(--text-muted); opacity: 0.6;}
 .checkbox-group{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-main);cursor:pointer;font-weight:500}
-input[type="checkbox"]{width:18px;height:18px;cursor:pointer;accent-color:var(--primary);}
+input[type="checkbox"]{width:20px;height:20px;cursor:pointer;accent-color:var(--primary); border:2px solid var(--border-color); border-radius: 4px;}
+
+/* ===================================================================
+   ACTION BUTTONS (3D Tactile)
+=================================================================== */
 .action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:8px}
-.action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 8px;border-radius:var(--radius-lg);border:var(--border-width) solid var(--border-color);background:var(--card-bg);color:var(--text-main);font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .15s;position:relative;box-shadow: 3px 3px 0px var(--border-color);}
-.action-btn .icon{font-size:1.6rem;line-height:1;transition: transform .2s;}
-.action-btn:hover:not(:disabled) .icon{transform: scale(1.15) rotate(5deg);}
-.action-btn:active:not(:disabled){transform:translate(3px, 3px);box-shadow: 0px 0px 0px var(--border-color);}
-.action-btn:disabled{opacity:.3;cursor:not-allowed;filter:grayscale(1);background:var(--bg-pattern);transform:none;box-shadow:none;}
-.action-btn[data-action="เข้างาน"].active{background:#e6fbf0;border-color:var(--success);box-shadow: 3px 3px 0px var(--success);}
-.action-btn[data-action="ออกงาน"].active{background:#ffe6eb;border-color:var(--danger);box-shadow: 3px 3px 0px var(--danger);}
-.action-btn[data-action="ลา"].active{background:#fff3d6;border-color:var(--warning);box-shadow: 3px 3px 0px var(--warning);}
-.action-btn[data-action="ไปราชการ"].active{background:#e6f7ff;border-color:var(--secondary);box-shadow: 3px 3px 0px var(--secondary);}
-.submit-btn{width:100%;padding:16px;border:var(--border-width) solid var(--border-color);border-radius:var(--radius-lg);font-family:inherit;font-size:1.05rem;font-weight:700;cursor:pointer;color:var(--text-main);background:var(--primary);box-shadow: 4px 4px 0px var(--border-color);transition:all .1s ease;display:flex;justify-content:center;align-items:center;gap:8px;}
-.submit-btn:hover:not(:disabled){background:var(--primary-hover);}
-.submit-btn:active:not(:disabled){transform:translate(4px, 4px);box-shadow: 0px 0px 0px var(--border-color);}
+.action-btn{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  padding:16px 8px; border-radius:var(--radius-lg);
+  border:var(--border-width) solid var(--border-color);
+  background:var(--card-bg);
+  color:var(--text-main); font-family:inherit; font-size:.9rem; font-weight:700;
+  cursor:pointer; transition:all .1s; position:relative;
+  box-shadow: 4px 4px 0px var(--border-color);
+}
+.action-btn .icon{font-size:2rem;line-height:1; transition: transform .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+.action-btn:hover:not(:disabled) .icon{ transform: scale(1.2) rotate(10deg); }
+.action-btn:active:not(:disabled){ transform:translate(4px, 4px); box-shadow: 0px 0px 0px var(--border-color); }
+.action-btn:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(1);background:var(--bg-pattern); transform:none; box-shadow:none; border-style: dashed;}
+
+.action-btn[data-action="เข้างาน"].active{ background:#e6fbf0; border-color:var(--success); box-shadow: inset 0 0 0 2px var(--success); color:#008040;}
+.action-btn[data-action="ออกงาน"].active{ background:#ffe6eb; border-color:var(--danger); box-shadow: inset 0 0 0 2px var(--danger); color:#cc0033;}
+.action-btn[data-action="ลา"].active{ background:#fff3d6; border-color:var(--warning); box-shadow: inset 0 0 0 2px var(--warning); color:#d97706;}
+.action-btn[data-action="ไปราชการ"].active{ background:#e6f7ff; border-color:var(--secondary); box-shadow: inset 0 0 0 2px var(--secondary); color:#0088cc;}
+
+.submit-btn{
+  width:100%; padding:16px; border:var(--border-width) solid var(--border-color);
+  border-radius:var(--radius-lg); font-family:inherit; font-size:1.1rem; font-weight:700;
+  cursor:pointer; color:#fff;
+  background:var(--primary);
+  box-shadow: 4px 4px 0px var(--border-color);
+  transition:all .1s ease; display:flex; justify-content:center; align-items:center; gap:8px;
+  text-shadow: 1px 1px 0px rgba(0,0,0,0.2);
+}
+.submit-btn:hover:not(:disabled){ background:var(--primary-hover); transform: scale(1.02); }
+.submit-btn:active:not(:disabled){ transform:translate(4px, 4px); box-shadow: 0px 0px 0px var(--border-color); }
 .submit-btn:disabled{opacity:.6;cursor:not-allowed;filter:grayscale(0.5);}
-.btn-sm{padding:8px 14px;border-radius:10px;border:var(--border-width) solid var(--border-color);font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .1s;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow: 2px 2px 0px var(--border-color);background:var(--card-bg);color:var(--text-main);}
-.btn-sm:active{transform:translate(2px, 2px);box-shadow: 0px 0px 0px var(--border-color);}
-.btn-cyan{background:#e6f7ff;color:#0088cc;}
-.btn-emerald{background:#e6fbf0;color:#00a854;}
-.btn-danger{background:#ffe6eb;color:#cc0033;}
-.btn-neutral{background:var(--bg-pattern);color:var(--text-main);}
-.btn-warning{background:#fff3d6;color:#d97706;}
+
+.btn-sm{
+  padding:8px 14px; border-radius:12px; border:var(--border-width) solid var(--border-color);
+  font-family:inherit; font-size:.85rem; font-weight:700; cursor:pointer;
+  transition:all .1s; display:inline-flex; align-items:center; justify-content:center; gap:6px;
+  box-shadow: 2px 2px 0px var(--border-color); background:var(--card-bg); color:var(--text-main);
+}
+.btn-sm:active{ transform:translate(2px, 2px); box-shadow: 0px 0px 0px var(--border-color); }
+.btn-cyan{background:#e6f7ff; color:#0088cc;}
+.btn-emerald{background:#e6fbf0; color:#00a854;}
+.btn-danger{background:#ffe6eb; color:#cc0033;}
+.btn-neutral{background:var(--bg-pattern); color:var(--text-main);}
+.btn-warning{background:#fff3d6; color:#d97706;}
+
+/* ===================================================================
+   TABLES & LISTS
+=================================================================== */
+.table-wrap{
+  overflow-x:auto; border-radius:16px;
+  border:var(--border-width) solid var(--border-color);
+  margin-top:12px; background:var(--card-bg);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.05);
+}
+table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left}
+th{background:var(--bg-pattern);padding:12px 10px;font-weight:700;color:var(--text-main);white-space:nowrap;border-bottom:var(--border-width) solid var(--border-color); text-align: center;}
+td{padding:12px 10px;border-bottom:1px solid var(--border-color);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td { background: var(--bg-color); }
+.table-name{font-weight:700;color:var(--text-main)}
+
+.skeleton-row td{position: relative;overflow: hidden;background-color: var(--bg-pattern);color: transparent !important; border-bottom: none;}
+.skeleton-row td::after{content: "";position: absolute;top: 0;left: 0;right: 0;bottom: 0;background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);transform: translateX(-100%);animation: shimmer 1.5s infinite;}
+@keyframes shimmer{100% { transform: translateX(100%); }}
+
+/* ===================================================================
+   MODALS & TOAST
+=================================================================== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px; opacity: 0; transition: opacity 0.3s;}
+.modal-overlay.show{display:flex; opacity: 1;}
+.modal{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:24px;padding:24px;max-width:480px;width:100%;box-shadow:8px 8px 0px var(--border-color); max-height:90vh; overflow-y:auto; transform: translateY(30px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+.modal-overlay.show .modal{ transform: translateY(0);}
+
+.toast{
+  position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%;
+  transform:translate(-50%, 150%);
+  z-index:99;padding:14px 24px;border-radius:16px;
+  background:var(--card-bg); border:var(--border-width) solid var(--border-color);
+  font-size:.95rem;font-weight:700;
+  transition:all .4s cubic-bezier(.34,1.56,.64,1);
+  max-width:calc(100vw - 40px);display:flex;align-items:center;gap:10px;
+  box-shadow: 6px 6px 0px var(--border-color);
+  opacity: 0; visibility: hidden; pointer-events: none;
+}
+.toast.show{transform:translate(-50%, 0); opacity: 1; visibility: visible; pointer-events: auto;}
+.toast.success{color:var(--text-main); border-color:var(--success); box-shadow: 6px 6px 0px var(--success);}
+.toast.error{color:var(--text-main); border-color:var(--danger); box-shadow: 6px 6px 0px var(--danger);}
+
+/* ===================================================================
+   NAVIGATION
+=================================================================== */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);
+  background:var(--nav-bg); border-top:var(--border-width) solid var(--border-color);
+  display:none;justify-content:space-around;align-items:center;z-index:90;padding:0 10px;
+  box-shadow: 0 -4px 0px rgba(0,0,0,0.05);
+}
+.bottom-nav.show{display:flex}
+.nav-item{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  color:var(--text-muted);font-size:.75rem;font-weight:700;cursor:pointer;
+  transition:all .2s; border-radius:16px; border:2px solid transparent; height: 60px; width: 80px;
+}
+.nav-item:hover { background: var(--bg-color); }
+.nav-item.active{color:var(--text-main);background:var(--bg-pattern); border-color:var(--border-color); box-shadow: 2px 2px 0px var(--border-color);}
+.nav-icon{font-size:1.4rem; transition: transform 0.2s;}
+.nav-item.active .nav-icon { transform: translateY(-3px) scale(1.1); }
+
+/* Utilities */
+.section-title{font-size:1.05rem;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.empty-state{text-align:center;padding:30px 12px;color:var(--text-muted);font-size:.9rem;border:2px dashed var(--border-color);border-radius:16px; background:var(--bg-color); font-weight:500;}
+.reason-section{max-height:0;overflow:hidden;opacity:0;transition:all .4s;margin-bottom:0}
+.reason-section.visible{max-height:500px;opacity:1;margin-bottom:16px}
 .gps-status{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:.88rem;font-weight:600;background:var(--bg-pattern);border:2px dashed var(--border-color);margin-bottom:16px;color:var(--text-muted);transition:all .3s;}
 .gps-status.ok{background:#e6fbf0;border-style:solid;border-color:var(--success);color:#008040;}
 .gps-status.bad{background:#ffe6eb;border-style:solid;border-color:var(--danger);color:#cc0033;}
 .gps-status.loading{background:#e6f7ff;border-style:solid;border-color:var(--secondary);color:#0088cc;}
-.table-wrap{overflow-x:auto;border-radius:12px;border:var(--border-width) solid var(--border-color);margin-top:12px;background:var(--card-bg);box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);}
-table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left}
-th{background:var(--bg-pattern);padding:12px 10px;font-weight:700;color:var(--text-main);white-space:nowrap;border-bottom:var(--border-width) solid var(--border-color);}
-td{padding:12px 10px;border-bottom:1px solid var(--bg-pattern);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-.table-name{font-weight:600;color:var(--text-main)}
-.skeleton-row td{position: relative;overflow: hidden;background-color: #f8f8f8;color: transparent !important;}
-.skeleton-row td::after{content: "";position: absolute;top: 0;left: 0;right: 0;bottom: 0;background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);transform: translateX(-100%);animation: shimmer 1.5s infinite;}
-@keyframes shimmer{100% { transform: translateX(100%); }}
-.modal-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.show{display:flex}
-.modal{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:20px;padding:24px;max-width:480px;width:100%;box-shadow:6px 6px 0px var(--border-color);max-height:90vh;overflow-y:auto;}
-.toast{position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%;transform:translate(-50%, 150%);z-index:99;padding:14px 24px;border-radius:16px;background:var(--card-bg);border:var(--border-width) solid var(--border-color);font-size:.95rem;font-weight:700;transition:all .4s cubic-bezier(.34,1.56,.64,1);max-width:calc(100vw - 40px);display:flex;align-items:center;gap:10px;box-shadow: 4px 4px 0px var(--border-color);opacity: 0;visibility: hidden;pointer-events: none;}
-.toast.show{transform:translate(-50%, 0);opacity: 1;visibility: visible;pointer-events: auto;}
-.toast.success{color:var(--text-main);border-color:var(--success);box-shadow: 4px 4px 0px var(--success);}
-.toast.error{color:var(--text-main);border-color:var(--danger);box-shadow: 4px 4px 0px var(--danger);}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:var(--card-bg);border-top:var(--border-width) solid var(--border-color);display:none;justify-content:space-around;align-items:center;z-index:90;padding:0 10px;}
-.bottom-nav.show{display:flex}
-.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-muted);font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s;border-radius:12px;border:2px solid transparent;height: 60px;width: 80px;}
-.nav-item.active{color:var(--text-main);background:var(--bg-pattern);border-color:var(--border-color);}
-.nav-icon{font-size:1.4rem;}
-.section-title{font-size:1.05rem;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.empty-state{text-align:center;padding:30px 12px;color:var(--text-muted);font-size:.9rem;border:2px dashed var(--border-color);border-radius:12px;background:var(--bg-color);font-weight:500;}
-.reason-section{max-height:0;overflow:hidden;opacity:0;transition:all .35s;margin-bottom:0}
-.reason-section.visible{max-height:500px;opacity:1;margin-bottom:16px}
-.profile-pic-upload{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px}
-.avatar-lg{width:100px;height:100px;border-radius:50%;object-fit:cover;border:var(--border-width) solid var(--border-color);background:#eee;box-shadow: var(--shadow-hard);}
 .spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(0,0,0,.15);border-top-color:var(--text-main);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.user-row{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--card-bg);border-radius:12px;gap:10px;border:2px solid var(--border-color);margin-bottom:8px;box-shadow: 2px 2px 0 var(--border-color);}
-.user-row-info{flex:1;min-width:0}
 .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .live-indicator{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--success);font-weight:700}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.badge-noti{position: absolute;top: -8px;right: -8px;background: var(--danger);color: #fff;border-radius: 50%;padding: 2px 6px;font-size: 10px;font-weight: bold;border: 2px solid #fff;display: none;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.2)}}
+.badge-noti{position: absolute;top: -8px;right: -8px;background: var(--danger);color: #fff;border-radius: 50%;padding: 2px 6px;font-size: 10px;font-weight: bold;border: 2px solid #fff;display: none; animation: titleBounce 2s infinite;}
 .cache-indicator{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text-muted);font-weight:600;padding:2px 6px;background:var(--bg-pattern);border-radius:6px;border:1px solid var(--border-color);}
 @media (max-width: 480px) {.form-row-3 { grid-template-columns: 1fr; }}
+
+/* Header User Info */
+.user-row{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--bg-color);border-radius:14px;gap:10px;border:2px solid var(--border-color); margin-bottom:10px; box-shadow: 2px 2px 0 var(--border-color); transition: transform 0.2s;}
+.user-row:hover { transform: translateX(4px); }
+.user-row-info{flex:1;min-width:0}
 </style>
 </head>
 <body>
 
+<!-- 🟢 Holiday Decorations Container (ลอยเต็มจอ) -->
+<div id="holiday-decorations"></div>
+
 <div class="wrapper">
 
-  <!-- AUTH -->
+  <!-- AUTH SCREEN -->
   <div id="authScreen" class="screen active">
     <header class="brand"><h1 class="brand-title">ลงเวลาทำงาน</h1></header>
     <div class="card">
@@ -165,7 +450,7 @@ tr:last-child td{border-bottom:none}
     </header>
     <div class="card">
       <div style="text-align:center;padding-bottom:16px;margin-bottom:16px;border-bottom:2px dashed var(--border-color)">
-        <div id="clockTime" style="font-family:'Prompt',monospace;font-size:2.8rem;font-weight:700;letter-spacing:.02em;color:var(--text-main);text-shadow: 2px 2px 0px #fff, 3px 3px 0px var(--secondary);">--:--:--</div>
+        <div id="clockTime" style="font-family:'Prompt',monospace;font-size:3rem;font-weight:700;letter-spacing:.02em;color:var(--text-main);text-shadow: 2px 2px 0px var(--bg-color), 4px 4px 0px var(--secondary);">--:--:--</div>
         <div id="clockDate" style="font-size:.9rem;color:var(--text-muted);margin-top:4px;font-weight:600;"></div>
       </div>
       <div id="adminNotice" style="display:none; text-align:center; padding:20px; background:var(--bg-pattern); border-radius:12px; border:2px dashed var(--border-color); margin-bottom:16px;">
@@ -278,11 +563,11 @@ tr:last-child td{border-bottom:none}
     </header>
     <div class="card">
       <form id="profileForm">
-        <div class="profile-pic-upload">
-          <img id="profilePicPreview" class="avatar-lg" src="" alt="profile">
+        <div class="profile-pic-upload" style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px">
+          <img id="profilePicPreview" class="avatar-lg" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:var(--border-width) solid var(--border-color);box-shadow:var(--shadow-hard);" src="" alt="profile">
           <label class="btn-sm btn-cyan" style="cursor:pointer">📷 เปลี่ยนรูปภาพ<input type="file" id="profilePicInput" accept="image/*" style="display:none"></label>
         </div>
-        <div class="field"><label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label><input type="text" id="profUsername" class="input" required disabled></div>
+        <div class="field"><label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label><input type="text" id="profUsername" class="input" required disabled style="opacity:0.6;"></div>
         <div class="field"><label class="field-label">ชื่อ-นามสกุล <span class="req">*</span></label><input type="text" id="profFullName" class="input" required></div>
         <div class="field"><label class="field-label">ตำแหน่ง</label>
           <select id="profPosition" class="select"><option value="ครู">ครู</option><option value="ผอ.">ผอ.</option><option value="พนักงาน">พนักงาน</option><option value="ลูกจ้าง">ลูกจ้าง</option></select>
@@ -364,7 +649,7 @@ tr:last-child td{border-bottom:none}
 <!-- MODALS -->
 <div class="modal-overlay" id="pdfModal">
   <div class="modal">
-    <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">📄 ดาวน์โหลดรายงาน PDF</h3>
+    <h3 style="margin-bottom:14px;font-size:1.2rem;font-weight:700;">📄 ดาวน์โหลดรายงาน PDF</h3>
     <div class="field">
       <label class="field-label">เลือกเดือนที่ต้องการ</label>
       <select id="pdfMonthSelect" class="select" required>
@@ -384,7 +669,7 @@ tr:last-child td{border-bottom:none}
 
 <div class="modal-overlay" id="editUserModal">
   <div class="modal">
-    <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">✏️ แก้ไขข้อมูลผู้ใช้</h3>
+    <h3 style="margin-bottom:14px;font-size:1.2rem;font-weight:700;">✏️ แก้ไขข้อมูลผู้ใช้</h3>
     <input type="hidden" id="editTargetUsername">
     <input type="hidden" id="editUserRole">
     <div class="field"><label class="field-label">Username</label><input type="text" id="editUserUsername" class="input" disabled></div>
@@ -394,7 +679,6 @@ tr:last-child td{border-bottom:none}
     </div>
     <div class="field" style="background:var(--bg-color); padding:12px; border-radius:12px; border:2px solid var(--border-color);">
       <label class="checkbox-group" id="editGpsOverrideGroup"><input type="checkbox" id="editUserGpsOverride" style="width:20px; height:20px;"><span style="font-weight:700;">อนุญาตให้ลงเวลานอกพื้นที่ GPS</span></label>
-      <div id="editGpsOverrideHint" style="font-size:.75rem; color:var(--text-muted); margin-top:4px; margin-left:28px;">เปิดสิทธิ์ให้ลงเวลาได้ทุกที่โดยไม่ต้องอยู่ในรัศมี</div>
     </div>
     <div class="field"><label class="field-label">อีเมล</label><input type="email" id="editUserEmail" class="input"></div>
     <div class="field"><label class="field-label">รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)</label><input type="password" id="editUserPassword" class="input"></div>
@@ -412,7 +696,7 @@ tr:last-child td{border-bottom:none}
 
 <div class="modal-overlay" id="editAttendanceModal">
   <div class="modal">
-    <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">✏️ แก้ไขประวัติการลงเวลา</h3>
+    <h3 style="margin-bottom:14px;font-size:1.2rem;font-weight:700;">✏️ แก้ไขประวัติการลงเวลา</h3>
     <input type="hidden" id="editAttName">
     <input type="hidden" id="editAttOrigDate">
     <div class="field"><label class="field-label">ชื่อ-นามสกุล</label><input type="text" id="editAttNameDisplay" class="input" disabled></div>
@@ -431,13 +715,64 @@ tr:last-child td{border-bottom:none}
 
 <script>
 // ============================================================
+// 🎨 MONTHLY THEME ENGINE
+// ============================================================
+function applyMonthlyTheme() {
+  const month = new Date().getMonth() + 1; // 1 - 12
+  document.body.setAttribute('data-theme', month);
+  
+  let emojis = [];
+  
+  // กำหนดอิโมจิที่จะลอยตามเดือน (สื่อถึงเทศกาลโดยไม่ต้องบอกชื่อ)
+  switch(month) {
+    case 1: emojis = ['🎉', '🎆', '🥂', '✨', '🎊']; break; // New Year
+    case 2: emojis = ['💖', '🌹', '💝', '💌', '💕']; break; // Valentine
+    case 3: emojis = ['🌸', '🌿', '🌷', '🦋', '☀️']; break; // Spring
+    case 4: emojis = ['💦', '🌊', '🌺', '🐟', '🪷']; break; // Songkran
+    case 5: emojis = ['☀️', '🌴', '🍦', '🏖️', '🕶️']; break; // Summer
+    case 6: emojis = ['🌈', '☔', '🌧️', '☂️', '💧']; break; // Pride/Rain
+    case 7: emojis = ['🕯️', '✨', '🌙', '⭐', '🌟']; break; // Candle
+    case 8: emojis = ['💙', '🌼', '👩‍👧', '💐', '🎀']; break; // Mother's day
+    case 9: emojis = ['🍂', '🍁', '🌕', '🏮', '🍵']; break; // Autumn/Mid-Autumn
+    case 10: emojis = ['🎃', '👻', '🦇', '🕷️', '🧙‍♀️']; break; // Halloween
+    case 11: emojis = ['🏮', '🌕', '🪷', '🕯️', '🌌']; break; // Loy Krathong
+    case 12: emojis = ['❄️', '🎄', '🎅', '🎁', '⛄']; break; // Christmas
+    default: emojis = ['✨', '☁️', '⭐', '🌟'];
+  }
+
+  // สร้างอีโมจิแบบสุ่มลอยขึ้นมา
+  const container = document.getElementById('holiday-decorations');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  const emojiCount = 20; 
+  
+  for (let i = 0; i < emojiCount; i++) {
+    const span = document.createElement('span');
+    span.className = 'floating-emoji';
+    span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    
+    // สุ่มตำแหน่ง, ขนาด, และเวลาที่ใช้ในการลอย
+    span.style.left = `${Math.random() * 100}vw`;
+    span.style.animationDelay = `${Math.random() * 10}s`;
+    span.style.fontSize = `${Math.random() * 1.5 + 1.5}rem`;
+    span.style.animationDuration = `${Math.random() * 8 + 10}s`; // 10-18 วินาที
+    
+    container.appendChild(span);
+  }
+}
+
+// เรียกใช้ระบบธีมทันทีที่โหลด
+applyMonthlyTheme();
+
+// ============================================================
 // CONFIG & STATE
 // ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 
 const CACHE_TTL_REPORTS = 5 * 60 * 1000;
 const CACHE_TTL_DAILY   = 2 * 60 * 1000;
-const POLL_INTERVAL_MS  = 15000; // 🟢 ดึงข้อมูลเงียบๆ ทุก 15 วินาที
+const POLL_INTERVAL_MS  = 15000;
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
@@ -461,7 +796,7 @@ const state = {
   reportsInited: false,
   dailyReportCache: {},
   dailyLoadingKey: null,
-  pollTimer: null // 🟢 ตัวแปรสำหรับ Polling
+  pollTimer: null
 };
 
 function getLocalDateStr(d = new Date()) {
@@ -544,31 +879,23 @@ function clearAllCaches() {
   state.lastStatusFetch = 0;
 }
 
-// 🟢 ระบบ Polling เบื้องหลัง (Silent Refresh)
 function startPolling() {
   if (state.pollTimer) clearInterval(state.pollTimer);
   state.pollTimer = setInterval(() => {
-    if (document.hidden) return; // ถ้าไม่ได้เปิดหน้าจออยู่ ไม่ต้องโหลด
-
+    if (document.hidden) return;
     const activeScreen = document.querySelector('.screen.active');
     if (!activeScreen) return;
-
     if (activeScreen.id === 'dashboardScreen') {
-      // อัปเดตตารางรายวันเงียบๆ
       loadDailyReport(false, true); 
       checkTodayStatus();
     } else if (activeScreen.id === 'reportsScreen') {
-      // อัปเดตรายงานเงียบๆ
       loadReports(false, true);
     }
   }, POLL_INTERVAL_MS);
 }
 
 function stopPolling() {
-  if (state.pollTimer) {
-    clearInterval(state.pollTimer);
-    state.pollTimer = null;
-  }
+  if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
 }
 
 function showScreen(name) {
@@ -606,7 +933,6 @@ function showScreen(name) {
 
   if (name === 'profileScreen') updateProfileUI();
   
-  // เริ่ม Polling ใหม่เมื่อเปลี่ยนหน้า
   if (name === 'dashboardScreen' || name === 'reportsScreen') {
     startPolling();
   } else {
@@ -991,7 +1317,7 @@ async function loadDailyReport(force = false, isPolling = false) {
   const needsFetch = force || !cached || isStale;
 
   if (cached) {
-    if (!isPolling) renderDailyReport(cached.data); // ถ้าเป็น polling ไม่ต้อง re-render ถ้าไม่จำเป็น
+    if (!isPolling) renderDailyReport(cached.data);
     if (!needsFetch && !isPolling) return;
   } else if (!isPolling) {
     document.getElementById('dailyReportBody').innerHTML = `
@@ -1015,8 +1341,6 @@ async function loadDailyReport(force = false, isPolling = false) {
       return;
     }
     const records = res.records || [];
-    
-    // 🟢 ตรวจสอบว่าข้อมูลเปลี่ยนไปจากเดิมไหม (Hash Check) ถ้าไม่เปลี่ยน ไม่ต้องวาดใหม่
     const newHash = JSON.stringify(records);
     const oldHash = cached ? JSON.stringify(cached.data) : '';
     
@@ -1097,8 +1421,6 @@ async function loadReports(force = false, isPolling = false) {
       return;
     }
     const records = res.records || [];
-    
-    // 🟢 Hash Check
     const newHash = JSON.stringify(records);
     const oldHash = cached ? JSON.stringify(cached.data) : '';
     
@@ -1167,7 +1489,6 @@ async function saveEditAttendance() {
     toast(res.message);
     closeEditAttendanceModal();
     
-    // 🟢 OPTIMISTIC UI: อัปเดต Local Cache ทันที ไม่ต้องรอโหลดใหม่
     const cacheKey = `${payload.year}|${payload.term}|${document.getElementById('reportMonth').value}`;
     if (state.reportsCache[cacheKey] && state.reportsCache[cacheKey].data) {
       const records = state.reportsCache[cacheKey].data;
@@ -1175,16 +1496,13 @@ async function saveEditAttendance() {
       
       if (idx !== -1) {
         if (newDate !== origDate) {
-          // ถ้าเปลี่ยนวันที่ ต้องดึงข้อมูลใหม่เพราะมันอาจจะอยู่นอกเดือนที่เลือก
           loadReports(true); 
         } else {
-          // ถ้าแค่อัปเดตเวลา/หมายเหตุ ให้เปลี่ยนใน Array แล้ว Sort ใหม่ทันที
           records[idx].inTime = newInTime || '-';
           records[idx].outTime = newOutTime || '-';
           records[idx].note = newNote || '-';
           records[idx].rawInTime = newInTime || '99:99';
 
-          // เรียงลำดับใหม่ให้เหมือนฝั่ง Backend
           records.sort((a, b) => {
             const [dA, mA, yA] = a.date.split('/').map(Number);
             const [dB, mB, yB] = b.date.split('/').map(Number);
@@ -1194,7 +1512,6 @@ async function saveEditAttendance() {
             return a.rawInTime.localeCompare(b.rawInTime);
           });
 
-          // วาดตารางใหม่ 0ms
           renderReportsTable(records);
           toast('อัปเดตข้อมูลในหน้าจอทันที');
         }
@@ -1204,8 +1521,6 @@ async function saveEditAttendance() {
     } else {
       loadReports(true);
     }
-    
-    // สั่งให้แคชหน้าหลักและรายงานอื่นๆ รีเฟรชในรอบถัดไป
     invalidateAllReportCaches();
   } else {
     toast(res.message, 'error');
