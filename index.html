@@ -261,6 +261,11 @@ tr:last-child td{border-bottom:none}
 .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
+/* 🟢 live dot สำหรับ daily report */
+.live-indicator{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--success);font-weight:700}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
 @media (max-width: 480px) {
   .form-row-3 { grid-template-columns: 1fr; }
 }
@@ -386,7 +391,7 @@ tr:last-child td{border-bottom:none}
 
     <div class="card">
       <div class="section-title">
-        <span>📊 รายงานประจำวัน</span>
+        <span>📊 รายงานประจำวัน <span class="live-indicator"><span class="live-dot"></span>LIVE</span></span>
         <input type="date" id="dailyDate" class="input" style="width:auto;padding:6px 10px;font-size:.85rem">
       </div>
       <div class="table-wrap">
@@ -558,7 +563,13 @@ tr:last-child td{border-bottom:none}
         <div class="field"><label class="checkbox-group"><input type="checkbox" id="setStrictReg"> บังคับรัศมีตอนลงทะเบียน</label></div>
         
         <div class="section-title" style="margin-top:20px;border-top:2px dashed var(--border-color);padding-top:16px">📅 ปีการศึกษา / เทอม</div>
-        <div class="field"><label class="field-label">ปีการศึกษา (พ.ศ.)</label><input type="text" id="setAcademicYear" class="input" placeholder="เช่น 2569"></div>
+        <div class="field">
+          <label class="field-label">ปีการศึกษา (พ.ศ.)</label>
+          <input type="text" id="setAcademicYear" class="input" placeholder="เช่น 2569">
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px;font-weight:500;">
+            💡 ระบบจะสร้าง Sheet ให้เฉพาะเทอมที่กรอกวันที่เปิด <b>และ</b> ปิดครบทั้งคู่เท่านั้น
+          </div>
+        </div>
         <div class="form-row-2">
           <div class="field"><label class="field-label">เปิดเทอม 1</label><input type="date" id="setTerm1Start" class="input"></div>
           <div class="field"><label class="field-label">ปิดเทอม 1</label><input type="date" id="setTerm1End" class="input"></div>
@@ -658,8 +669,45 @@ const state = {
   signatureBase64: null,
   editUserPicBase64: null,
   editUserSigBase64: null,
-  pollTimer: null
+  pollTimer: null,
+  dailyDateAuto: true,   // 🟢 true = ติดตามวันปัจจุบันอัตโนมัติ
+  reportsLoading: false,
+  dailyLoading: false
 };
+
+// ============================================================
+// 🟢 HELPER: วันที่แบบ local timezone (ไม่ใช้ UTC)
+// ============================================================
+function getLocalDateStr(d = new Date()) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+// 🟢 คำนวณเทอมปัจจุบันจาก settings (เหมือนฝั่ง backend)
+function computeCurrentTermClient() {
+  if (!state.settings) return '1';
+  const s = state.settings;
+  const now = Date.now();
+  const t1s = s.term1Start ? new Date(s.term1Start).getTime() : 0;
+  const t1e = s.term1End ? new Date(s.term1End).setHours(23,59,59,999) : 0;
+  const t2s = s.term2Start ? new Date(s.term2Start).getTime() : 0;
+  const t2e = s.term2End ? new Date(s.term2End).setHours(23,59,59,999) : 0;
+  const hasT1 = !!(t1s && t1e);
+  const hasT2 = !!(t2s && t2e);
+
+  if (hasT2 && now >= t2s && now <= t2e) return '2';
+  if (hasT1 && now >= t1s && now <= t1e) return '1';
+  if (hasT2 && !hasT1) return '2';
+  if (hasT1 && !hasT2) return '1';
+  if (hasT1 && hasT2) {
+    if (now < t1s) return '1';
+    if (now > t2e) return '2';
+    if (now > t1e && now < t2s) return '1';
+  }
+  return '1';
+}
 
 // ============================================================
 // API HELPER
@@ -707,9 +755,9 @@ function showScreen(name) {
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
-  if (state.pollTimer) clearInterval(state.pollTimer);
+  if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
 
-  if (name === 'reportsScreen') loadReports();
+  // 🟢 Dashboard: real-time daily report ทุก 10 วินาที
   if (name === 'dashboardScreen' && state.user) {
     if (state.user.role === 'admin') {
       document.getElementById('attendanceForm').style.display = 'none';
@@ -721,7 +769,27 @@ function showScreen(name) {
     loadDailyReport();
     state.pollTimer = setInterval(loadDailyReport, 10000);
   }
+
+  // 🟢 Reports: reset filter เป็น "ปัจจุบัน" ทุกครั้งที่เข้าหน้า + polling ทุก 30 วินาที
+  if (name === 'reportsScreen') {
+    initReportsDefaults();
+    loadReports();
+    state.pollTimer = setInterval(loadReports, 30000);
+  }
+
   if (name === 'profileScreen') updateProfileUI();
+}
+
+// 🟢 ตั้งค่า filter รายงานให้เป็น "ปัจจุบัน" (ปี/เทอม/เดือน)
+function initReportsDefaults() {
+  const d = new Date();
+  if (state.settings && state.settings.academicYear) {
+    document.getElementById('reportYear').value = state.settings.academicYear;
+  } else if (!document.getElementById('reportYear').value) {
+    document.getElementById('reportYear').value = String(d.getFullYear() + 543);
+  }
+  document.getElementById('reportTerm').value = computeCurrentTermClient();
+  document.getElementById('reportMonth').value = String(d.getMonth() + 1).padStart(2, '0');
 }
 
 function navTo(screen, el) {
@@ -865,9 +933,12 @@ async function initUserSession() {
     document.getElementById('setTerm2End').value = s.settings.term2End || '';
   }
   
-  // 🟢 กำหนดวันที่เริ่มต้นของหน้า Daily Report ให้เป็นวันปัจจุบัน (YYYY-MM-DD)
+  // 🟢 ตั้งค่าวันของ daily report = วันนี้ (local time) และเปิดโหมด auto
   const dd = document.getElementById('dailyDate');
-  if (dd && !dd.value) dd.value = new Date().toISOString().split('T')[0];
+  if (dd) {
+    dd.value = getLocalDateStr();
+    state.dailyDateAuto = true;
+  }
 
   showScreen('dashboardScreen');
 }
@@ -892,6 +963,9 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   localStorage.removeItem('tt_token'); 
   localStorage.removeItem('tt_user');
   state.token = ''; state.user = null;
+  if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
+  state.dailyDateAuto = true;
+  document.getElementById('dailyDate').value = '';
   showScreen('authScreen'); 
   toast('ออกจากระบบแล้ว');
 });
@@ -989,41 +1063,56 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
   finally { btn.disabled = false; btn.innerHTML = '📍 บันทึกพร้อมตำแหน่ง'; }
 });
 
-document.getElementById('dailyDate').addEventListener('change', loadDailyReport);
+// 🟢 ถ้าผู้ใช้เลือกวันเอง → ปิด auto mode (เว้นแต่เลือกวันนี้)
+// ถ้าเลือกวันนี้ → เปิด auto mode ต่อ
+document.getElementById('dailyDate').addEventListener('change', () => {
+  const picked = document.getElementById('dailyDate').value;
+  state.dailyDateAuto = (picked === getLocalDateStr());
+  loadDailyReport();
+});
 
 async function loadDailyReport() {
-  const dateVal = document.getElementById('dailyDate').value; // YYYY-MM-DD
-  if (!dateVal) return;
-  
-  // 🟢 แปลง YYYY-MM-DD เป็น dd/MM/yyyy ทันที เพื่อเลี่ยง Timezone
-  const parts = dateVal.split('-');
-  const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-  
-  const tbody = document.getElementById('dailyReportBody');
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>';
-  
-  const res = await api('getDailyReport', { date: formattedDate });
-  if (!res.success) {
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`; return;
-  }
-  if (!res.records || res.records.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในวันนี้</td></tr>'; return;
-  }
+  if (state.dailyLoading) return;
+  const dd = document.getElementById('dailyDate');
+  if (!dd) return;
 
-  tbody.innerHTML = res.records.map(r => {
-    let displayNote = '-';
-    if (r.note && (r.note.includes('ลา') || r.note.includes('ไปราชการ') || r.note.includes('มาสาย'))) {
-      displayNote = r.note;
-    }
+  // 🟢 โหมด auto: บังคับวันที่ = วันนี้เสมอ (จะข้ามวันตอนเที่ยงคืนให้เอง)
+  if (state.dailyDateAuto) {
+    const today = getLocalDateStr();
+    if (dd.value !== today) dd.value = today;
+  }
+  if (!dd.value) return;
+
+  state.dailyLoading = true;
+  try {
+    const parts = dd.value.split('-'); // YYYY-MM-DD
+    const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
     
-    return `
-    <tr>
-      <td class="table-name">${r.fullName}</td>
-      <td style="color:var(--success);font-weight:700">${r.inTime}</td>
-      <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
-      <td>${displayNote}</td>
-    </tr>
-  `}).join('');
+    const tbody = document.getElementById('dailyReportBody');
+    const res = await api('getDailyReport', { date: formattedDate });
+    if (!res.success) {
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`; return;
+    }
+    if (!res.records || res.records.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในวันนี้</td></tr>'; return;
+    }
+
+    tbody.innerHTML = res.records.map(r => {
+      let displayNote = '-';
+      if (r.note && (r.note.includes('ลา') || r.note.includes('ไปราชการ') || r.note.includes('มาสาย'))) {
+        displayNote = r.note;
+      }
+      return `
+      <tr>
+        <td class="table-name">${r.fullName}</td>
+        <td style="color:var(--success);font-weight:700">${r.inTime}</td>
+        <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
+        <td>${displayNote}</td>
+      </tr>
+    `}).join('');
+  } finally {
+    state.dailyLoading = false;
+  }
 }
 
 // ============================================================
@@ -1034,28 +1123,40 @@ document.getElementById('reportTerm').addEventListener('change', loadReports);
 document.getElementById('reportMonth').addEventListener('change', loadReports);
 
 async function loadReports() {
+  if (state.reportsLoading) return;
+  state.reportsLoading = true;
   const tbody = document.getElementById('termReportBody');
-  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>';
-  
-  const year = document.getElementById('reportYear').value;
-  const term = document.getElementById('reportTerm').value;
-  const month = document.getElementById('reportMonth').value;
+  try {
+    const year = document.getElementById('reportYear').value;
+    const term = document.getElementById('reportTerm').value;
+    const month = document.getElementById('reportMonth').value;
 
-  const res = await api('getReports', { year, term, month });
-  if (!res.success) { toast(res.message, 'error'); return; }
-  
-  if (!res.records || res.records.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>'; return;
+    if (!year || !term) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กรุณาระบุปีการศึกษา</td></tr>';
+      return;
+    }
+
+    const res = await api('getReports', { year, term, month });
+    if (!res.success) { 
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`;
+      return; 
+    }
+    
+    if (!res.records || res.records.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>'; return;
+    }
+
+    tbody.innerHTML = res.records.map(r => `
+      <tr>
+        <td>${r.date}</td>
+        <td style="color:var(--success);font-weight:700">${r.inTime}</td>
+        <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
+        <td>${r.note}</td>
+      </tr>
+    `).join('');
+  } finally {
+    state.reportsLoading = false;
   }
-
-  tbody.innerHTML = res.records.map(r => `
-    <tr>
-      <td>${r.date}</td>
-      <td style="color:var(--success);font-weight:700">${r.inTime}</td>
-      <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
-      <td>${r.note}</td>
-    </tr>
-  `).join('');
 }
 
 // PDF Download Logic
@@ -1240,7 +1341,6 @@ async function loadUsers() {
   `).join('');
 }
 
-// 🟢 ฟังก์ชันแก้ไขผู้ใช้แบบ Full Option
 function openEditUser(username, fullName, role, status, position, email) {
   document.getElementById('editTargetUsername').value = username;
   document.getElementById('editUserUsername').value = username;
@@ -1261,7 +1361,6 @@ function closeEditUserModal() {
   document.getElementById('editUserModal').classList.remove('show');
 }
 
-// จัดการอัปโหลดรูป/ลายเซ็น ใน Modal แอดมิน
 handleImageUpload('editUserPicInput', (dataUrl) => { state.editUserPicBase64 = dataUrl; });
 handleImageUpload('editUserSigInput', (dataUrl) => { state.editUserSigBase64 = dataUrl; });
 
