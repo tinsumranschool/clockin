@@ -909,21 +909,17 @@ function showScreen(name) {
       document.getElementById('adminNotice').style.display = 'none';
       checkTodayStatus();
     }
+    // ไม่ต้อง Polling ถี่ๆ แล้ว ให้ดึงข้อมูลก็ต่อเมื่อเปลี่ยนหน้า
     loadDailyReport();
-    state.pollTimer = setInterval(loadDailyReport, 30000); // 🟢 ลดความถี่เป็น 30 วินาที
   }
 
   if (name === 'reportsScreen') {
-    // 🟢 FIX: ตรวจสอบสิทธิ์ให้ถูกต้อง (Admin หรือ ผอ.)
     const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
     document.getElementById('reportHeaderRole').textContent = isAdminOrDirector ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
-    
-    // 🟢 แสดง/ซ่อนคอลัมน์จัดการ ตามสิทธิ์
     document.getElementById('editColHeader').style.display = isAdminOrDirector ? 'table-cell' : 'none';
     
     initReportsDefaults();
     loadReports();
-    state.pollTimer = setInterval(loadReports, 60000); // 🟢 ลดความถี่เป็น 60 วินาที
   }
 
   if (name === 'profileScreen') updateProfileUI();
@@ -1010,9 +1006,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   state.loadingAuth = true; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังโหลด...';
 
   const res = await api('login', { username, password });
-  state.loadingAuth = false; btn.disabled = false; btn.textContent = '🚀 เข้าสู่ระบบ';
-
-  if (!res.success) return toast(res.message, 'error');
+  
+  if (!res.success) {
+    state.loadingAuth = false; btn.disabled = false; btn.textContent = '🚀 เข้าสู่ระบบ';
+    return toast(res.message, 'error');
+  }
 
   state.token = res.token; state.user = res.user;
   if (remember) {
@@ -1024,78 +1022,60 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
   
   sessionStorage.removeItem('voicePlayed');
-  await initUserSession();
+  await initUserSession(); // 🟢 เรียกแค่ครั้งเดียว (รวบรวมข้อมูล)
+  state.loadingAuth = false; btn.disabled = false; btn.textContent = '🚀 เข้าสู่ระบบ';
 });
 
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if (state.loadingAuth) return;
-  const u = document.getElementById('regUsername').value.trim().toLowerCase();
-  const fn = document.getElementById('regFullName').value.trim();
-  const em = document.getElementById('regEmail').value.trim();
-  const p1 = document.getElementById('regPassword').value;
-  const p2 = document.getElementById('regPassword2').value;
-  if (p1 !== p2) return toast('รหัสผ่านไม่ตรงกัน', 'error');
-  
-  const btn = document.getElementById('registerBtn');
-  const statusEl = document.getElementById('regGpsStatus');
-  statusEl.className = 'gps-status loading'; statusEl.innerHTML = '<span>⏳</span><span>กำลังค้นหาตำแหน่ง GPS...</span>';
-
-  try {
-    const pos = await refreshPosition();
-    statusEl.className = 'gps-status ok'; statusEl.innerHTML = '<span>✅</span><span>กำลังส่งข้อมูล...</span>';
-    state.loadingAuth = true; btn.disabled = true;
-    const res = await api('register', { username:u, password:p1, fullName:fn, email:em, lat:pos.lat, lng:pos.lng });
-    state.loadingAuth = false; btn.disabled = false;
-    if (!res.success) { statusEl.className = 'gps-status bad'; statusEl.innerHTML = `<span>❌</span><span>${res.message}</span>`; return; }
-    toast(res.message);
-    document.getElementById('registerForm').reset();
-    statusEl.className = 'gps-status'; statusEl.innerHTML = '<span>📍</span><span>ระบบจะขอตำแหน่ง GPS ขณะลงทะเบียน</span>';
-  } catch (err) {
-    state.loadingAuth = false; btn.disabled = false;
-    statusEl.className = 'gps-status bad'; statusEl.innerHTML = `<span>❌</span><span>${err.message}</span>`;
-  }
-});
-
+// 🟢 ปรับปรุง initUserSession ให้ดึงข้อมูลทั้งหมดในครั้งเดียว
 async function initUserSession() {
   if (!state.user || !state.token) return;
-  document.getElementById('dashName').textContent = state.user.fullName;
   
-  const displayPos = state.user.position || 'ครู';
-  document.getElementById('dashRole').textContent = `${state.user.username} · ${displayPos}`;
+  // เรียก API ตัวใหม่ที่รวบรวมข้อมูลทั้งหมดมาให้
+  const res = await api('getInitData');
   
-  document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/46';
-  
-  const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
-  document.getElementById('adminBtn').style.display = isAdminOrDirector ? 'flex' : 'none';
-  
-  const s = await api('getSettings');
-  if (s.success) {
-    state.settings = s.settings;
+  if (res.success) {
+    state.settings = res.settings;
+    state.user = res.user; // อัปเดตข้อมูลล่าสุด
+    state.todayRecord = res.todayRecord;
+    state.todayLeave = res.todayLeave;
+    state.todayPendingLeave = res.todayPendingLeave;
+
+    // อัปเดต UI ข้อมูลผู้ใช้
+    document.getElementById('dashName').textContent = state.user.fullName;
+    const displayPos = state.user.position || 'ครู';
+    document.getElementById('dashRole').textContent = `${state.user.username} · ${displayPos}`;
+    document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/46';
     
-    document.getElementById('setAcademicYear').value = s.settings.academicYear || '';
-    document.getElementById('setTerm1Start').value = s.settings.term1Start || '';
-    document.getElementById('setTerm1End').value = s.settings.term1End || '';
-    document.getElementById('setTerm2Start').value = s.settings.term2Start || '';
-    document.getElementById('setTerm2End').value = s.settings.term2End || '';
-    document.getElementById('setOfficeName').value = s.settings.officeName || '';
-    document.getElementById('setOfficeLat').value = s.settings.officeLat || '';
-    document.getElementById('setOfficeLng').value = s.settings.officeLng || '';
-    document.getElementById('setRadius').value = s.settings.radius || '';
-    document.getElementById('setStrictReg').checked = !!s.settings.strictRegistration;
-  }
-  
-  const dd = document.getElementById('dailyDate');
-  if (dd) {
-    dd.value = getLocalDateStr();
-    state.dailyDateAuto = true;
-  }
+    const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
+    document.getElementById('adminBtn').style.display = isAdminOrDirector ? 'flex' : 'none';
 
-  if (isAdminOrDirector) {
-    checkPendingCounts();
-  }
+    // อัปเดต UI Settings
+    document.getElementById('setAcademicYear').value = res.settings.academicYear || '';
+    document.getElementById('setTerm1Start').value = res.settings.term1Start || '';
+    document.getElementById('setTerm1End').value = res.settings.term1End || '';
+    document.getElementById('setTerm2Start').value = res.settings.term2Start || '';
+    document.getElementById('setTerm2End').value = res.settings.term2End || '';
+    document.getElementById('setOfficeName').value = res.settings.officeName || '';
+    document.getElementById('setOfficeLat').value = res.settings.officeLat || '';
+    document.getElementById('setOfficeLng').value = res.settings.officeLng || '';
+    document.getElementById('setRadius').value = res.settings.radius || '';
+    document.getElementById('setStrictReg').checked = !!res.settings.strictRegistration;
 
-  showScreen('dashboardScreen');
+    // อัปเดต UI ปุ่ม
+    updateActionButtonsUI();
+
+    // ตั้งค่าวันที่
+    const dd = document.getElementById('dailyDate');
+    if (dd) {
+      dd.value = getLocalDateStr();
+      state.dailyDateAuto = true;
+    }
+
+    if (isAdminOrDirector) checkPendingCounts();
+
+    showScreen('dashboardScreen');
+    loadDailyReport(); // แสดงตารางรายงานประจำวันทันที
+  }
 }
 
 async function checkPendingCounts() {
@@ -1142,13 +1122,15 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   toast('ออกจากระบบแล้ว');
 });
 
+// เปลี่ยน checkTodayStatus ให้ใช้ข้อมูลจาก state แทน (เร็วกว่า)
+// ถ้าต้องการอัปเดตจริงๆ ให้เรียก getInitData ใหม่
 async function checkTodayStatus() {
   if (!state.user || state.user.role === 'admin') return;
-  const res = await api('getTodayStatus');
+  const res = await api('getInitData');
   if (res.success) {
-    state.todayRecord = res.record;
-    state.todayLeave = res.leave;
-    state.todayPendingLeave = res.pendingLeave;
+    state.todayRecord = res.todayRecord;
+    state.todayLeave = res.todayLeave;
+    state.todayPendingLeave = res.todayPendingLeave;
     updateActionButtonsUI();
   }
 }
