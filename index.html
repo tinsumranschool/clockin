@@ -96,7 +96,7 @@ body{
   border:var(--border-width) solid var(--border-color);
   border-radius:12px; color:var(--text-main); cursor:pointer; font-size:1.1rem;
   box-shadow: 2px 2px 0px var(--border-color);
-  transition: all .1s;
+  transition: all .1s; position:relative;
 }
 .icon-btn:hover{ background:var(--bg-pattern); }
 .icon-btn:active{ transform:translate(2px, 2px); box-shadow: 0px 0px 0px var(--border-color); }
@@ -105,11 +105,13 @@ body{
   display:flex; gap:8px; background:var(--bg-pattern);
   padding:6px; border-radius:var(--radius-lg);
   border:var(--border-width) solid var(--border-color);
+  overflow-x:auto;
 }
 .tab{
   flex:1; padding:10px 12px; border:var(--border-width) solid transparent;
   background:transparent; color:var(--text-muted); font-family:inherit;
   font-size:.9rem; font-weight:600; cursor:pointer; border-radius:12px; transition:all .2s;
+  white-space:nowrap;
 }
 .tab.active{
   background:var(--card-bg); color:var(--text-main);
@@ -136,7 +138,7 @@ body{
 .checkbox-group{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-main);cursor:pointer;font-weight:500}
 input[type="checkbox"]{width:18px;height:18px;cursor:pointer;accent-color:var(--primary);}
 
-.action-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px}
+.action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:8px}
 .action-btn{
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
   padding:16px 8px; border-radius:var(--radius-lg);
@@ -149,11 +151,10 @@ input[type="checkbox"]{width:18px;height:18px;cursor:pointer;accent-color:var(--
 .action-btn .icon{font-size:1.6rem;line-height:1; transition: transform .2s;}
 .action-btn:hover:not(:disabled) .icon{ transform: scale(1.15) rotate(5deg); }
 .action-btn:active:not(:disabled){ transform:translate(3px, 3px); box-shadow: 0px 0px 0px var(--border-color); }
-.action-btn:disabled{opacity:.5;cursor:not-allowed;filter:grayscale(1);background:var(--bg-pattern)}
+.action-btn:disabled{opacity:.3;cursor:not-allowed;filter:grayscale(1);background:var(--bg-pattern); transform:none; box-shadow:none;}
 
 .action-btn[data-action="เข้างาน"].active{ background:#e6fbf0; border-color:var(--success); box-shadow: 3px 3px 0px var(--success);}
 .action-btn[data-action="ออกงาน"].active{ background:#ffe6eb; border-color:var(--danger); box-shadow: 3px 3px 0px var(--danger);}
-.action-btn[data-action="มาสาย"].active{ background:#f4e6ff; border-color:var(--accent); box-shadow: 3px 3px 0px var(--accent);}
 .action-btn[data-action="ลา"].active{ background:#fff3d6; border-color:var(--warning); box-shadow: 3px 3px 0px var(--warning);}
 .action-btn[data-action="ไปราชการ"].active{ background:#e6f7ff; border-color:var(--secondary); box-shadow: 3px 3px 0px var(--secondary);}
 
@@ -203,13 +204,6 @@ th{background:var(--bg-pattern);padding:12px 10px;font-weight:700;color:var(--te
 td{padding:12px 10px;border-bottom:1px solid var(--bg-pattern);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 .table-name{font-weight:600;color:var(--text-main)}
-.table-sub{font-size:.75rem;color:var(--danger);margin-top:2px; font-weight:500;}
-
-.badge-status{padding:4px 10px;border-radius:8px;font-size:.75rem;font-weight:700;display:inline-block;border:1px solid var(--border-color)}
-.badge-ok{background:#e6fbf0; color:#008040;}
-.badge-late{background:#f4e6ff; color:#7a00cc;}
-.badge-leave{background:#ffe6eb; color:#cc0033;}
-.badge-trip{background:#e6f7ff; color:#0088cc;}
 
 .modal-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
@@ -248,7 +242,7 @@ tr:last-child td{border-bottom:none}
 .empty-state{text-align:center;padding:30px 12px;color:var(--text-muted);font-size:.9rem;border:2px dashed var(--border-color);border-radius:12px; background:var(--bg-color); font-weight:500;}
 
 .reason-section{max-height:0;overflow:hidden;opacity:0;transition:all .35s;margin-bottom:0}
-.reason-section.visible{max-height:400px;opacity:1;margin-bottom:16px}
+.reason-section.visible{max-height:500px;opacity:1;margin-bottom:16px}
 
 .profile-pic-upload{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px}
 .avatar-lg{width:100px;height:100px;border-radius:50%;object-fit:cover;border:var(--border-width) solid var(--border-color);background:#eee; box-shadow: var(--shadow-hard);}
@@ -264,6 +258,20 @@ tr:last-child td{border-bottom:none}
 .live-indicator{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--success);font-weight:700}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+.badge-noti {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--danger);
+  color: #fff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: bold;
+  border: 2px solid #fff;
+  display: none;
+}
 
 @media (max-width: 480px) {
   .form-row-3 { grid-template-columns: 1fr; }
@@ -340,7 +348,10 @@ tr:last-child td{border-bottom:none}
           <div class="user-role" id="dashRole">—</div>
         </div>
       </div>
-      <button class="icon-btn" id="adminBtn" style="display:none" title="Admin">⚙️</button>
+      <button class="icon-btn" id="adminBtn" style="display:none" title="Admin">
+        ⚙️
+        <span class="badge-noti" id="approveBadge">0</span>
+      </button>
       <button class="icon-btn" id="logoutBtn" title="ออกจากระบบ">🚪</button>
     </header>
 
@@ -366,13 +377,33 @@ tr:last-child td{border-bottom:none}
           <div class="action-grid">
             <button type="button" class="action-btn" data-action="เข้างาน"><span class="icon">🌅</span> เข้างาน</button>
             <button type="button" class="action-btn" data-action="ออกงาน"><span class="icon">🌇</span> ออกงาน</button>
-            <button type="button" class="action-btn" data-action="มาสาย"><span class="icon">⏰</span> มาสาย</button>
             <button type="button" class="action-btn" data-action="ลา"><span class="icon">🌴</span> ลา</button>
             <button type="button" class="action-btn" data-action="ไปราชการ"><span class="icon">✈️</span> ไปราชการ</button>
           </div>
         </div>
 
         <div class="reason-section" id="reasonSection">
+          <!-- Leave Type Sub-options (only for 'ลา') -->
+          <div id="leaveOptions" style="display:none; margin-bottom:12px;">
+            <label class="field-label">ตัวเลือกการลา</label>
+            <select id="leaveTypeSelect" class="select" style="margin-bottom:10px;">
+              <option value="ลาทั้งวัน">ลาทั้งวัน</option>
+              <option value="ลาครึ่งเช้า">ลาครึ่งเช้า</option>
+              <option value="ลาครึ่งบ่าย">ลาครึ่งบ่าย</option>
+              <option value="ลาหลายวัน">ลาหลายวัน</option>
+            </select>
+            <div id="dateRangeDiv" style="display:none; grid-template-columns: 1fr 1fr; gap:10px;">
+              <div>
+                <label class="field-label" style="font-size:0.75rem;">ตั้งแต่วันที่</label>
+                <input type="date" id="leaveStartDate" class="input">
+              </div>
+              <div>
+                <label class="field-label" style="font-size:0.75rem;">ถึงวันที่</label>
+                <input type="date" id="leaveEndDate" class="input">
+              </div>
+            </div>
+          </div>
+
           <div class="field" style="margin-bottom:12px">
             <label class="field-label">เหตุผล <span class="req">*</span></label>
             <textarea id="reasonInput" class="textarea" placeholder="ระบุเหตุผล..." style="min-height:60px"></textarea>
@@ -384,7 +415,7 @@ tr:last-child td{border-bottom:none}
           <textarea id="noteInput" class="textarea" placeholder="ไม่บังคับ..." style="min-height:50px"></textarea>
         </div>
 
-        <button type="submit" class="submit-btn" id="submitBtn">📍 บันทึกพร้อมตำแหน่ง</button>
+        <button type="submit" class="submit-btn" id="submitBtn">📍 บันทึกข้อมูล</button>
       </form>
     </div>
 
@@ -540,7 +571,8 @@ tr:last-child td{border-bottom:none}
 
     <div class="card">
       <div class="tabs" style="margin-bottom:16px">
-        <button class="tab active" data-tab="pending">รออนุมัติ</button>
+        <button class="tab active" data-tab="pending">รออนุมัติผู้ใช้</button>
+        <button class="tab" data-tab="leaves">อนุมัติ (ผอ.)</button>
         <button class="tab" data-tab="users">ผู้ใช้</button>
         <button class="tab" data-tab="settings">ตั้งค่า</button>
       </div>
@@ -548,6 +580,11 @@ tr:last-child td{border-bottom:none}
       <div class="tab-content active" id="pendingTab">
         <div class="section-title">👥 ผู้ใช้รออนุมัติ</div>
         <div id="pendingList" style="display:flex;flex-direction:column;gap:10px"></div>
+      </div>
+
+      <div class="tab-content" id="leavesTab">
+        <div class="section-title">🌴 รออนุมัติการลา / ไปราชการ (ผอ.)</div>
+        <div id="leavesList" style="display:flex;flex-direction:column;gap:10px"></div>
       </div>
 
       <div class="tab-content" id="usersTab">
@@ -702,7 +739,10 @@ const state = {
   pollTimer: null,
   dailyDateAuto: true,
   reportsLoading: false,
-  dailyLoading: false
+  dailyLoading: false,
+  todayRecord: null, 
+  todayLeave: null,
+  todayPendingLeave: null
 };
 
 function getLocalDateStr(d = new Date()) {
@@ -756,6 +796,30 @@ function toast(msg, type = 'success') {
   setTimeout(() => el.classList.remove('show'), 4000);
 }
 
+function speakPendingAlerts(hasLeave, hasOB) {
+  if (sessionStorage.getItem('voicePlayed') === 'true') return;
+  if (!('speechSynthesis' in window)) return;
+  
+  let msg = '';
+  if (hasLeave && hasOB) msg = 'โปรดอนุมัติการลาและการไปราชการด้วย';
+  else if (hasLeave) msg = 'โปรดอนุมัติการลาด้วย';
+  else if (hasOB) msg = 'โปรดอนุมัติการไปราชการด้วย';
+
+  if (!msg) return;
+
+  const play = () => {
+    const utterance = new SpeechSynthesisUtterance(msg);
+    utterance.lang = 'th-TH';
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+  };
+  
+  play();
+  setTimeout(play, 2500);
+  
+  sessionStorage.setItem('voicePlayed', 'true');
+}
+
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(name).classList.add('active');
@@ -784,6 +848,7 @@ function showScreen(name) {
     } else {
       document.getElementById('attendanceForm').style.display = 'block';
       document.getElementById('adminNotice').style.display = 'none';
+      checkTodayStatus();
     }
     loadDailyReport();
     state.pollTimer = setInterval(loadDailyReport, 10000);
@@ -802,7 +867,6 @@ function showScreen(name) {
 function initReportsDefaults() {
   const d = new Date();
   if (state.settings) {
-    // 🟢 ใช้ค่าที่ Backend คำนวณมาให้ (หาจาก Sheet ล่าสุด)
     document.getElementById('reportYear').value = state.settings.currentYear || state.settings.academicYear || String(d.getFullYear() + 543);
     document.getElementById('reportTerm').value = state.settings.currentTerm || computeCurrentTermClient();
   } else {
@@ -893,6 +957,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     localStorage.removeItem('tt_token');
     localStorage.removeItem('tt_user');
   }
+  
+  sessionStorage.removeItem('voicePlayed');
   await initUserSession();
 });
 
@@ -934,7 +1000,9 @@ async function initUserSession() {
   document.getElementById('dashRole').textContent = `${state.user.username} · ${displayPos}`;
   
   document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/46';
-  document.getElementById('adminBtn').style.display = state.user.role === 'admin' ? 'flex' : 'none';
+  
+  const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
+  document.getElementById('adminBtn').style.display = isAdminOrDirector ? 'flex' : 'none';
   
   const s = await api('getSettings');
   if (s.success) {
@@ -958,7 +1026,28 @@ async function initUserSession() {
     state.dailyDateAuto = true;
   }
 
+  if (isAdminOrDirector) {
+    checkPendingCounts();
+  }
+
   showScreen('dashboardScreen');
+}
+
+async function checkPendingCounts() {
+  if (state.user && (state.user.position === 'ผอ.' || state.user.role === 'admin')) {
+    const res = await api('getPendingCounts');
+    if (res.success) {
+      const total = res.countLeave + res.countOB;
+      const badge = document.getElementById('approveBadge');
+      if (badge) {
+        badge.textContent = total > 0 ? total : '';
+        badge.style.display = total > 0 ? 'inline-block' : 'none';
+      }
+      if (total > 0) {
+        speakPendingAlerts(res.countLeave > 0, res.countOB > 0);
+      }
+    }
+  }
 }
 
 (async function checkAuth() {
@@ -979,6 +1068,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   await api('logout');
   localStorage.removeItem('tt_token'); 
   localStorage.removeItem('tt_user');
+  sessionStorage.removeItem('voicePlayed');
   state.token = ''; state.user = null;
   if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
   state.dailyDateAuto = true;
@@ -987,30 +1077,87 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   toast('ออกจากระบบแล้ว');
 });
 
+async function checkTodayStatus() {
+  if (!state.user || state.user.role === 'admin') return;
+  const res = await api('getTodayStatus');
+  if (res.success) {
+    state.todayRecord = res.record;
+    state.todayLeave = res.leave;
+    state.todayPendingLeave = res.pendingLeave;
+    updateActionButtonsUI();
+  }
+}
+
+function updateActionButtonsUI() {
+  const btns = document.querySelectorAll('.action-btn');
+  btns.forEach(btn => {
+    btn.disabled = false;
+    btn.classList.remove('active');
+  });
+
+  // Lock based on todayRecord
+  if (state.todayRecord) {
+    if (state.todayRecord.inTime && state.todayRecord.inTime !== '-' && state.todayRecord.inTime !== '') {
+      const btnIn = document.querySelector('.action-btn[data-action="เข้างาน"]');
+      if(btnIn) { btnIn.disabled = true; btnIn.classList.add('active'); }
+    }
+    if (state.todayRecord.outTime && state.todayRecord.outTime !== '-' && state.todayRecord.outTime !== '') {
+      const btnOut = document.querySelector('.action-btn[data-action="ออกงาน"]');
+      if(btnOut) { btnOut.disabled = true; btnOut.classList.add('active'); }
+    }
+  }
+
+  // Loophole 6: Lock everything if there is a pending leave
+  if (state.todayPendingLeave) {
+    btns.forEach(btn => btn.disabled = true);
+    toast('คุณมีคำขอที่รอการอนุมัติอยู่ ไม่สามารถลงเวลาได้', 'error');
+  }
+
+  // Approved leave constraints
+  if (state.todayLeave) {
+    const type = state.todayLeave.type;
+    if (type !== 'ลาครึ่งเช้า' && type !== 'ลาครึ่งบ่าย') {
+      // Lock check-in/check-out for full day, multi day, OB
+      const btnIn = document.querySelector('.action-btn[data-action="เข้างาน"]');
+      const btnOut = document.querySelector('.action-btn[data-action="ออกงาน"]');
+      if(btnIn) { btnIn.disabled = true; btnIn.classList.add('active'); }
+      if(btnOut) { btnOut.disabled = true; btnOut.classList.add('active'); }
+    } else {
+      // Allow manual check-in/out for half days
+      const btnLeave = document.querySelector('.action-btn[data-action="ลา"]');
+      if(btnLeave) { btnLeave.disabled = true; btnLeave.classList.add('active'); }
+    }
+  }
+}
+
 document.querySelectorAll('.action-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
+    if (btn.disabled) return;
     const action = btn.dataset.action;
     if (state.selectedAction === action) {
       state.selectedAction = null; btn.classList.remove('active');
       document.getElementById('reasonSection').classList.remove('visible');
       return;
     }
-    document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.action-btn').forEach(b => {
+      if (!b.disabled) b.classList.remove('active');
+    });
     btn.classList.add('active'); 
     state.selectedAction = action;
     
     const reasonSec = document.getElementById('reasonSection');
+    const leaveOpts = document.getElementById('leaveOptions');
     const gpsEl = document.getElementById('gpsStatus');
 
-    if (action === 'ลา' || action === 'ไปราชการ') {
+    if (action === 'ลา') {
       reasonSec.classList.add('visible');
-      gpsEl.style.display = 'flex';
-      gpsEl.className = 'gps-status ok';
-      gpsEl.innerHTML = '<span>📅</span><span>ไม่ต้องใช้ GPS (ลาหรือไปราชการสามารถทำได้ทุกที่)</span>';
-    } else if (action === 'มาสาย') {
+      leaveOpts.style.display = 'block';
+      gpsEl.style.display = 'none';
+      handleLeaveTypeChange();
+    } else if (action === 'ไปราชการ') {
       reasonSec.classList.add('visible');
-      gpsEl.style.display = 'flex';
-      await checkGPS();
+      leaveOpts.style.display = 'none';
+      gpsEl.style.display = 'none';
     } else {
       reasonSec.classList.remove('visible');
       document.getElementById('reasonInput').value = '';
@@ -1019,6 +1166,19 @@ document.querySelectorAll('.action-btn').forEach(btn => {
     }
   });
 });
+
+function handleLeaveTypeChange() {
+  const type = document.getElementById('leaveTypeSelect').value;
+  const dateRange = document.getElementById('dateRangeDiv');
+  if (type === 'ลาหลายวัน') {
+    dateRange.style.display = 'grid';
+    document.getElementById('leaveStartDate').value = getLocalDateStr();
+    document.getElementById('leaveEndDate').value = getLocalDateStr();
+  } else {
+    dateRange.style.display = 'none';
+  }
+}
+document.getElementById('leaveTypeSelect').addEventListener('change', handleLeaveTypeChange);
 
 async function checkGPS() {
   const gpsEl = document.getElementById('gpsStatus');
@@ -1046,22 +1206,32 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
   const reason = document.getElementById('reasonInput').value.trim();
   const note = document.getElementById('noteInput').value.trim();
 
-  if ((state.selectedAction === 'ลา' || state.selectedAction === 'มาสาย' || state.selectedAction === 'ไปราชการ') && !reason) return toast('ระบุเหตุผล', 'error');
-
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
 
   try {
     let pos = { lat: 0, lng: 0 };
-    if (state.selectedAction !== 'ลา' && state.selectedAction !== 'ไปราชการ') {
+    const isLeaveOrOB = (state.selectedAction === 'ลา' || state.selectedAction === 'ไปราชการ');
+
+    if (!isLeaveOrOB) {
       pos = await getFreshPosition();
     }
 
-    const res = await api('attendance', { 
+    const payload = { 
       action: state.selectedAction, 
       reason, note, 
       lat: pos.lat, lng: pos.lng
-    });
+    };
+
+    if (state.selectedAction === 'ลา') {
+      payload.leaveType = document.getElementById('leaveTypeSelect').value;
+      if (payload.leaveType === 'ลาหลายวัน') {
+        payload.startDate = document.getElementById('leaveStartDate').value;
+        payload.endDate = document.getElementById('leaveEndDate').value;
+      }
+    }
+
+    const res = await api('attendance', payload);
 
     if (res.success) {
       toast(res.message);
@@ -1071,10 +1241,11 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
       state.selectedAction = null;
       
       loadDailyReport(); 
-      if(document.getElementById('reportsScreen').classList.contains('active')) loadReports();
+      checkTodayStatus();
+      if (state.user.position === 'ผอ.' || state.user.role === 'admin') checkPendingCounts();
     } else toast(res.message, 'error');
   } catch (err) { toast(err.message, 'error'); } 
-  finally { btn.disabled = false; btn.innerHTML = '📍 บันทึกพร้อมตำแหน่ง'; }
+  finally { btn.disabled = false; btn.innerHTML = '📍 บันทึกข้อมูล'; }
 });
 
 document.getElementById('dailyDate').addEventListener('change', () => {
@@ -1109,10 +1280,13 @@ async function loadDailyReport() {
     }
 
     tbody.innerHTML = res.records.map(r => {
-      let displayNote = '-';
-      if (r.note && (r.note.includes('ลา') || r.note.includes('ไปราชการ') || r.note.includes('มาสาย'))) {
-        displayNote = r.note;
+      let displayNote = r.note || '-';
+      if (displayNote.includes('ลาครึ่งเช้า') || displayNote.includes('ลาครึ่งบ่าย') || displayNote.includes('ลาทั้งวัน') || displayNote.includes('ลาหลายวัน') || displayNote.includes('ไปราชการ')) {
+        // Keep as is
+      } else {
+        displayNote = '-';
       }
+
       return `
       <tr>
         <td class="table-name">${r.fullName}</td>
@@ -1156,7 +1330,7 @@ async function loadReports() {
 
     tbody.innerHTML = res.records.map(r => `
       <tr>
-        <td>${state.user.role === 'admin' ? `<b>${r.name}</b><br><span style="font-size:0.75rem;color:var(--text-muted)">${r.date}</span>` : r.date}</td>
+        <td>${state.user.role === 'admin' || state.user.position === 'ผอ.' ? `<b>${r.name}</b><br><span style="font-size:0.75rem;color:var(--text-muted)">${r.date}</span>` : r.date}</td>
         <td style="color:var(--success);font-weight:700">${r.inTime}</td>
         <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
         <td>${r.note}</td>
@@ -1298,6 +1472,7 @@ document.getElementById('adminBtn').addEventListener('click', () => {
   showScreen('adminScreen');
   loadAdminSettings(); 
   loadPending();
+  loadPendingLeaves();
 });
 
 document.querySelectorAll('#adminScreen .tab').forEach(tab => {
@@ -1307,6 +1482,7 @@ document.querySelectorAll('#adminScreen .tab').forEach(tab => {
     document.querySelectorAll('#adminScreen .tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
     if (tab.dataset.tab === 'pending') loadPending();
+    if (tab.dataset.tab === 'leaves') loadPendingLeaves();
     if (tab.dataset.tab === 'users') loadUsers();
     if (tab.dataset.tab === 'settings') loadAdminSettings();
   });
@@ -1333,6 +1509,39 @@ async function loadPending() {
 
 window.approveUser = async (u) => { const r = await api('admin_approve', {username:u}); toast(r.message, r.success?'success':'error'); loadPending(); };
 window.rejectUser = async (u) => { const r = await api('admin_reject', {username:u}); toast(r.message, r.success?'success':'error'); loadPending(); };
+
+async function loadPendingLeaves() {
+  const box = document.getElementById('leavesList');
+  box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  const res = await api('admin_getPendingLeaves');
+  if (!res.success) return;
+  if (res.leaves.length === 0) return box.innerHTML = '<div class="empty-state">ไม่มีรายการลารออนุมัติ 🎉</div>';
+  
+  box.innerHTML = res.leaves.map(l => `
+    <div style="padding:14px;background:var(--bg-color);border-radius:12px;border:2px solid var(--border-color); box-shadow: 2px 2px 0 var(--border-color);">
+      <div style="font-weight:700;font-size:1rem;">${l.fullName} <span style="color:var(--text-muted);font-size:.8rem;font-weight:500;">@${l.username}</span></div>
+      <div style="color:var(--primary);font-size:.85rem;font-weight:700;margin-top:4px;">ประเภท: ${l.type}</div>
+      <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px;font-weight:500;">${l.startDate} ถึง ${l.endDate} · เหตุผล: ${l.reason}</div>
+      <div style="display:flex;gap:10px;margin-top:12px;">
+        <button class="btn-sm btn-emerald" style="flex:1" onclick="approveLeave('${l.id}')">✓ อนุมัติ (ผอ.)</button>
+        <button class="btn-sm btn-danger" style="flex:1" onclick="rejectLeave('${l.id}')">✕ ปฏิเสธ</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+window.approveLeave = async (id) => { 
+  const r = await api('admin_approveLeave', {id:id}); 
+  toast(r.message, r.success?'success':'error'); 
+  loadPendingLeaves(); 
+  checkPendingCounts(); 
+};
+window.rejectLeave = async (id) => { 
+  const r = await api('admin_rejectLeave', {id:id}); 
+  toast(r.message, r.success?'success':'error'); 
+  loadPendingLeaves(); 
+  checkPendingCounts(); 
+};
 
 async function loadUsers() {
   const box = document.getElementById('usersList');
@@ -1473,18 +1682,4 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     term1Start: document.getElementById('setTerm1Start').value,
     term1End: document.getElementById('setTerm1End').value,
     term2Start: document.getElementById('setTerm2Start').value,
-    term2End: document.getElementById('setTerm2End').value
-  };
-  
-  const res = await api('admin_updateSettings', payload);
-  btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
-  
-  if (res.success) { 
-    toast(res.message); 
-    state.settings = null; 
-  }
-  else toast(res.message, 'error');
-});
-</script>
-</body>
-</html>
+    term2End: document
