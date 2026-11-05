@@ -854,12 +854,10 @@ async function initUserSession() {
   document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/46';
   document.getElementById('adminBtn').style.display = state.user.role === 'admin' ? 'flex' : 'none';
   
-  // โหลด Settings ล่าสุดเสมอเพื่ออัปเดตข้อมูลปี/เทอม
   const s = await api('getSettings');
   if (s.success) {
     state.settings = s.settings;
     document.getElementById('reportYear').value = s.settings.academicYear || '2569';
-    // อัปเดตฟอร์มแอดมินด้วย (ถ้ามี)
     document.getElementById('setAcademicYear').value = s.settings.academicYear || '';
     document.getElementById('setTerm1Start').value = s.settings.term1Start || '';
     document.getElementById('setTerm1End').value = s.settings.term1End || '';
@@ -867,6 +865,7 @@ async function initUserSession() {
     document.getElementById('setTerm2End').value = s.settings.term2End || '';
   }
   
+  // 🟢 กำหนดวันที่เริ่มต้นของหน้า Daily Report ให้เป็นวันปัจจุบัน (YYYY-MM-DD)
   const dd = document.getElementById('dailyDate');
   if (dd && !dd.value) dd.value = new Date().toISOString().split('T')[0];
 
@@ -993,10 +992,17 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
 document.getElementById('dailyDate').addEventListener('change', loadDailyReport);
 
 async function loadDailyReport() {
-  const dateVal = document.getElementById('dailyDate').value;
-  const tbody = document.getElementById('dailyReportBody');
+  const dateVal = document.getElementById('dailyDate').value; // YYYY-MM-DD
+  if (!dateVal) return;
   
-  const res = await api('getDailyReport', { date: dateVal });
+  // 🟢 แปลง YYYY-MM-DD เป็น dd/MM/yyyy ทันที เพื่อเลี่ยง Timezone
+  const parts = dateVal.split('-');
+  const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+  
+  const tbody = document.getElementById('dailyReportBody');
+  tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>';
+  
+  const res = await api('getDailyReport', { date: formattedDate });
   if (!res.success) {
     tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`; return;
   }
