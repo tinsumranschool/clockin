@@ -914,8 +914,11 @@ function showScreen(name) {
   }
 
   if (name === 'reportsScreen') {
+    // 🟢 FIX: ตรวจสอบสิทธิ์ให้ถูกต้อง (Admin หรือ ผอ.)
     const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
     document.getElementById('reportHeaderRole').textContent = isAdminOrDirector ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
+    
+    // 🟢 แสดง/ซ่อนคอลัมน์จัดการ ตามสิทธิ์
     document.getElementById('editColHeader').style.display = isAdminOrDirector ? 'table-cell' : 'none';
     
     initReportsDefaults();
