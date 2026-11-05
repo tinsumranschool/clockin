@@ -221,23 +221,7 @@ tr:hover td { background: var(--bg-color); }
         <button type="submit" class="submit-btn" id="submitBtn">📍 บันทึกข้อมูล</button>
       </form>
     </div>
-    <div class="card">
-      <div class="section-title">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span>📊 รายงานประจำวัน <span class="live-indicator"><span class="live-dot"></span>LIVE</span></span>
-          <button class="btn-sm btn-neutral" id="refreshDailyBtn" title="รีเฟรช">🔄</button>
-        </div>
-        <input type="date" id="dailyDate" class="input" style="width:auto;padding:6px 10px;font-size:.85rem">
-      </div>
-      <div class="table-wrap">
-        <table><thead><tr><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th></tr></thead>
-          <tbody id="dailyReportBody">
-            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
-            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+    <!-- ลบส่วนรายงานประจำวันออกแล้ว -->
   </div>
 
   <!-- REPORTS -->
@@ -515,10 +499,8 @@ document.body.addEventListener('click', function initWelcome() {
 // ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 
-// 🟢 NEW: Polling 3 วินาที เพื่อ sync แบบทันที
 const POLL_INTERVAL_MS = 3000;
 const CACHE_TTL_REPORTS = 10 * 1000;
-const CACHE_TTL_DAILY   = 10 * 1000;
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
@@ -532,19 +514,15 @@ const state = {
   signatureBase64: null,
   editUserPicBase64: null,
   editUserSigBase64: null,
-  dailyDateAuto: true,
   todayRecord: null,
   todayLeave: null,
   todayPendingLeave: null,
   lastStatusFetch: 0,
   lastSync: 0,
-  // 🟢 NEW: Data version tracking
   dataVersion: null,
   reportsCache: {},
   reportsLoadingKey: null,
   reportsInited: false,
-  dailyReportCache: {},
-  dailyLoadingKey: null,
   pollTimer: null,
   userDict: {},
   isPendingLeaveLocked: false
@@ -615,16 +593,13 @@ function speakPendingAlerts(hasLeave, hasOB) {
 
 function invalidateAllReportCaches() {
   Object.keys(state.reportsCache).forEach(k => { state.reportsCache[k].ts = 0; });
-  Object.keys(state.dailyReportCache).forEach(k => { state.dailyReportCache[k].ts = 0; });
 }
 function clearAllCaches() {
   state.reportsCache = {}; state.reportsLoadingKey = null; state.reportsInited = false;
-  state.dailyReportCache = {}; state.dailyLoadingKey = null;
   state.lastStatusFetch = 0; state.userDict = {};
   state.dataVersion = null;
 }
 
-// 🟢 NEW: Unified real-time sync poll
 function startPolling() {
   if (state.pollTimer) clearInterval(state.pollTimer);
   state.pollTimer = setInterval(async () => {
@@ -632,11 +607,9 @@ function startPolling() {
     const activeScreen = document.querySelector('.screen.active');
     if (!activeScreen) return;
     if (activeScreen.id === 'dashboardScreen') {
-      // Poll status (updates buttons + version) + daily report
       if (state.user && state.user.role !== 'admin') {
         await checkTodayStatus(true);
       }
-      await loadDailyReport(true, true);
     } else if (activeScreen.id === 'reportsScreen') {
       await loadReports(true, true);
     } else if (activeScreen.id === 'adminScreen') {
@@ -654,7 +627,6 @@ async function refreshDashboard(showToast = false) {
   if (btn) btn.classList.add('spinning');
   try {
     await Promise.all([
-      loadDailyReport(true),
       state.user && state.user.role !== 'admin' ? checkTodayStatus(true) : Promise.resolve()
     ]);
     state.lastSync = Date.now();
@@ -687,7 +659,6 @@ function showScreen(name) {
       document.getElementById('adminNotice').style.display = 'none';
       checkTodayStatus(true);
     }
-    loadDailyReport(true);
   }
 
   if (name === 'reportsScreen') {
@@ -788,7 +759,6 @@ async function initUserSession() {
   if (!res.success) { toast(res.message || 'ไม่สามารถโหลดข้อมูลได้', 'error'); return false; }
   state.settings = res.settings;
   state.user = res.user;
-  // 🟢 NEW: Track data version
   if (res.settings.dataVersion) state.dataVersion = res.settings.dataVersion;
   state.todayRecord = res.todayRecord;
   state.todayLeave = res.todayLeave;
@@ -816,8 +786,6 @@ async function initUserSession() {
   document.getElementById('setStrictReg').checked = !!res.settings.strictRegistration;
 
   updateActionButtonsUI();
-  const dd = document.getElementById('dailyDate');
-  if (dd) { dd.value = getLocalDateStr(); state.dailyDateAuto = true; }
   if (isAdminOrDirector) checkPendingCounts();
   updateSyncIndicator();
   showScreen('dashboardScreen');
@@ -852,18 +820,15 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   sessionStorage.removeItem('voicePlayed');
   state.token = ''; state.user = null; state.dataVersion = null;
   clearAllCaches(); stopPolling();
-  state.dailyDateAuto = true; document.getElementById('dailyDate').value = '';
   showScreen('authScreen');
   toast('ออกจากระบบแล้ว');
 });
 
-// 🟢 UPDATED: Real-time status check with version detection
 async function checkTodayStatus(force = false) {
   if (!state.user || state.user.role === 'admin') return;
   if (!force && Date.now() - state.lastStatusFetch < 2000) { updateActionButtonsUI(); return; }
   const res = await api('getTodayStatus');
   if (res.success) {
-    // Detect version change → invalidate ALL caches
     const newVersion = res.dataVersion;
     if (newVersion && state.dataVersion && newVersion !== state.dataVersion) {
       console.log('[SYNC] Version changed:', state.dataVersion, '→', newVersion);
@@ -885,7 +850,6 @@ function updateActionButtonsUI() {
   const btns = document.querySelectorAll('.action-btn');
   btns.forEach(btn => { btn.disabled = false; btn.classList.remove('active'); });
 
-  // Reset invalid selection
   if (state.selectedAction) {
     const sel = document.querySelector(`.action-btn[data-action="${state.selectedAction}"]`);
     const isStillValid = sel && !sel.disabled;
@@ -996,8 +960,6 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
       document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
       state.selectedAction = null;
       invalidateAllReportCaches();
-      // Immediately refresh — no waiting for poll
-      await loadDailyReport(true);
       await checkTodayStatus(true);
       if (state.user.position === 'ผอ.' || state.user.role === 'admin') checkPendingCounts();
     } else toast(res.message, 'error');
@@ -1005,100 +967,13 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
   finally { btn.disabled = false; btn.innerHTML = '📍 บันทึกข้อมูล'; }
 });
 
-document.getElementById('dailyDate').addEventListener('change', () => {
-  const picked = document.getElementById('dailyDate').value;
-  state.dailyDateAuto = (picked === getLocalDateStr());
-  loadDailyReport(true);
-});
-
 document.getElementById('refreshDashBtn').addEventListener('click', () => refreshDashboard(true));
-document.getElementById('refreshDailyBtn').addEventListener('click', async () => {
-  await loadDailyReport(true);
-  toast('รีเฟรชรายงานแล้ว');
-});
 
 function getInitials(name) {
   if(!name) return "?";
   let parts = name.trim().split(" ");
   if(parts.length >= 2) return parts[0].charAt(0) + parts[1].charAt(0);
   return name.charAt(0);
-}
-
-function renderDailyReport(records) {
-  const tbody = document.getElementById('dailyReportBody');
-  if (!records || records.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในวันนี้</td></tr>';
-    return;
-  }
-  tbody.innerHTML = records.map(r => {
-    let displayNote = r.note || '-';
-    if (!(displayNote.includes('ลาครึ่งเช้า') || displayNote.includes('ลาครึ่งบ่าย') ||
-          displayNote.includes('ลาทั้งวัน') || displayNote.includes('ลาหลายวัน') || displayNote.includes('ไปราชการ'))) {
-      displayNote = '-';
-    }
-    let picSrc = r.profilePic || (state.user && state.user.fullName === r.fullName ? state.user.profilePic : null);
-    let avatarHtml = picSrc
-      ? `<img src="${picSrc}" class="avatar-xs" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"><div style="display:none; width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${getInitials(r.fullName)}</div>`
-      : `<div style="width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${getInitials(r.fullName)}</div>`;
-    return `<tr><td class="table-name">${avatarHtml} ${r.fullName}</td><td style="color:var(--success);font-weight:700">${r.inTime}</td><td style="color:var(--danger);font-weight:700">${r.outTime}</td><td>${displayNote}</td></tr>`;
-  }).join('');
-}
-
-async function loadDailyReport(force = false, isPolling = false) {
-  const dd = document.getElementById('dailyDate');
-  if (!dd) return;
-  if (state.dailyDateAuto) { const today = getLocalDateStr(); if (dd.value !== today) { dd.value = today; force = true; } }
-  if (!dd.value) return;
-  const cacheKey = dd.value;
-  if (state.dailyLoadingKey === cacheKey) return;
-
-  const cached = state.dailyReportCache[cacheKey];
-  const cacheAge = cached ? (Date.now() - cached.ts) : Infinity;
-  const isStale = cacheAge > CACHE_TTL_DAILY;
-  // 🟢 Version mismatch forces refetch
-  const versionMismatch = cached && cached.version !== state.dataVersion;
-  const needsFetch = force || !cached || isStale || versionMismatch || isPolling;
-
-  if (cached && !isPolling) {
-    renderDailyReport(cached.data);
-  } else if (!cached && !isPolling) {
-    document.getElementById('dailyReportBody').innerHTML = `
-      <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
-      <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>`;
-  }
-
-  if (!needsFetch) return;
-
-  state.dailyLoadingKey = cacheKey;
-  try {
-    const parts = dd.value.split('-');
-    const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-    const res = await api('getDailyReport', { date: formattedDate });
-    if (dd.value !== cacheKey) return;
-    if (!res.success) {
-      if (!cached && !isPolling) document.getElementById('dailyReportBody').innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`;
-      return;
-    }
-    // 🟢 Version detection
-    const newVersion = res.dataVersion;
-    if (newVersion && state.dataVersion && newVersion !== state.dataVersion) {
-      console.log('[SYNC] Daily version changed:', state.dataVersion, '→', newVersion);
-      invalidateAllReportCaches();
-      if (state.user && state.user.role !== 'admin') {
-        // Refresh button state too
-        checkTodayStatus(true);
-      }
-    }
-    if (newVersion) state.dataVersion = newVersion;
-
-    const records = res.records || [];
-    const newHash = JSON.stringify(records);
-    const oldHash = cached ? JSON.stringify(cached.data) : '';
-    state.dailyReportCache[cacheKey] = { data: records, ts: Date.now(), version: newVersion };
-    if (newHash !== oldHash || !isPolling) renderDailyReport(records);
-    state.lastSync = Date.now();
-    updateSyncIndicator();
-  } finally { if (state.dailyLoadingKey === cacheKey) state.dailyLoadingKey = null; }
 }
 
 document.getElementById('reportYear').addEventListener('change', () => loadReports(true));
@@ -1157,7 +1032,6 @@ async function loadReports(force = false, isPolling = false) {
     const currentKey = `${document.getElementById('reportYear').value}|${document.getElementById('reportTerm').value}|${document.getElementById('reportMonth').value}`;
     if (currentKey !== cacheKey) return;
     if (!res.success) { if (!cached && !isPolling) document.getElementById('termReportBody').innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`; return; }
-    // 🟢 Version detection
     const newVersion = res.dataVersion;
     if (newVersion && state.dataVersion && newVersion !== state.dataVersion) {
       console.log('[SYNC] Reports version changed:', state.dataVersion, '→', newVersion);
@@ -1216,9 +1090,7 @@ async function saveEditAttendance() {
     toast(res.message);
     closeEditAttendanceModal();
     invalidateAllReportCaches();
-    // Force full refresh
     await loadReports(true);
-    await loadDailyReport(true);
     await checkTodayStatus(true);
   } else toast(res.message, 'error');
 }
@@ -1380,14 +1252,14 @@ window.approveLeave = async (id) => {
   const r = await api('admin_approveLeave', {id:id});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
-  else if (r.success) { invalidateAllReportCaches(); checkPendingCounts(); await checkTodayStatus(true); await loadDailyReport(true); }
+  else if (r.success) { invalidateAllReportCaches(); checkPendingCounts(); await checkTodayStatus(true); }
 };
 window.rejectLeave = async (id) => {
   const el = document.getElementById(`leave-${id}`); if (el) el.style.display = 'none';
   const r = await api('admin_rejectLeave', {id:id});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
-  else if (r.success) { invalidateAllReportCaches(); checkPendingCounts(); await checkTodayStatus(true); await loadDailyReport(true); }
+  else if (r.success) { invalidateAllReportCaches(); checkPendingCounts(); await checkTodayStatus(true); }
 };
 
 async function loadUsers() {
@@ -1522,15 +1394,11 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     state.reportsInited = false;
     invalidateAllReportCaches();
     if (document.getElementById('reportsScreen').classList.contains('active')) { initReportsDefaults(); await loadReports(true); }
-    await loadDailyReport(true);
     await checkTodayStatus(true);
   }
   else toast(res.message, 'error');
 });
 
-// ============================================================
-// 🟢 AUTO-REFRESH on visibility / focus / pageshow
-// ============================================================
 function autoRefreshOnReturn() {
   if (!state.user || !state.token) return;
   const activeScreen = document.querySelector('.screen.active');
