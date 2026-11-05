@@ -86,7 +86,6 @@ body{
 .app-header{ display:flex; align-items:center; gap:12px; background:var(--card-bg); border:var(--border-width) solid var(--border-color); border-radius:var(--radius-lg); padding:12px 16px; box-shadow:var(--shadow-hard); }
 .user-info{flex:1;min-width:0;display:flex;align-items:center;gap:12px}
 
-/* 🟢 Avatar Styling */
 .avatar{ border-radius:50%; width:46px; height:46px; object-fit:cover; border:var(--border-width) solid var(--border-color); background:#eee; box-shadow: var(--shadow-hard), var(--glow-primary); transition: transform 0.2s; }
 .avatar:hover { transform: scale(1.1) rotate(10deg); }
 
@@ -1385,39 +1384,11 @@ async function saveEditAttendance() {
     toast(res.message);
     closeEditAttendanceModal();
     
-    const cacheKey = `${payload.year}|${payload.term}|${document.getElementById('reportMonth').value}`;
-    if (state.reportsCache[cacheKey] && state.reportsCache[cacheKey].data) {
-      const records = state.reportsCache[cacheKey].data;
-      const idx = records.findIndex(r => r.date === origDate && r.name === name);
-      
-      if (idx !== -1) {
-        if (newDate !== origDate) {
-          loadReports(true); 
-        } else {
-          records[idx].inTime = newInTime || '-';
-          records[idx].outTime = newOutTime || '-';
-          records[idx].note = newNote || '-';
-          records[idx].rawInTime = newInTime || '99:99';
-
-          records.sort((a, b) => {
-            const [dA, mA, yA] = a.date.split('/').map(Number);
-            const [dB, mB, yB] = b.date.split('/').map(Number);
-            if (yA !== yB) return yA - yB;
-            if (mA !== mB) return mA - mB;
-            if (dA !== dB) return dA - dB;
-            return a.rawInTime.localeCompare(b.rawInTime);
-          });
-
-          renderReportsTable(records);
-          toast('อัปเดตข้อมูลในหน้าจอทันที');
-        }
-      } else {
-        loadReports(true);
-      }
-    } else {
-      loadReports(true);
-    }
+    // 🟢 บังคับรีเฟรชทุกหน้า
     invalidateAllReportCaches();
+    loadReports(true);
+    loadDailyReport(true);
+    checkTodayStatus(true);
   } else {
     toast(res.message, 'error');
   }
