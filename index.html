@@ -489,7 +489,13 @@ tr:last-child td{border-bottom:none}
         </div>
         <div class="field">
           <label class="field-label">ตำแหน่ง</label>
-          <input type="text" id="profPosition" class="input" placeholder="เช่น ครู, ผู้บริหาร">
+          <!-- 🟢 เปลี่ยนเป็น Dropdown -->
+          <select id="profPosition" class="select">
+            <option value="ครู">ครู</option>
+            <option value="ผอ.">ผอ.</option>
+            <option value="พนักงาน">พนักงาน</option>
+            <option value="ลูกจ้าง">ลูกจ้าง</option>
+          </select>
         </div>
         <div class="field">
           <label class="field-label">อีเมล</label>
@@ -613,20 +619,25 @@ tr:last-child td{border-bottom:none}
   <div class="modal">
     <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">✏️ แก้ไขข้อมูลผู้ใช้</h3>
     <input type="hidden" id="editTargetUsername">
+    <input type="hidden" id="editUserRole"> <!-- 🟢 ซ่อน Role ไว้เพื่อส่งค่าให้ Backend รักษาสิทธิ์เดิม -->
+    
     <div class="field"><label class="field-label">Username</label><input type="text" id="editUserUsername" class="input" disabled></div>
     <div class="field"><label class="field-label">ชื่อ-นามสกุล</label><input type="text" id="editUserFullName" class="input"></div>
-    <div class="field"><label class="field-label">ตำแหน่ง</label><input type="text" id="editUserPosition" class="input"></div>
-    <div class="field"><label class="field-label">อีเมล</label><input type="email" id="editUserEmail" class="input"></div>
-    <div class="field"><label class="field-label">รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)</label><input type="password" id="editUserPassword" class="input"></div>
+    
     <div class="field">
-      <label class="field-label">บทบาท (Role)</label>
-      <select id="editUserRole" class="select">
-        <option value="user">User ทั่วไป</option>
-        <option value="teacher">ครู</option>
-        <option value="director">ผู้อำนวยการ</option>
-        <option value="admin">แอดมิน</option>
+      <label class="field-label">ตำแหน่ง</label>
+      <!-- 🟢 เปลี่ยนเป็น Dropdown ตามที่กำหนด -->
+      <select id="editUserPosition" class="select">
+        <option value="ครู">ครู</option>
+        <option value="ผอ.">ผอ.</option>
+        <option value="พนักงาน">พนักงาน</option>
+        <option value="ลูกจ้าง">ลูกจ้าง</option>
       </select>
     </div>
+    
+    <div class="field"><label class="field-label">อีเมล</label><input type="email" id="editUserEmail" class="input"></div>
+    <div class="field"><label class="field-label">รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)</label><input type="password" id="editUserPassword" class="input"></div>
+    
     <div class="field">
       <label class="field-label">สถานะ (Status)</label>
       <select id="editUserStatus" class="select">
@@ -896,18 +907,19 @@ document.getElementById('registerForm').addEventListener('submit', async (e) => 
 async function initUserSession() {
   if (!state.user || !state.token) return;
   document.getElementById('dashName').textContent = state.user.fullName;
-  document.getElementById('dashRole').textContent = `${state.user.username} · ${state.user.role}`;
+  
+  // 🟢 แสดงตำแหน่งแทนบทบาท
+  const displayPos = state.user.position || 'ครู';
+  document.getElementById('dashRole').textContent = `${state.user.username} · ${displayPos}`;
+  
   document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/46';
   document.getElementById('adminBtn').style.display = state.user.role === 'admin' ? 'flex' : 'none';
   
   const s = await api('getSettings');
   if (s.success) {
     state.settings = s.settings;
-    
-    // 🟢 Populate Reports Defaults
     document.getElementById('reportYear').value = s.settings.academicYear || '2569';
     
-    // 🟢 Populate Admin Settings UI ทันที (ตลอดเวลาที่ล็อกอิน)
     document.getElementById('setAcademicYear').value = s.settings.academicYear || '';
     document.getElementById('setTerm1Start').value = s.settings.term1Start || '';
     document.getElementById('setTerm1End').value = s.settings.term1End || '';
@@ -1174,7 +1186,16 @@ function updateProfileUI() {
   if(!state.user) return;
   document.getElementById('profUsername').value = state.user.username;
   document.getElementById('profFullName').value = state.user.fullName;
-  document.getElementById('profPosition').value = state.user.position || '';
+  
+  // 🟢 ตั้งค่า Dropdown ให้ตรงกับตำแหน่งที่มีอยู่
+  const validPositions = ['ครู', 'ผอ.', 'พนักงาน', 'ลูกจ้าง'];
+  const profPosSelect = document.getElementById('profPosition');
+  if (validPositions.includes(state.user.position)) {
+    profPosSelect.value = state.user.position;
+  } else {
+    profPosSelect.value = 'ครู';
+  }
+
   document.getElementById('profEmail').value = state.user.email || '';
   document.getElementById('profilePicPreview').src = state.user.profilePic || 'https://via.placeholder.com/100';
   
@@ -1225,7 +1246,7 @@ document.getElementById('profileForm').addEventListener('submit', async (e) => {
   const payload = {
     username: document.getElementById('profUsername').value.trim().toLowerCase(),
     fullName: document.getElementById('profFullName').value.trim(),
-    position: document.getElementById('profPosition').value.trim(),
+    position: document.getElementById('profPosition').value, // 🟢 ส่งค่าจาก Dropdown
     email: document.getElementById('profEmail').value.trim(),
     profilePicBase64: state.profilePicBase64,
     signatureBase64: state.signatureBase64
@@ -1303,7 +1324,8 @@ async function loadUsers() {
     <div class="user-row">
       <div class="user-row-info">
         <div style="font-weight:700;font-size:.95rem">${u.fullName}</div>
-        <div style="color:var(--text-muted);font-size:.75rem;margin-top:2px;">@${u.username} · ${u.role} · ${u.status}</div>
+        <!-- 🟢 แสดงตำแหน่งแทน Role -->
+        <div style="color:var(--text-muted);font-size:.75rem;margin-top:2px;">@${u.username} · ${u.position || 'ครู'} · ${u.status}</div>
       </div>
       <button class="btn-sm btn-cyan" onclick="openEditUser('${u.username}', '${u.fullName}', '${u.role}', '${u.status}', '${u.position}', '${u.email}')">✏️ แก้ไข</button>
     </div>
@@ -1314,9 +1336,21 @@ function openEditUser(username, fullName, role, status, position, email) {
   document.getElementById('editTargetUsername').value = username;
   document.getElementById('editUserUsername').value = username;
   document.getElementById('editUserFullName').value = fullName;
-  document.getElementById('editUserRole').value = role;
+  
+  // 🟢 เก็บ Role เดิมไว้ใน hidden input
+  document.getElementById('editUserRole').value = role; 
+  
   document.getElementById('editUserStatus').value = status;
-  document.getElementById('editUserPosition').value = position !== '-' ? position : '';
+  
+  // 🟢 ตั้งค่า Dropdown ให้ตรงกับตำแหน่ง
+  const validPositions = ['ครู', 'ผอ.', 'พนักงาน', 'ลูกจ้าง'];
+  const editPosSelect = document.getElementById('editUserPosition');
+  if (validPositions.includes(position)) {
+    editPosSelect.value = position;
+  } else {
+    editPosSelect.value = 'ครู';
+  }
+
   document.getElementById('editUserEmail').value = email || '';
   document.getElementById('editUserPassword').value = '';
   document.getElementById('editUserPicInput').value = '';
@@ -1340,9 +1374,9 @@ async function saveEditUser() {
   const payload = {
     targetUsername: document.getElementById('editTargetUsername').value,
     fullName: document.getElementById('editUserFullName').value.trim(),
-    role: document.getElementById('editUserRole').value,
+    role: document.getElementById('editUserRole').value, // 🟢 ส่ง Role เดิมกลับไป
     status: document.getElementById('editUserStatus').value,
-    position: document.getElementById('editUserPosition').value.trim(),
+    position: document.getElementById('editUserPosition').value, // 🟢 ส่งตำแหน่งใหม่
     email: document.getElementById('editUserEmail').value.trim(),
     newPassword: document.getElementById('editUserPassword').value,
     profilePicBase64: state.editUserPicBase64,
