@@ -346,7 +346,6 @@ tr:last-child td{border-bottom:none}
         <div id="clockDate" style="font-size:.9rem;color:var(--text-muted);margin-top:4px;font-weight:600;"></div>
       </div>
 
-      <!-- 🟢 ข้อความสำหรับแอดมิน -->
       <div id="adminNotice" style="display:none; text-align:center; padding:20px; background:var(--bg-pattern); border-radius:12px; border:2px dashed var(--border-color); margin-bottom:16px;">
         <div style="font-size:2rem; margin-bottom:8px;">👑</div>
         <div style="font-weight:700; font-size:1.1rem;">ยินดีต้อนรับแอดมิน</div>
@@ -712,7 +711,6 @@ function showScreen(name) {
 
   if (name === 'reportsScreen') loadReports();
   if (name === 'dashboardScreen' && state.user) {
-    // 🟢 ซ่อนฟอร์มลงเวลาสำหรับแอดมิน
     if (state.user.role === 'admin') {
       document.getElementById('attendanceForm').style.display = 'none';
       document.getElementById('adminNotice').style.display = 'block';
@@ -856,12 +854,17 @@ async function initUserSession() {
   document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/46';
   document.getElementById('adminBtn').style.display = state.user.role === 'admin' ? 'flex' : 'none';
   
-  if (!state.settings) {
-    const s = await api('getSettings');
-    if (s.success) {
-      state.settings = s.settings;
-      document.getElementById('reportYear').value = s.settings.academicYear || '2569';
-    }
+  // โหลด Settings ล่าสุดเสมอเพื่ออัปเดตข้อมูลปี/เทอม
+  const s = await api('getSettings');
+  if (s.success) {
+    state.settings = s.settings;
+    document.getElementById('reportYear').value = s.settings.academicYear || '2569';
+    // อัปเดตฟอร์มแอดมินด้วย (ถ้ามี)
+    document.getElementById('setAcademicYear').value = s.settings.academicYear || '';
+    document.getElementById('setTerm1Start').value = s.settings.term1Start || '';
+    document.getElementById('setTerm1End').value = s.settings.term1End || '';
+    document.getElementById('setTerm2Start').value = s.settings.term2Start || '';
+    document.getElementById('setTerm2End').value = s.settings.term2End || '';
   }
   
   const dd = document.getElementById('dailyDate');
