@@ -1384,11 +1384,12 @@ async function saveEditAttendance() {
     toast(res.message);
     closeEditAttendanceModal();
     
-    // 🟢 บังคับรีเฟรชทุกหน้าแบบ 100%
+    // 🟢 FIX: ล้าง cache ฝั่ง client 100% แล้ว reload จาก server ทุกหน้า
     invalidateAllReportCaches();
-    loadReports(true);
-    loadDailyReport(true);
-    checkTodayStatus(true);
+    Object.keys(state.dailyReportCache).forEach(k => { state.dailyReportCache[k] = { data: [], ts: 0 }; });
+    await loadReports(true);
+    await loadDailyReport(true);
+    await checkTodayStatus(true);
   } else {
     toast(res.message, 'error');
   }
@@ -1687,6 +1688,8 @@ async function saveEditUser() {
     toast(res.message);
     closeEditUserModal();
     loadUsers();
+    // 🟢 bumpDataVersion ฝั่ง backend แล้ว → invalidate cache client
+    invalidateAllReportCaches();
   } else {
     toast(res.message, 'error');
   }
@@ -1738,21 +1741,46 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   };
   const res = await api('admin_updateSettings', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
-  if (res.success) { 
-    toast(res.message); 
-    state.settings = {
-      ...state.settings,
-      officeName: payload.officeName,
-      officeLat: payload.officeLat,
-      officeLng: payload.officeLng,
-      radius: payload.radius,
-      strictRegistration: payload.strictRegistration,
-      academicYear: payload.academicYear,
-      term1Start: payload.term1Start,
-      term1End: payload.term1End,
-      term2Start: payload.term2Start,
-      term2End: payload.term2End
-    };
+
+  if (res.success) {
+    toast(res.message);
+
+    // 🟢 FIX: ดึง settings ใหม่จาก server (ให้ได้ currentYear/currentTerm ที่อัปเดตแล้ว)
+    const fresh = await api('getInitData');
+    if (fresh.success) {
+      state.settings = fresh.settings;
+      state.user = fresh.user;
+      localStorage.setItem('tt_user', JSON.stringify(fresh.user));
+    } else {
+      // fallback: อัปเดตเฉพาะ field ที่รู้
+      state.settings = {
+        ...state.settings,
+        officeName: payload.officeName,
+        officeLat: payload.officeLat,
+        officeLng: payload.officeLng,
+        radius: payload.radius,
+        strictRegistration: payload.strictRegistration,
+        academicYear: payload.academicYear,
+        term1Start: payload.term1Start,
+        term1End: payload.term1End,
+        term2Start: payload.term2Start,
+        term2End: payload.term2End
+      };
+    }
+
+    // 🟢 FIX: reset reportsInited → ครั้งต่อไปที่เปิดหน้า reports จะ init ปี/เทอมตาม settings ใหม่
+    state.reportsInited = false;
+    invalidateAllReportCaches();
+    Object.keys(state.dailyReportCache).forEach(k => { state.dailyReportCache[k] = { data: [], ts: 0 }; });
+
+    // 🟢 FIX: ถ้าอยู่หน้า reports → reload ทันทีพร้อมปี/เทอมใหม่
+    if (document.getElementById('reportsScreen').classList.contains('active')) {
+      initReportsDefaults();
+      await loadReports(true);
+    }
+    // 🟢 FIX: รีเฟรช daily + today status (เผื่อเทอม/ปีเปลี่ยน)
+    await loadDailyReport(true);
+    await checkTodayStatus(true);
   }
   else toast(res.message, 'error');
 });
