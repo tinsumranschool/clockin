@@ -604,7 +604,21 @@ tr:last-child td{border-bottom:none}
     <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">📄 ดาวน์โหลดรายงาน PDF</h3>
     <div class="field">
       <label class="field-label">เลือกเดือนที่ต้องการ</label>
-      <input type="month" id="pdfMonth" class="input" required>
+      <select id="pdfMonthSelect" class="select" required>
+        <option value="all">ทุกเดือน (12 หน้า)</option>
+        <option value="01">มกราคม</option>
+        <option value="02">กุมภาพันธ์</option>
+        <option value="03">มีนาคม</option>
+        <option value="04">เมษายน</option>
+        <option value="05">พฤษภาคม</option>
+        <option value="06">มิถุนายน</option>
+        <option value="07">กรกฎาคม</option>
+        <option value="08">สิงหาคม</option>
+        <option value="09">กันยายน</option>
+        <option value="10">ตุลาคม</option>
+        <option value="11">พฤศจิกายน</option>
+        <option value="12">ธันวาคม</option>
+      </select>
     </div>
     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
       <button class="btn-sm btn-neutral" onclick="closePdfModal()">ยกเลิก</button>
@@ -787,12 +801,14 @@ function showScreen(name) {
 
 function initReportsDefaults() {
   const d = new Date();
-  if (state.settings && state.settings.academicYear) {
-    document.getElementById('reportYear').value = state.settings.academicYear;
-  } else if (!document.getElementById('reportYear').value) {
+  if (state.settings) {
+    // 🟢 ใช้ค่าที่ Backend คำนวณมาให้ (หาจาก Sheet ล่าสุด)
+    document.getElementById('reportYear').value = state.settings.currentYear || state.settings.academicYear || String(d.getFullYear() + 543);
+    document.getElementById('reportTerm').value = state.settings.currentTerm || computeCurrentTermClient();
+  } else {
     document.getElementById('reportYear').value = String(d.getFullYear() + 543);
+    document.getElementById('reportTerm').value = '1';
   }
-  document.getElementById('reportTerm').value = computeCurrentTermClient();
   document.getElementById('reportMonth').value = String(d.getMonth() + 1).padStart(2, '0');
 }
 
@@ -923,7 +939,6 @@ async function initUserSession() {
   const s = await api('getSettings');
   if (s.success) {
     state.settings = s.settings;
-    document.getElementById('reportYear').value = s.settings.academicYear || '2569';
     
     document.getElementById('setAcademicYear').value = s.settings.academicYear || '';
     document.getElementById('setTerm1Start').value = s.settings.term1Start || '';
@@ -1153,23 +1168,8 @@ async function loadReports() {
 }
 
 function openPdfModal() {
-  const rYear = document.getElementById('reportYear').value;
   const rMonth = document.getElementById('reportMonth').value;
-  
-  let yearCe = new Date().getFullYear();
-  let monthVal = String(new Date().getMonth() + 1).padStart(2, '0');
-
-  if (rYear) {
-    const parsedYear = parseInt(rYear);
-    if (!isNaN(parsedYear) && parsedYear > 2400) {
-      yearCe = parsedYear - 543;
-    }
-  }
-  if (rMonth !== 'all') {
-    monthVal = rMonth;
-  }
-
-  document.getElementById('pdfMonth').value = `${yearCe}-${monthVal}`;
+  document.getElementById('pdfMonthSelect').value = rMonth;
   document.getElementById('pdfModal').classList.add('show');
 }
 function closePdfModal() {
@@ -1177,7 +1177,7 @@ function closePdfModal() {
 }
 
 async function downloadPdf() {
-  const monthVal = document.getElementById('pdfMonth').value;
+  const monthVal = document.getElementById('pdfMonthSelect').value;
   const academicYear = document.getElementById('reportYear').value;
   if (!monthVal) return toast('กรุณาเลือกเดือน', 'error');
   
@@ -1192,7 +1192,7 @@ async function downloadPdf() {
     const linkSource = `data:application/pdf;base64,${res.pdfBase64}`;
     const downloadLink = document.createElement("a");
     downloadLink.href = linkSource;
-    downloadLink.download = `Report_${monthVal}.pdf`;
+    downloadLink.download = `Report_${monthVal}_${academicYear}.pdf`;
     downloadLink.click();
     toast('ดาวน์โหลด PDF สำเร็จ');
     closePdfModal();
@@ -1482,7 +1482,6 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   if (res.success) { 
     toast(res.message); 
     state.settings = null; 
-    document.getElementById('reportYear').value = payload.academicYear;
   }
   else toast(res.message, 'error');
 });
