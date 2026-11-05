@@ -217,7 +217,6 @@ tr:last-child td{border-bottom:none}
           <tbody id="dailyReportBody">
             <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
             <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
-            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -438,6 +437,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxp
 
 const CACHE_TTL_REPORTS = 5 * 60 * 1000;
 const CACHE_TTL_DAILY   = 2 * 60 * 1000;
+const POLL_INTERVAL_MS  = 15000; // 🟢 ดึงข้อมูลเงียบๆ ทุก 15 วินาที
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
@@ -460,7 +460,8 @@ const state = {
   reportsLoadingKey: null,
   reportsInited: false,
   dailyReportCache: {},
-  dailyLoadingKey: null
+  dailyLoadingKey: null,
+  pollTimer: null // 🟢 ตัวแปรสำหรับ Polling
 };
 
 function getLocalDateStr(d = new Date()) {
@@ -543,6 +544,33 @@ function clearAllCaches() {
   state.lastStatusFetch = 0;
 }
 
+// 🟢 ระบบ Polling เบื้องหลัง (Silent Refresh)
+function startPolling() {
+  if (state.pollTimer) clearInterval(state.pollTimer);
+  state.pollTimer = setInterval(() => {
+    if (document.hidden) return; // ถ้าไม่ได้เปิดหน้าจออยู่ ไม่ต้องโหลด
+
+    const activeScreen = document.querySelector('.screen.active');
+    if (!activeScreen) return;
+
+    if (activeScreen.id === 'dashboardScreen') {
+      // อัปเดตตารางรายวันเงียบๆ
+      loadDailyReport(false, true); 
+      checkTodayStatus();
+    } else if (activeScreen.id === 'reportsScreen') {
+      // อัปเดตรายงานเงียบๆ
+      loadReports(false, true);
+    }
+  }, POLL_INTERVAL_MS);
+}
+
+function stopPolling() {
+  if (state.pollTimer) {
+    clearInterval(state.pollTimer);
+    state.pollTimer = null;
+  }
+}
+
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(name).classList.add('active');
@@ -577,6 +605,13 @@ function showScreen(name) {
   }
 
   if (name === 'profileScreen') updateProfileUI();
+  
+  // เริ่ม Polling ใหม่เมื่อเปลี่ยนหน้า
+  if (name === 'dashboardScreen' || name === 'reportsScreen') {
+    startPolling();
+  } else {
+    stopPolling();
+  }
 }
 
 function initReportsDefaults() {
@@ -753,6 +788,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   sessionStorage.removeItem('voicePlayed');
   state.token = ''; state.user = null;
   clearAllCaches();
+  stopPolling();
   state.dailyDateAuto = true;
   document.getElementById('dailyDate').value = '';
   showScreen('authScreen');
@@ -937,7 +973,7 @@ function renderDailyReport(records) {
   }).join('');
 }
 
-async function loadDailyReport(force = false) {
+async function loadDailyReport(force = false, isPolling = false) {
   const dd = document.getElementById('dailyDate');
   if (!dd) return;
   if (state.dailyDateAuto) {
@@ -955,9 +991,9 @@ async function loadDailyReport(force = false) {
   const needsFetch = force || !cached || isStale;
 
   if (cached) {
-    renderDailyReport(cached.data);
-    if (!needsFetch) return;
-  } else {
+    if (!isPolling) renderDailyReport(cached.data); // ถ้าเป็น polling ไม่ต้อง re-render ถ้าไม่จำเป็น
+    if (!needsFetch && !isPolling) return;
+  } else if (!isPolling) {
     document.getElementById('dailyReportBody').innerHTML = `
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>`;
@@ -972,15 +1008,23 @@ async function loadDailyReport(force = false) {
     if (dd.value !== cacheKey) return;
 
     if (!res.success) {
-      if (!cached) {
+      if (!cached && !isPolling) {
         document.getElementById('dailyReportBody').innerHTML =
           `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`;
       }
       return;
     }
     const records = res.records || [];
+    
+    // 🟢 ตรวจสอบว่าข้อมูลเปลี่ยนไปจากเดิมไหม (Hash Check) ถ้าไม่เปลี่ยน ไม่ต้องวาดใหม่
+    const newHash = JSON.stringify(records);
+    const oldHash = cached ? JSON.stringify(cached.data) : '';
+    
     state.dailyReportCache[cacheKey] = { data: records, ts: Date.now() };
-    renderDailyReport(records);
+    
+    if (newHash !== oldHash || !isPolling) {
+      renderDailyReport(records);
+    }
   } finally {
     if (state.dailyLoadingKey === cacheKey) state.dailyLoadingKey = null;
   }
@@ -1007,13 +1051,13 @@ function renderReportsTable(records) {
     </tr>`).join('');
 }
 
-async function loadReports(force = false) {
+async function loadReports(force = false, isPolling = false) {
   const year = document.getElementById('reportYear').value;
   const term = document.getElementById('reportTerm').value;
   const month = document.getElementById('reportMonth').value;
 
   if (!year || !term) {
-    document.getElementById('termReportBody').innerHTML =
+    if (!isPolling) document.getElementById('termReportBody').innerHTML =
       '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">กรุณาระบุปีการศึกษา</td></tr>';
     return;
   }
@@ -1027,10 +1071,12 @@ async function loadReports(force = false) {
   const needsFetch = force || !cached || isStale;
 
   if (cached) {
-    renderReportsTable(cached.data);
-    updateCacheIndicator(cached.ts);
-    if (!needsFetch) return;
-  } else {
+    if (!isPolling) {
+      renderReportsTable(cached.data);
+      updateCacheIndicator(cached.ts);
+    }
+    if (!needsFetch && !isPolling) return;
+  } else if (!isPolling) {
     document.getElementById('termReportBody').innerHTML = `
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>`;
@@ -1044,16 +1090,24 @@ async function loadReports(force = false) {
     if (currentKey !== cacheKey) return;
 
     if (!res.success) {
-      if (!cached) {
+      if (!cached && !isPolling) {
         document.getElementById('termReportBody').innerHTML =
           `<tr><td colspan="5" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`;
       }
       return;
     }
     const records = res.records || [];
+    
+    // 🟢 Hash Check
+    const newHash = JSON.stringify(records);
+    const oldHash = cached ? JSON.stringify(cached.data) : '';
+    
     state.reportsCache[cacheKey] = { data: records, ts: Date.now() };
-    renderReportsTable(records);
-    updateCacheIndicator(Date.now());
+    
+    if (newHash !== oldHash || !isPolling) {
+      renderReportsTable(records);
+      updateCacheIndicator(Date.now());
+    }
   } finally {
     if (state.reportsLoadingKey === cacheKey) state.reportsLoadingKey = null;
   }
@@ -1113,31 +1167,45 @@ async function saveEditAttendance() {
     toast(res.message);
     closeEditAttendanceModal();
     
-    const rowId = `report-row-${origDate.replace(/\//g, '')}-${name.replace(/\s/g, '')}`;
-    const row = document.getElementById(rowId);
-    if (row) {
-      if (newDate !== origDate) {
-        loadReports(true);
-      } else {
-        row.cells[1].innerHTML = `<span style="color:var(--success);font-weight:700">${newInTime || '-'}</span>`;
-        row.cells[2].innerHTML = `<span style="color:var(--danger);font-weight:700">${newOutTime || '-'}</span>`;
-        row.cells[3].textContent = newNote || '-';
-        row.cells[4].innerHTML = `<button class="btn-sm btn-warning" onclick="openEditAttendance('${name.replace(/'/g, "\\'")}', '${newDate}', '${newInTime}', '${newOutTime}', '${(newNote || '').replace(/'/g, "\\'")}')">✏️ แก้ไข</button>`;
-        
-        const cacheKey = `${document.getElementById('reportYear').value}|${document.getElementById('reportTerm').value}|${document.getElementById('reportMonth').value}`;
-        if (state.reportsCache[cacheKey]) {
-          const cachedData = state.reportsCache[cacheKey].data;
-          const recordToUpdate = cachedData.find(r => r.date === origDate && r.name === name);
-          if (recordToUpdate) {
-            recordToUpdate.inTime = newInTime || '-';
-            recordToUpdate.outTime = newOutTime || '-';
-            recordToUpdate.note = newNote || '-';
-          }
+    // 🟢 OPTIMISTIC UI: อัปเดต Local Cache ทันที ไม่ต้องรอโหลดใหม่
+    const cacheKey = `${payload.year}|${payload.term}|${document.getElementById('reportMonth').value}`;
+    if (state.reportsCache[cacheKey] && state.reportsCache[cacheKey].data) {
+      const records = state.reportsCache[cacheKey].data;
+      const idx = records.findIndex(r => r.date === origDate && r.name === name);
+      
+      if (idx !== -1) {
+        if (newDate !== origDate) {
+          // ถ้าเปลี่ยนวันที่ ต้องดึงข้อมูลใหม่เพราะมันอาจจะอยู่นอกเดือนที่เลือก
+          loadReports(true); 
+        } else {
+          // ถ้าแค่อัปเดตเวลา/หมายเหตุ ให้เปลี่ยนใน Array แล้ว Sort ใหม่ทันที
+          records[idx].inTime = newInTime || '-';
+          records[idx].outTime = newOutTime || '-';
+          records[idx].note = newNote || '-';
+          records[idx].rawInTime = newInTime || '99:99';
+
+          // เรียงลำดับใหม่ให้เหมือนฝั่ง Backend
+          records.sort((a, b) => {
+            const [dA, mA, yA] = a.date.split('/').map(Number);
+            const [dB, mB, yB] = b.date.split('/').map(Number);
+            if (yA !== yB) return yA - yB;
+            if (mA !== mB) return mA - mB;
+            if (dA !== dB) return dA - dB;
+            return a.rawInTime.localeCompare(b.rawInTime);
+          });
+
+          // วาดตารางใหม่ 0ms
+          renderReportsTable(records);
+          toast('อัปเดตข้อมูลในหน้าจอทันที');
         }
+      } else {
+        loadReports(true);
       }
     } else {
       loadReports(true);
     }
+    
+    // สั่งให้แคชหน้าหลักและรายงานอื่นๆ รีเฟรชในรอบถัดไป
     invalidateAllReportCaches();
   } else {
     toast(res.message, 'error');
@@ -1155,21 +1223,16 @@ async function downloadPdf() {
   const monthVal = document.getElementById('pdfMonthSelect').value;
   const academicYear = document.getElementById('reportYear').value;
   if (!monthVal) return toast('กรุณาเลือกเดือน', 'error');
-  
   const btn = document.getElementById('confirmPdfBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังสร้าง...';
-  
   const res = await api('exportPDF', { monthStr: monthVal, academicYear: academicYear });
-  
   btn.disabled = false; btn.textContent = 'ดาวน์โหลด';
-  
   if (res.success && res.downloadUrl) {
     const downloadLink = document.createElement("a");
     downloadLink.href = res.downloadUrl;
     downloadLink.target = "_blank";
     downloadLink.download = `Report_${monthVal}_${academicYear}.pdf`;
     downloadLink.click();
-    
     toast('ดาวน์โหลด PDF สำเร็จ');
     closePdfModal();
   } else {
