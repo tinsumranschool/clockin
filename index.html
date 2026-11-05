@@ -206,7 +206,6 @@ td{padding:12px 10px;border-bottom:1px solid var(--bg-pattern);vertical-align:mi
 tr:last-child td{border-bottom:none}
 .table-name{font-weight:600;color:var(--text-main)}
 
-/* 🟢 Skeleton Loading Animation */
 .skeleton-row td {
   position: relative;
   overflow: hidden;
@@ -302,7 +301,6 @@ tr:last-child td{border-bottom:none}
 
 <div class="wrapper">
 
-  <!-- AUTH SCREEN -->
   <div id="authScreen" class="screen active">
     <header class="brand">
       <h1 class="brand-title">ลงเวลาทำงาน</h1>
@@ -358,7 +356,6 @@ tr:last-child td{border-bottom:none}
     </div>
   </div>
 
-  <!-- DASHBOARD -->
   <div id="dashboardScreen" class="screen">
     <header class="app-header">
       <div class="user-info">
@@ -442,7 +439,7 @@ tr:last-child td{border-bottom:none}
       <div class="section-title">
         <div style="display:flex; align-items:center; gap:10px;">
           <span>📊 รายงานประจำวัน <span class="live-indicator"><span class="live-dot"></span>LIVE</span></span>
-          <button class="btn-sm btn-neutral" onclick="loadDailyReport()" title="รีเฟรช">🔄</button>
+          <button class="btn-sm btn-neutral" onclick="loadDailyReport(true)" title="รีเฟรช">🔄</button>
         </div>
         <input type="date" id="dailyDate" class="input" style="width:auto;padding:6px 10px;font-size:.85rem">
       </div>
@@ -459,7 +456,6 @@ tr:last-child td{border-bottom:none}
     </div>
   </div>
 
-  <!-- REPORTS SCREEN -->
   <div id="reportsScreen" class="screen">
     <header class="app-header">
       <div class="user-info">
@@ -528,7 +524,6 @@ tr:last-child td{border-bottom:none}
     </div>
   </div>
 
-  <!-- PROFILE SCREEN -->
   <div id="profileScreen" class="screen">
     <header class="app-header">
       <div class="user-info">
@@ -596,7 +591,6 @@ tr:last-child td{border-bottom:none}
     </div>
   </div>
 
-  <!-- ADMIN SCREEN -->
   <div id="adminScreen" class="screen">
     <header class="app-header">
       <button class="icon-btn" onclick="showScreen('dashboardScreen')">🔙</button>
@@ -662,17 +656,14 @@ tr:last-child td{border-bottom:none}
 
 </div>
 
-<!-- BOTTOM NAV -->
 <div class="bottom-nav" id="bottomNav">
   <div class="nav-item active" onclick="navTo('dashboardScreen', this)"><span class="nav-icon">🏠</span> หน้าหลัก</div>
   <div class="nav-item" onclick="navTo('reportsScreen', this)"><span class="nav-icon">📈</span> รายงานผล</div>
   <div class="nav-item" onclick="navTo('profileScreen', this)"><span class="nav-icon">👤</span> โปรไฟล์</div>
 </div>
 
-<!-- Toast -->
 <div class="toast" id="toast"><span id="toastIcon">📋</span><span id="toastMsg"></span></div>
 
-<!-- MODAL PDF -->
 <div class="modal-overlay" id="pdfModal">
   <div class="modal">
     <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">📄 ดาวน์โหลดรายงาน PDF</h3>
@@ -701,7 +692,6 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- MODAL EDIT USER (ADMIN) -->
 <div class="modal-overlay" id="editUserModal">
   <div class="modal">
     <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">✏️ แก้ไขข้อมูลผู้ใช้</h3>
@@ -755,7 +745,6 @@ tr:last-child td{border-bottom:none}
   </div>
 </div>
 
-<!-- MODAL EDIT ATTENDANCE (ADMIN/ผอ.) -->
 <div class="modal-overlay" id="editAttendanceModal">
   <div class="modal">
     <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">✏️ แก้ไขประวัติการลงเวลา</h3>
@@ -801,8 +790,16 @@ const state = {
   dailyLoading: false,
   todayRecord: null, 
   todayLeave: null,
-  todayPendingLeave: null
+  todayPendingLeave: null,
+  // 🟢 Performance caches
+  lastStatusFetch: 0,
+  lastDailyFetch: { date: '', ts: 0 },
+  reportsCache: { key: '', ts: 0, data: null }
 };
+
+const CACHE_TTL_STATUS = 10000;   // 10s
+const CACHE_TTL_DAILY  = 10000;   // 10s
+const CACHE_TTL_REPORTS = 15000;  // 15s
 
 function getLocalDateStr(d = new Date()) {
   const yyyy = d.getFullYear();
@@ -907,10 +904,9 @@ function showScreen(name) {
     } else {
       document.getElementById('attendanceForm').style.display = 'block';
       document.getElementById('adminNotice').style.display = 'none';
-      checkTodayStatus();
+      checkTodayStatus();  // internal cache prevents duplicate fetch
     }
-    // ไม่ต้อง Polling ถี่ๆ แล้ว ให้ดึงข้อมูลก็ต่อเมื่อเปลี่ยนหน้า
-    loadDailyReport();
+    loadDailyReport();      // internal cache prevents duplicate fetch
   }
 
   if (name === 'reportsScreen') {
@@ -1013,6 +1009,11 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
 
   state.token = res.token; state.user = res.user;
+  // Reset caches
+  state.lastStatusFetch = 0;
+  state.lastDailyFetch = { date: '', ts: 0 };
+  state.reportsCache = { key: '', ts: 0, data: null };
+
   if (remember) {
     localStorage.setItem('tt_token', res.token);
     localStorage.setItem('tt_user', JSON.stringify(res.user));
@@ -1022,60 +1023,58 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   }
   
   sessionStorage.removeItem('voicePlayed');
-  await initUserSession(); // 🟢 เรียกแค่ครั้งเดียว (รวบรวมข้อมูล)
+  await initUserSession();
   state.loadingAuth = false; btn.disabled = false; btn.textContent = '🚀 เข้าสู่ระบบ';
 });
 
-// 🟢 ปรับปรุง initUserSession ให้ดึงข้อมูลทั้งหมดในครั้งเดียว
 async function initUserSession() {
-  if (!state.user || !state.token) return;
+  if (!state.user || !state.token) return false;
   
-  // เรียก API ตัวใหม่ที่รวบรวมข้อมูลทั้งหมดมาให้
   const res = await api('getInitData');
   
-  if (res.success) {
-    state.settings = res.settings;
-    state.user = res.user; // อัปเดตข้อมูลล่าสุด
-    state.todayRecord = res.todayRecord;
-    state.todayLeave = res.todayLeave;
-    state.todayPendingLeave = res.todayPendingLeave;
-
-    // อัปเดต UI ข้อมูลผู้ใช้
-    document.getElementById('dashName').textContent = state.user.fullName;
-    const displayPos = state.user.position || 'ครู';
-    document.getElementById('dashRole').textContent = `${state.user.username} · ${displayPos}`;
-    document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/46';
-    
-    const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
-    document.getElementById('adminBtn').style.display = isAdminOrDirector ? 'flex' : 'none';
-
-    // อัปเดต UI Settings
-    document.getElementById('setAcademicYear').value = res.settings.academicYear || '';
-    document.getElementById('setTerm1Start').value = res.settings.term1Start || '';
-    document.getElementById('setTerm1End').value = res.settings.term1End || '';
-    document.getElementById('setTerm2Start').value = res.settings.term2Start || '';
-    document.getElementById('setTerm2End').value = res.settings.term2End || '';
-    document.getElementById('setOfficeName').value = res.settings.officeName || '';
-    document.getElementById('setOfficeLat').value = res.settings.officeLat || '';
-    document.getElementById('setOfficeLng').value = res.settings.officeLng || '';
-    document.getElementById('setRadius').value = res.settings.radius || '';
-    document.getElementById('setStrictReg').checked = !!res.settings.strictRegistration;
-
-    // อัปเดต UI ปุ่ม
-    updateActionButtonsUI();
-
-    // ตั้งค่าวันที่
-    const dd = document.getElementById('dailyDate');
-    if (dd) {
-      dd.value = getLocalDateStr();
-      state.dailyDateAuto = true;
-    }
-
-    if (isAdminOrDirector) checkPendingCounts();
-
-    showScreen('dashboardScreen');
-    loadDailyReport(); // แสดงตารางรายงานประจำวันทันที
+  if (!res.success) {
+    toast(res.message || 'ไม่สามารถโหลดข้อมูลได้', 'error');
+    return false;
   }
+  
+  state.settings = res.settings;
+  state.user = res.user;
+  state.todayRecord = res.todayRecord;
+  state.todayLeave = res.todayLeave;
+  state.todayPendingLeave = res.todayPendingLeave;
+  state.lastStatusFetch = Date.now();  // mark fresh
+
+  document.getElementById('dashName').textContent = state.user.fullName;
+  const displayPos = state.user.position || 'ครู';
+  document.getElementById('dashRole').textContent = `${state.user.username} · ${displayPos}`;
+  document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/46';
+  
+  const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
+  document.getElementById('adminBtn').style.display = isAdminOrDirector ? 'flex' : 'none';
+
+  document.getElementById('setAcademicYear').value = res.settings.academicYear || '';
+  document.getElementById('setTerm1Start').value = res.settings.term1Start || '';
+  document.getElementById('setTerm1End').value = res.settings.term1End || '';
+  document.getElementById('setTerm2Start').value = res.settings.term2Start || '';
+  document.getElementById('setTerm2End').value = res.settings.term2End || '';
+  document.getElementById('setOfficeName').value = res.settings.officeName || '';
+  document.getElementById('setOfficeLat').value = res.settings.officeLat || '';
+  document.getElementById('setOfficeLng').value = res.settings.officeLng || '';
+  document.getElementById('setRadius').value = res.settings.radius || '';
+  document.getElementById('setStrictReg').checked = !!res.settings.strictRegistration;
+
+  updateActionButtonsUI();
+
+  const dd = document.getElementById('dailyDate');
+  if (dd) {
+    dd.value = getLocalDateStr();
+    state.dailyDateAuto = true;
+  }
+
+  if (isAdminOrDirector) checkPendingCounts();
+
+  showScreen('dashboardScreen');
+  return true;
 }
 
 async function checkPendingCounts() {
@@ -1097,15 +1096,13 @@ async function checkPendingCounts() {
 
 (async function checkAuth() {
   if (!state.token || !state.user) return;
-  const r = await api('getMyInfo');
-  if (r.success) { 
-    state.user = r.user; 
-    localStorage.setItem('tt_user', JSON.stringify(r.user));
-    await initUserSession(); 
-  }
-  else { 
-    localStorage.removeItem('tt_token'); 
-    localStorage.removeItem('tt_user'); 
+  const ok = await initUserSession();
+  if (!ok) {
+    localStorage.removeItem('tt_token');
+    localStorage.removeItem('tt_user');
+    state.token = '';
+    state.user = null;
+    showScreen('authScreen');
   }
 })();
 
@@ -1117,20 +1114,26 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   state.token = ''; state.user = null;
   if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
   state.dailyDateAuto = true;
+  state.lastStatusFetch = 0;
+  state.lastDailyFetch = { date: '', ts: 0 };
+  state.reportsCache = { key: '', ts: 0, data: null };
   document.getElementById('dailyDate').value = '';
   showScreen('authScreen'); 
   toast('ออกจากระบบแล้ว');
 });
 
-// เปลี่ยน checkTodayStatus ให้ใช้ข้อมูลจาก state แทน (เร็วกว่า)
-// ถ้าต้องการอัปเดตจริงๆ ให้เรียก getInitData ใหม่
-async function checkTodayStatus() {
+async function checkTodayStatus(force = false) {
   if (!state.user || state.user.role === 'admin') return;
-  const res = await api('getInitData');
+  if (!force && Date.now() - state.lastStatusFetch < CACHE_TTL_STATUS) {
+    updateActionButtonsUI();
+    return;
+  }
+  const res = await api('getTodayStatus');
   if (res.success) {
-    state.todayRecord = res.todayRecord;
-    state.todayLeave = res.todayLeave;
-    state.todayPendingLeave = res.todayPendingLeave;
+    state.todayRecord = res.record;
+    state.todayLeave = res.leave;
+    state.todayPendingLeave = res.pendingLeave;
+    state.lastStatusFetch = Date.now();
     updateActionButtonsUI();
   }
 }
@@ -1282,8 +1285,9 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
       document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
       state.selectedAction = null;
       
-      loadDailyReport(); 
-      checkTodayStatus();
+      // Force reload (user just acted)
+      loadDailyReport(true); 
+      checkTodayStatus(true);
       if (state.user.position === 'ผอ.' || state.user.role === 'admin') checkPendingCounts();
     } else toast(res.message, 'error');
   } catch (err) { toast(err.message, 'error'); } 
@@ -1293,24 +1297,29 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
 document.getElementById('dailyDate').addEventListener('change', () => {
   const picked = document.getElementById('dailyDate').value;
   state.dailyDateAuto = (picked === getLocalDateStr());
-  loadDailyReport();
+  loadDailyReport(true);  // force on date change
 });
 
-async function loadDailyReport() {
+async function loadDailyReport(force = false) {
   if (state.dailyLoading) return;
   const dd = document.getElementById('dailyDate');
   if (!dd) return;
 
   if (state.dailyDateAuto) {
     const today = getLocalDateStr();
-    if (dd.value !== today) dd.value = today;
+    if (dd.value !== today) { dd.value = today; force = true; }
   }
   if (!dd.value) return;
+
+  const cacheKey = dd.value;
+  if (!force && state.lastDailyFetch.date === cacheKey 
+      && (Date.now() - state.lastDailyFetch.ts) < CACHE_TTL_DAILY) {
+    return; // cache hit
+  }
 
   state.dailyLoading = true;
   const tbody = document.getElementById('dailyReportBody');
   
-  // แสดง Skeleton Loading ทันที
   if(!tbody.querySelector('.skeleton-row')){
     tbody.innerHTML = `
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
@@ -1327,17 +1336,16 @@ async function loadDailyReport() {
       tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`; return;
     }
     if (!res.records || res.records.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในวันนี้</td></tr>'; return;
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในวันนี้</td></tr>';
+      state.lastDailyFetch = { date: cacheKey, ts: Date.now() };
+      return;
     }
 
     tbody.innerHTML = res.records.map(r => {
       let displayNote = r.note || '-';
-      if (displayNote.includes('ลาครึ่งเช้า') || displayNote.includes('ลาครึ่งบ่าย') || displayNote.includes('ลาทั้งวัน') || displayNote.includes('ลาหลายวัน') || displayNote.includes('ไปราชการ')) {
-        // Keep as is
-      } else {
+      if (!(displayNote.includes('ลาครึ่งเช้า') || displayNote.includes('ลาครึ่งบ่าย') || displayNote.includes('ลาทั้งวัน') || displayNote.includes('ลาหลายวัน') || displayNote.includes('ไปราชการ'))) {
         displayNote = '-';
       }
-
       return `
       <tr>
         <td class="table-name">${r.fullName}</td>
@@ -1346,21 +1354,39 @@ async function loadDailyReport() {
         <td>${displayNote}</td>
       </tr>
     `}).join('');
+    state.lastDailyFetch = { date: cacheKey, ts: Date.now() };
   } finally {
     state.dailyLoading = false;
   }
 }
 
-document.getElementById('reportYear').addEventListener('change', loadReports);
-document.getElementById('reportTerm').addEventListener('change', loadReports);
-document.getElementById('reportMonth').addEventListener('change', loadReports);
+document.getElementById('reportYear').addEventListener('change', () => loadReports(true));
+document.getElementById('reportTerm').addEventListener('change', () => loadReports(true));
+document.getElementById('reportMonth').addEventListener('change', () => loadReports(true));
 
-async function loadReports() {
+async function loadReports(force = false) {
   if (state.reportsLoading) return;
+  
+  const year = document.getElementById('reportYear').value;
+  const term = document.getElementById('reportTerm').value;
+  const month = document.getElementById('reportMonth').value;
+  
+  if (!year || !term) {
+    document.getElementById('termReportBody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">กรุณาระบุปีการศึกษา</td></tr>';
+    return;
+  }
+
+  const cacheKey = `${year}|${term}|${month}|${state.user.username}`;
+  if (!force && state.reportsCache.key === cacheKey 
+      && (Date.now() - state.reportsCache.ts) < CACHE_TTL_REPORTS
+      && state.reportsCache.data) {
+    renderReportsTable(state.reportsCache.data);
+    return;
+  }
+
   state.reportsLoading = true;
   const tbody = document.getElementById('termReportBody');
   
-  // แสดง Skeleton Loading
   if(!tbody.querySelector('.skeleton-row')){
     tbody.innerHTML = `
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
@@ -1369,42 +1395,37 @@ async function loadReports() {
   }
 
   try {
-    const year = document.getElementById('reportYear').value;
-    const term = document.getElementById('reportTerm').value;
-    const month = document.getElementById('reportMonth').value;
-
-    if (!year || !term) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">กรุณาระบุปีการศึกษา</td></tr>';
-      return;
-    }
-
     const res = await api('getReports', { year, term, month });
     if (!res.success) { 
       tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`;
       return; 
     }
     
-    if (!res.records || res.records.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>'; return;
-    }
-
-    const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
-    
-    tbody.innerHTML = res.records.map(r => `
-      <tr>
-        <td>${isAdminOrDirector ? `<b>${r.name}</b><br><span style="font-size:0.75rem;color:var(--text-muted)">${r.date}</span>` : r.date}</td>
-        <td style="color:var(--success);font-weight:700">${r.inTime}</td>
-        <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
-        <td>${r.note}</td>
-        ${isAdminOrDirector ? `<td><button class="btn-sm btn-warning" onclick="openEditAttendance('${r.name.replace(/'/g, "\\'")}', '${r.date}', '${r.inTime}', '${r.outTime}', '${(r.note || '').replace(/'/g, "\\'")}')">✏️ แก้ไข</button></td>` : ''}
-      </tr>
-    `).join('');
+    state.reportsCache = { key: cacheKey, ts: Date.now(), data: res.records || [] };
+    renderReportsTable(res.records || []);
   } finally {
     state.reportsLoading = false;
   }
 }
 
-// 🟢 ฟังก์ชันเปิด Modal แก้ไขเวลา
+function renderReportsTable(records) {
+  const tbody = document.getElementById('termReportBody');
+  if (!records || records.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>';
+    return;
+  }
+  const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
+  tbody.innerHTML = records.map(r => `
+    <tr>
+      <td>${isAdminOrDirector ? `<b>${r.name}</b><br><span style="font-size:0.75rem;color:var(--text-muted)">${r.date}</span>` : r.date}</td>
+      <td style="color:var(--success);font-weight:700">${r.inTime}</td>
+      <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
+      <td>${r.note}</td>
+      ${isAdminOrDirector ? `<td><button class="btn-sm btn-warning" onclick="openEditAttendance('${r.name.replace(/'/g, "\\'")}', '${r.date}', '${r.inTime}', '${r.outTime}', '${(r.note || '').replace(/'/g, "\\'")}')">✏️ แก้ไข</button></td>` : ''}
+    </tr>
+  `).join('');
+}
+
 function openEditAttendance(name, date, inTime, outTime, note) {
   document.getElementById('editAttName').value = name;
   document.getElementById('editAttOrigDate').value = date;
@@ -1420,7 +1441,6 @@ function closeEditAttendanceModal() {
   document.getElementById('editAttendanceModal').classList.remove('show');
 }
 
-// 🟢 ฟังก์ชันบันทึกการแก้ไขเวลา
 async function saveEditAttendance() {
   const btn = document.getElementById('saveEditAttBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
@@ -1442,7 +1462,7 @@ async function saveEditAttendance() {
   if (res.success) {
     toast(res.message);
     closeEditAttendanceModal();
-    loadReports(); // รีโหลดข้อมูลใหม่
+    loadReports(true);
   } else {
     toast(res.message, 'error');
   }
@@ -1561,7 +1581,8 @@ document.getElementById('profileForm').addEventListener('submit', async (e) => {
     state.user = res.user;
     localStorage.setItem('tt_user', JSON.stringify(res.user));
     state.profilePicBase64 = null; state.signatureBase64 = null;
-    initUserSession(); updateProfileUI();
+    await initUserSession();
+    updateProfileUI();
   } else toast(res.message, 'error');
 });
 
