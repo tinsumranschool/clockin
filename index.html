@@ -346,6 +346,13 @@ tr:last-child td{border-bottom:none}
         <div id="clockDate" style="font-size:.9rem;color:var(--text-muted);margin-top:4px;font-weight:600;"></div>
       </div>
 
+      <!-- 🟢 ข้อความสำหรับแอดมิน -->
+      <div id="adminNotice" style="display:none; text-align:center; padding:20px; background:var(--bg-pattern); border-radius:12px; border:2px dashed var(--border-color); margin-bottom:16px;">
+        <div style="font-size:2rem; margin-bottom:8px;">👑</div>
+        <div style="font-weight:700; font-size:1.1rem;">ยินดีต้อนรับแอดมิน</div>
+        <div style="font-size:.85rem; color:var(--text-muted);">แอดมินไม่ต้องลงเวลาทำงาน<br>สามารถจัดการระบบได้ที่ปุ่ม ⚙️ ด้านบน</div>
+      </div>
+
       <div class="gps-status" id="gpsStatus" style="display:none;">
         <span>📍</span><span></span>
       </div>
@@ -705,6 +712,14 @@ function showScreen(name) {
 
   if (name === 'reportsScreen') loadReports();
   if (name === 'dashboardScreen' && state.user) {
+    // 🟢 ซ่อนฟอร์มลงเวลาสำหรับแอดมิน
+    if (state.user.role === 'admin') {
+      document.getElementById('attendanceForm').style.display = 'none';
+      document.getElementById('adminNotice').style.display = 'block';
+    } else {
+      document.getElementById('attendanceForm').style.display = 'block';
+      document.getElementById('adminNotice').style.display = 'none';
+    }
     loadDailyReport();
     state.pollTimer = setInterval(loadDailyReport, 10000);
   }
@@ -987,7 +1002,6 @@ async function loadDailyReport() {
   }
 
   tbody.innerHTML = res.records.map(r => {
-    // แสดงเฉพาะหมายเหตุ ถ้าเป็น ลา หรือ ไปราชการ
     let displayNote = '-';
     if (r.note && (r.note.includes('ลา') || r.note.includes('ไปราชการ') || r.note.includes('มาสาย'))) {
       displayNote = r.note;
