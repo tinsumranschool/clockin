@@ -1384,7 +1384,7 @@ async function saveEditAttendance() {
     toast(res.message);
     closeEditAttendanceModal();
     
-    // 🟢 บังคับรีเฟรชทุกหน้า
+    // 🟢 บังคับรีเฟรชทุกหน้าแบบ 100%
     invalidateAllReportCaches();
     loadReports(true);
     loadDailyReport(true);
