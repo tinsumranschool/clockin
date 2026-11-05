@@ -855,7 +855,9 @@ function showScreen(name) {
   }
 
   if (name === 'reportsScreen') {
-    document.getElementById('reportHeaderRole').textContent = state.user.role === 'admin' ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
+    // 🟢 FIX: ตรวจสอบสิทธิ์ให้ถูกต้อง (Admin หรือ ผอ.)
+    const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
+    document.getElementById('reportHeaderRole').textContent = isAdminOrDirector ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
     initReportsDefaults();
     loadReports();
     state.pollTimer = setInterval(loadReports, 30000);
@@ -1095,7 +1097,6 @@ function updateActionButtonsUI() {
     btn.classList.remove('active');
   });
 
-  // Lock based on todayRecord
   if (state.todayRecord) {
     if (state.todayRecord.inTime && state.todayRecord.inTime !== '-' && state.todayRecord.inTime !== '') {
       const btnIn = document.querySelector('.action-btn[data-action="เข้างาน"]');
@@ -1107,23 +1108,19 @@ function updateActionButtonsUI() {
     }
   }
 
-  // Loophole 6: Lock everything if there is a pending leave
   if (state.todayPendingLeave) {
     btns.forEach(btn => btn.disabled = true);
     toast('คุณมีคำขอที่รอการอนุมัติอยู่ ไม่สามารถลงเวลาได้', 'error');
   }
 
-  // Approved leave constraints
   if (state.todayLeave) {
     const type = state.todayLeave.type;
     if (type !== 'ลาครึ่งเช้า' && type !== 'ลาครึ่งบ่าย') {
-      // Lock check-in/check-out for full day, multi day, OB
       const btnIn = document.querySelector('.action-btn[data-action="เข้างาน"]');
       const btnOut = document.querySelector('.action-btn[data-action="ออกงาน"]');
       if(btnIn) { btnIn.disabled = true; btnIn.classList.add('active'); }
       if(btnOut) { btnOut.disabled = true; btnOut.classList.add('active'); }
     } else {
-      // Allow manual check-in/out for half days
       const btnLeave = document.querySelector('.action-btn[data-action="ลา"]');
       if(btnLeave) { btnLeave.disabled = true; btnLeave.classList.add('active'); }
     }
@@ -1328,9 +1325,12 @@ async function loadReports() {
       tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>'; return;
     }
 
+    // 🟢 FIX: เช็คสิทธิ์ให้ถูกต้อง (Admin หรือ ผอ.)
+    const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
+    
     tbody.innerHTML = res.records.map(r => `
       <tr>
-        <td>${state.user.role === 'admin' || state.user.position === 'ผอ.' ? `<b>${r.name}</b><br><span style="font-size:0.75rem;color:var(--text-muted)">${r.date}</span>` : r.date}</td>
+        <td>${isAdminOrDirector ? `<b>${r.name}</b><br><span style="font-size:0.75rem;color:var(--text-muted)">${r.date}</span>` : r.date}</td>
         <td style="color:var(--success);font-weight:700">${r.inTime}</td>
         <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
         <td>${r.note}</td>
