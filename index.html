@@ -206,6 +206,25 @@ td{padding:12px 10px;border-bottom:1px solid var(--bg-pattern);vertical-align:mi
 tr:last-child td{border-bottom:none}
 .table-name{font-weight:600;color:var(--text-main)}
 
+/* 🟢 Skeleton Loading Animation */
+.skeleton-row td {
+  position: relative;
+  overflow: hidden;
+  background-color: #f8f8f8;
+  color: transparent !important;
+}
+.skeleton-row td::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+  transform: translateX(-100%);
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+
 .modal-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
 .modal{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:20px;padding:24px;max-width:480px;width:100%;box-shadow:6px 6px 0px var(--border-color); max-height:90vh; overflow-y:auto;}
@@ -421,14 +440,19 @@ tr:last-child td{border-bottom:none}
 
     <div class="card">
       <div class="section-title">
-        <span>📊 รายงานประจำวัน <span class="live-indicator"><span class="live-dot"></span>LIVE</span></span>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span>📊 รายงานประจำวัน <span class="live-indicator"><span class="live-dot"></span>LIVE</span></span>
+          <button class="btn-sm btn-neutral" onclick="loadDailyReport()" title="รีเฟรช">🔄</button>
+        </div>
         <input type="date" id="dailyDate" class="input" style="width:auto;padding:6px 10px;font-size:.85rem">
       </div>
       <div class="table-wrap">
         <table>
           <thead><tr><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th></tr></thead>
           <tbody id="dailyReportBody">
-            <tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr>
+            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
+            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
+            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -478,7 +502,8 @@ tr:last-child td{border-bottom:none}
         </div>
       </div>
       
-      <div class="section-title" style="margin-bottom:10px; justify-content:flex-end">
+      <div class="section-title" style="margin-bottom:10px; justify-content:space-between">
+        <button class="btn-sm btn-neutral" onclick="loadReports()">🔄 รีเฟรชข้อมูล</button>
         <button class="btn-sm btn-cyan" id="exportPdfBtn">📄 ดาวน์โหลด PDF (เลือกเดือน)</button>
       </div>
 
@@ -493,7 +518,11 @@ tr:last-child td{border-bottom:none}
               <th id="editColHeader" style="display:none;">จัดการ</th>
             </tr>
           </thead>
-          <tbody id="termReportBody"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
+          <tbody id="termReportBody">
+            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
+            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
+            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
+          </tbody>
         </table>
       </div>
     </div>
@@ -881,20 +910,17 @@ function showScreen(name) {
       checkTodayStatus();
     }
     loadDailyReport();
-    state.pollTimer = setInterval(loadDailyReport, 10000);
+    state.pollTimer = setInterval(loadDailyReport, 30000); // 🟢 ลดความถี่เป็น 30 วินาที
   }
 
   if (name === 'reportsScreen') {
-    // 🟢 FIX: ตรวจสอบสิทธิ์ให้ถูกต้อง (Admin หรือ ผอ.)
     const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
     document.getElementById('reportHeaderRole').textContent = isAdminOrDirector ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
-    
-    // 🟢 แสดง/ซ่อนคอลัมน์จัดการ ตามสิทธิ์
     document.getElementById('editColHeader').style.display = isAdminOrDirector ? 'table-cell' : 'none';
     
     initReportsDefaults();
     loadReports();
-    state.pollTimer = setInterval(loadReports, 30000);
+    state.pollTimer = setInterval(loadReports, 60000); // 🟢 ลดความถี่เป็น 60 วินาที
   }
 
   if (name === 'profileScreen') updateProfileUI();
@@ -1297,11 +1323,20 @@ async function loadDailyReport() {
   if (!dd.value) return;
 
   state.dailyLoading = true;
+  const tbody = document.getElementById('dailyReportBody');
+  
+  // แสดง Skeleton Loading ทันที
+  if(!tbody.querySelector('.skeleton-row')){
+    tbody.innerHTML = `
+      <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
+      <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
+    `;
+  }
+
   try {
     const parts = dd.value.split('-');
     const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
     
-    const tbody = document.getElementById('dailyReportBody');
     const res = await api('getDailyReport', { date: formattedDate });
     if (!res.success) {
       tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`; return;
@@ -1339,6 +1374,15 @@ async function loadReports() {
   if (state.reportsLoading) return;
   state.reportsLoading = true;
   const tbody = document.getElementById('termReportBody');
+  
+  // แสดง Skeleton Loading
+  if(!tbody.querySelector('.skeleton-row')){
+    tbody.innerHTML = `
+      <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
+      <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
+    `;
+  }
+
   try {
     const year = document.getElementById('reportYear').value;
     const term = document.getElementById('reportTerm').value;
