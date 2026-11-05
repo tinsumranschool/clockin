@@ -511,15 +511,14 @@ document.body.addEventListener('click', function initWelcome() {
 }, { once: true });
 
 // ============================================================
-// CONFIG & STATE
+// ⚡ CONFIG & STATE — REAL-TIME SYNC EDITION
 // ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 
-// 🟢 FIX: ลด polling จาก 15 วิ → 8 วิ
-const POLL_INTERVAL_MS = 8000;
-// 🟢 FIX: ลด client cache TTL เพื่อให้รีเฟรชบ่อยขึ้น
-const CACHE_TTL_REPORTS = 60 * 1000;
-const CACHE_TTL_DAILY   = 30 * 1000;
+// 🟢 NEW: Polling 3 วินาที เพื่อ sync แบบทันที
+const POLL_INTERVAL_MS = 3000;
+const CACHE_TTL_REPORTS = 10 * 1000;
+const CACHE_TTL_DAILY   = 10 * 1000;
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
@@ -539,6 +538,8 @@ const state = {
   todayPendingLeave: null,
   lastStatusFetch: 0,
   lastSync: 0,
+  // 🟢 NEW: Data version tracking
+  dataVersion: null,
   reportsCache: {},
   reportsLoadingKey: null,
   reportsInited: false,
@@ -561,7 +562,7 @@ function updateSyncIndicator() {
   const sec = Math.floor((Date.now() - state.lastSync) / 1000);
   el.textContent = sec < 60 ? `🟢 ซิงค์ล่าสุด: ${sec} วิที่แล้ว` : `🟡 ซิงค์ล่าสุด: ${Math.floor(sec/60)} นาทีที่แล้ว`;
 }
-setInterval(updateSyncIndicator, 3000);
+setInterval(updateSyncIndicator, 2000);
 
 function computeCurrentTermClient() {
   if (!state.settings) return '1';
@@ -620,33 +621,41 @@ function clearAllCaches() {
   state.reportsCache = {}; state.reportsLoadingKey = null; state.reportsInited = false;
   state.dailyReportCache = {}; state.dailyLoadingKey = null;
   state.lastStatusFetch = 0; state.userDict = {};
+  state.dataVersion = null;
 }
 
+// 🟢 NEW: Unified real-time sync poll
 function startPolling() {
   if (state.pollTimer) clearInterval(state.pollTimer);
-  state.pollTimer = setInterval(() => {
+  state.pollTimer = setInterval(async () => {
     if (document.hidden) return;
     const activeScreen = document.querySelector('.screen.active');
     if (!activeScreen) return;
     if (activeScreen.id === 'dashboardScreen') {
-      // 🟢 FIX: force=true ให้ daily report ดึงข้อมูลสดทุกครั้ง
-      loadDailyReport(true, true);
-      checkTodayStatus(true);
+      // Poll status (updates buttons + version) + daily report
+      if (state.user && state.user.role !== 'admin') {
+        await checkTodayStatus(true);
+      }
+      await loadDailyReport(true, true);
     } else if (activeScreen.id === 'reportsScreen') {
-      loadReports(false, true);
+      await loadReports(true, true);
+    } else if (activeScreen.id === 'adminScreen') {
+      const activeTab = document.querySelector('#adminScreen .tab-content.active');
+      if (!activeTab) return;
+      if (activeTab.id === 'pendingTab') loadPending();
+      else if (activeTab.id === 'leavesTab') loadPendingLeaves();
     }
   }, POLL_INTERVAL_MS);
 }
 function stopPolling() { if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; } }
 
-// 🟢 FIX: ฟังก์ชัน refresh กลางที่เรียกใช้ได้จากทุกที่
 async function refreshDashboard(showToast = false) {
   const btn = document.getElementById('refreshDashBtn');
   if (btn) btn.classList.add('spinning');
   try {
     await Promise.all([
       loadDailyReport(true),
-      checkTodayStatus(true)
+      state.user && state.user.role !== 'admin' ? checkTodayStatus(true) : Promise.resolve()
     ]);
     state.lastSync = Date.now();
     updateSyncIndicator();
@@ -676,9 +685,9 @@ function showScreen(name) {
     } else {
       document.getElementById('attendanceForm').style.display = 'block';
       document.getElementById('adminNotice').style.display = 'none';
-      checkTodayStatus(true); // 🟢 FIX: force
+      checkTodayStatus(true);
     }
-    loadDailyReport(true); // 🟢 FIX: force
+    loadDailyReport(true);
   }
 
   if (name === 'reportsScreen') {
@@ -686,11 +695,11 @@ function showScreen(name) {
     document.getElementById('reportHeaderRole').textContent = isAdminOrDirector ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
     document.getElementById('editColHeader').style.display = isAdminOrDirector ? 'table-cell' : 'none';
     initReportsDefaults();
-    loadReports(true); // 🟢 FIX: force
+    loadReports(true);
   }
 
   if (name === 'profileScreen') updateProfileUI();
-  if (name === 'dashboardScreen' || name === 'reportsScreen') startPolling();
+  if (name === 'dashboardScreen' || name === 'reportsScreen' || name === 'adminScreen') startPolling();
   else stopPolling();
 }
 
@@ -779,6 +788,8 @@ async function initUserSession() {
   if (!res.success) { toast(res.message || 'ไม่สามารถโหลดข้อมูลได้', 'error'); return false; }
   state.settings = res.settings;
   state.user = res.user;
+  // 🟢 NEW: Track data version
+  if (res.settings.dataVersion) state.dataVersion = res.settings.dataVersion;
   state.todayRecord = res.todayRecord;
   state.todayLeave = res.todayLeave;
   state.todayPendingLeave = res.todayPendingLeave;
@@ -839,18 +850,27 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   await api('logout');
   localStorage.removeItem('tt_token'); localStorage.removeItem('tt_user');
   sessionStorage.removeItem('voicePlayed');
-  state.token = ''; state.user = null;
+  state.token = ''; state.user = null; state.dataVersion = null;
   clearAllCaches(); stopPolling();
   state.dailyDateAuto = true; document.getElementById('dailyDate').value = '';
   showScreen('authScreen');
   toast('ออกจากระบบแล้ว');
 });
 
+// 🟢 UPDATED: Real-time status check with version detection
 async function checkTodayStatus(force = false) {
   if (!state.user || state.user.role === 'admin') return;
-  if (!force && Date.now() - state.lastStatusFetch < 5000) { updateActionButtonsUI(); return; } // 🟢 ลด throttle 10→5 วิ
+  if (!force && Date.now() - state.lastStatusFetch < 2000) { updateActionButtonsUI(); return; }
   const res = await api('getTodayStatus');
   if (res.success) {
+    // Detect version change → invalidate ALL caches
+    const newVersion = res.dataVersion;
+    if (newVersion && state.dataVersion && newVersion !== state.dataVersion) {
+      console.log('[SYNC] Version changed:', state.dataVersion, '→', newVersion);
+      invalidateAllReportCaches();
+    }
+    if (newVersion) state.dataVersion = newVersion;
+
     state.todayRecord = res.record;
     state.todayLeave = res.leave;
     state.todayPendingLeave = res.pendingLeave;
@@ -865,7 +885,7 @@ function updateActionButtonsUI() {
   const btns = document.querySelectorAll('.action-btn');
   btns.forEach(btn => { btn.disabled = false; btn.classList.remove('active'); });
 
-  // 🟢 FIX: รีเซ็ต selection ที่ไม่สอดคล้อง
+  // Reset invalid selection
   if (state.selectedAction) {
     const sel = document.querySelector(`.action-btn[data-action="${state.selectedAction}"]`);
     const isStillValid = sel && !sel.disabled;
@@ -976,7 +996,7 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
       document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
       state.selectedAction = null;
       invalidateAllReportCaches();
-      // 🟢 FIX: force refresh ทุกหน้า
+      // Immediately refresh — no waiting for poll
       await loadDailyReport(true);
       await checkTodayStatus(true);
       if (state.user.position === 'ผอ.' || state.user.role === 'admin') checkPendingCounts();
@@ -991,7 +1011,6 @@ document.getElementById('dailyDate').addEventListener('change', () => {
   loadDailyReport(true);
 });
 
-// 🟢 FIX: ปุ่ม refresh ทั้งหน้า dashboard
 document.getElementById('refreshDashBtn').addEventListener('click', () => refreshDashboard(true));
 document.getElementById('refreshDailyBtn').addEventListener('click', async () => {
   await loadDailyReport(true);
@@ -1036,16 +1055,19 @@ async function loadDailyReport(force = false, isPolling = false) {
   const cached = state.dailyReportCache[cacheKey];
   const cacheAge = cached ? (Date.now() - cached.ts) : Infinity;
   const isStale = cacheAge > CACHE_TTL_DAILY;
-  const needsFetch = force || !cached || isStale;
+  // 🟢 Version mismatch forces refetch
+  const versionMismatch = cached && cached.version !== state.dataVersion;
+  const needsFetch = force || !cached || isStale || versionMismatch || isPolling;
 
-  if (cached) {
-    if (!isPolling) renderDailyReport(cached.data);
-    if (!needsFetch && !isPolling) return;
-  } else if (!isPolling) {
+  if (cached && !isPolling) {
+    renderDailyReport(cached.data);
+  } else if (!cached && !isPolling) {
     document.getElementById('dailyReportBody').innerHTML = `
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>`;
   }
+
+  if (!needsFetch) return;
 
   state.dailyLoadingKey = cacheKey;
   try {
@@ -1053,11 +1075,26 @@ async function loadDailyReport(force = false, isPolling = false) {
     const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
     const res = await api('getDailyReport', { date: formattedDate });
     if (dd.value !== cacheKey) return;
-    if (!res.success) { if (!cached && !isPolling) document.getElementById('dailyReportBody').innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`; return; }
+    if (!res.success) {
+      if (!cached && !isPolling) document.getElementById('dailyReportBody').innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`;
+      return;
+    }
+    // 🟢 Version detection
+    const newVersion = res.dataVersion;
+    if (newVersion && state.dataVersion && newVersion !== state.dataVersion) {
+      console.log('[SYNC] Daily version changed:', state.dataVersion, '→', newVersion);
+      invalidateAllReportCaches();
+      if (state.user && state.user.role !== 'admin') {
+        // Refresh button state too
+        checkTodayStatus(true);
+      }
+    }
+    if (newVersion) state.dataVersion = newVersion;
+
     const records = res.records || [];
     const newHash = JSON.stringify(records);
     const oldHash = cached ? JSON.stringify(cached.data) : '';
-    state.dailyReportCache[cacheKey] = { data: records, ts: Date.now() };
+    state.dailyReportCache[cacheKey] = { data: records, ts: Date.now(), version: newVersion };
     if (newHash !== oldHash || !isPolling) renderDailyReport(records);
     state.lastSync = Date.now();
     updateSyncIndicator();
@@ -1101,17 +1138,18 @@ async function loadReports(force = false, isPolling = false) {
   const cached = state.reportsCache[cacheKey];
   const cacheAge = cached ? (Date.now() - cached.ts) : Infinity;
   const isStale = cacheAge > CACHE_TTL_REPORTS;
-  const needsFetch = force || !cached || isStale;
+  const versionMismatch = cached && cached.version !== state.dataVersion;
+  const needsFetch = force || !cached || isStale || versionMismatch || isPolling;
 
-  if (cached) {
-    if (!isPolling) { renderReportsTable(cached.data); updateCacheIndicator(cached.ts); }
-    if (!needsFetch && !isPolling) return;
-  } else if (!isPolling) {
+  if (cached && !isPolling) { renderReportsTable(cached.data); updateCacheIndicator(cached.ts); }
+  else if (!cached && !isPolling) {
     document.getElementById('termReportBody').innerHTML = `
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>`;
     updateCacheIndicator(null);
   }
+
+  if (!needsFetch) return;
 
   state.reportsLoadingKey = cacheKey;
   try {
@@ -1119,11 +1157,21 @@ async function loadReports(force = false, isPolling = false) {
     const currentKey = `${document.getElementById('reportYear').value}|${document.getElementById('reportTerm').value}|${document.getElementById('reportMonth').value}`;
     if (currentKey !== cacheKey) return;
     if (!res.success) { if (!cached && !isPolling) document.getElementById('termReportBody').innerHTML = `<tr><td colspan="5" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`; return; }
+    // 🟢 Version detection
+    const newVersion = res.dataVersion;
+    if (newVersion && state.dataVersion && newVersion !== state.dataVersion) {
+      console.log('[SYNC] Reports version changed:', state.dataVersion, '→', newVersion);
+      invalidateAllReportCaches();
+    }
+    if (newVersion) state.dataVersion = newVersion;
+
     const records = res.records || [];
     const newHash = JSON.stringify(records);
     const oldHash = cached ? JSON.stringify(cached.data) : '';
-    state.reportsCache[cacheKey] = { data: records, ts: Date.now() };
+    state.reportsCache[cacheKey] = { data: records, ts: Date.now(), version: newVersion };
     if (newHash !== oldHash || !isPolling) { renderReportsTable(records); updateCacheIndicator(Date.now()); }
+    state.lastSync = Date.now();
+    updateSyncIndicator();
   } finally { if (state.reportsLoadingKey === cacheKey) state.reportsLoadingKey = null; }
 }
 
@@ -1168,6 +1216,7 @@ async function saveEditAttendance() {
     toast(res.message);
     closeEditAttendanceModal();
     invalidateAllReportCaches();
+    // Force full refresh
     await loadReports(true);
     await loadDailyReport(true);
     await checkTodayStatus(true);
@@ -1464,9 +1513,11 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   if (res.success) {
     toast(res.message);
     const fresh = await api('getInitData');
-    if (fresh.success) { state.settings = fresh.settings; state.user = fresh.user; localStorage.setItem('tt_user', JSON.stringify(fresh.user)); }
-    else {
-      state.settings = { ...state.settings, ...payload, strictRegistration: payload.strictRegistration };
+    if (fresh.success) {
+      state.settings = fresh.settings;
+      state.user = fresh.user;
+      if (fresh.settings.dataVersion) state.dataVersion = fresh.settings.dataVersion;
+      localStorage.setItem('tt_user', JSON.stringify(fresh.user));
     }
     state.reportsInited = false;
     invalidateAllReportCaches();
@@ -1478,7 +1529,7 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
 });
 
 // ============================================================
-// 🟢 FIX: Auto-refresh เมื่อกลับมาแท็บ (visibility / focus)
+// 🟢 AUTO-REFRESH on visibility / focus / pageshow
 // ============================================================
 function autoRefreshOnReturn() {
   if (!state.user || !state.token) return;
@@ -1489,23 +1540,20 @@ function autoRefreshOnReturn() {
   } else if (activeScreen.id === 'reportsScreen') {
     loadReports(true);
   } else if (activeScreen.id === 'adminScreen') {
-    loadPending(); loadPendingLeaves(); loadUsers();
+    const activeTab = document.querySelector('#adminScreen .tab-content.active');
+    if (activeTab) {
+      if (activeTab.id === 'pendingTab') loadPending();
+      else if (activeTab.id === 'leavesTab') loadPendingLeaves();
+    }
   }
 }
 
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden) {
-    // Tab กลับมาแสดง → รีเฟรชทันที
-    autoRefreshOnReturn();
-  }
+  if (!document.hidden) autoRefreshOnReturn();
 });
 
-window.addEventListener('focus', () => {
-  // Focus กลับมา → รีเฟรช
-  autoRefreshOnReturn();
-});
+window.addEventListener('focus', () => autoRefreshOnReturn());
 
-// 🟢 FIX: รีเฟรชทุกครั้งที่เปลี่ยนหน้า (ป้องกัน stale state)
 window.addEventListener('pageshow', (e) => {
   if (e.persisted && state.user) autoRefreshOnReturn();
 });
