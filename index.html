@@ -1153,8 +1153,23 @@ async function loadReports() {
 }
 
 function openPdfModal() {
-  const d = new Date();
-  document.getElementById('pdfMonth').value = d.toISOString().slice(0, 7);
+  const rYear = document.getElementById('reportYear').value;
+  const rMonth = document.getElementById('reportMonth').value;
+  
+  let yearCe = new Date().getFullYear();
+  let monthVal = String(new Date().getMonth() + 1).padStart(2, '0');
+
+  if (rYear) {
+    const parsedYear = parseInt(rYear);
+    if (!isNaN(parsedYear) && parsedYear > 2400) {
+      yearCe = parsedYear - 543;
+    }
+  }
+  if (rMonth !== 'all') {
+    monthVal = rMonth;
+  }
+
+  document.getElementById('pdfMonth').value = `${yearCe}-${monthVal}`;
   document.getElementById('pdfModal').classList.add('show');
 }
 function closePdfModal() {
@@ -1163,12 +1178,13 @@ function closePdfModal() {
 
 async function downloadPdf() {
   const monthVal = document.getElementById('pdfMonth').value;
+  const academicYear = document.getElementById('reportYear').value;
   if (!monthVal) return toast('กรุณาเลือกเดือน', 'error');
   
   const btn = document.getElementById('confirmPdfBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังสร้าง...';
   
-  const res = await api('exportPDF', { monthStr: monthVal });
+  const res = await api('exportPDF', { monthStr: monthVal, academicYear: academicYear });
   
   btn.disabled = false; btn.textContent = 'ดาวน์โหลด';
   
