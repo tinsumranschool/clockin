@@ -221,7 +221,6 @@ tr:hover td { background: var(--bg-color); }
         <button type="submit" class="submit-btn" id="submitBtn">📍 บันทึกข้อมูล</button>
       </form>
     </div>
-    <!-- ลบส่วนรายงานประจำวันออกแล้ว -->
   </div>
 
   <!-- REPORTS -->
@@ -525,12 +524,33 @@ const state = {
   reportsInited: false,
   pollTimer: null,
   userDict: {},
-  isPendingLeaveLocked: false
+  isPendingLeaveLocked: false,
+  isLoadingAdminLeaves: false // New flag to prevent UI flickering
 };
 
 function getLocalDateStr(d = new Date()) {
   const yyyy = d.getFullYear(), mm = String(d.getMonth() + 1).padStart(2, '0'), dd = String(d.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
+}
+
+// 🟢 Helper: แปลงวันที่ให้สวยงาม (รองรับ ISO String และ YYYY-MM-DD)
+function formatDisplayDate(dateVal) {
+  if (!dateVal) return '-';
+  let d;
+  if (typeof dateVal === 'string' && dateVal.includes('T')) {
+    d = new Date(dateVal);
+  } else if (typeof dateVal === 'string' && dateVal.includes('-') && dateVal.length >= 10) {
+    d = new Date(dateVal);
+  } else {
+    return dateVal; 
+  }
+  
+  if (isNaN(d.getTime())) return dateVal;
+
+  const day = String(d.getDate()).padStart(2, '0');
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const year = d.getFullYear() + 543;
+  return `${day}/${month}/${year}`;
 }
 
 function updateSyncIndicator() {
@@ -1201,9 +1221,14 @@ document.querySelectorAll('#adminScreen .tab').forEach(tab => {
 
 async function loadPending() {
   const box = document.getElementById('pendingList');
-  box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  if (!box.innerHTML.includes('pending-') && !box.innerHTML.includes('empty-state')) {
+    box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  }
   const res = await api('admin_listPending');
-  if (!res.success) return;
+  if (!res.success) {
+    if (box.innerHTML.includes('กำลังโหลด...')) box.innerHTML = `<div class="empty-state" style="color:var(--danger)">${res.message}</div>`;
+    return;
+  }
   if (res.users.length === 0) return box.innerHTML = '<div class="empty-state">ไม่มีผู้ใช้รออนุมัติ 🎉</div>';
   box.innerHTML = res.users.map(u => `
     <div id="pending-${u.username}" style="padding:14px;background:var(--bg-color);border-radius:12px;border:2px solid var(--border-color); box-shadow: 2px 2px 0 var(--border-color);">
@@ -1221,30 +1246,59 @@ window.approveUser = async (u) => {
   const r = await api('admin_approve', {username:u});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
+  else if (r.success) await loadPending();
 };
 window.rejectUser = async (u) => {
   const el = document.getElementById(`pending-${u}`); if (el) el.style.display = 'none';
   const r = await api('admin_reject', {username:u});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
+  else if (r.success) await loadPending();
 };
 
+// 🟢 แก้ไขฟังก์ชันโหลดใบลาให้ไม่กระพริบ และใช้ formatDisplayDate
 async function loadPendingLeaves() {
+  if (state.isLoadingAdminLeaves) return; // ป้องกันการยิงซ้ำซ้อน
+  state.isLoadingAdminLeaves = true;
+  
   const box = document.getElementById('leavesList');
-  box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
-  const res = await api('admin_getPendingLeaves');
-  if (!res.success) return;
-  if (res.leaves.length === 0) return box.innerHTML = '<div class="empty-state">ไม่มีรายการลารออนุมัติ 🎉</div>';
-  box.innerHTML = res.leaves.map(l => `
-    <div id="leave-${l.id}" style="padding:14px;background:var(--bg-color);border-radius:12px;border:2px solid var(--border-color); box-shadow: 2px 2px 0 var(--border-color);">
-      <div style="font-weight:700;font-size:1rem;">${l.fullName} <span style="color:var(--text-muted);font-size:.8rem;font-weight:500;">@${l.username}</span></div>
-      <div style="color:var(--primary);font-size:.85rem;font-weight:700;margin-top:4px;">ประเภท: ${l.type}</div>
-      <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px;font-weight:500;">${l.startDate} ถึง ${l.endDate} · เหตุผล: ${l.reason}</div>
-      <div style="display:flex;gap:10px;margin-top:12px;">
-        <button class="btn-sm btn-emerald" style="flex:1" onclick="approveLeave('${l.id}')">✓ อนุมัติ (ผอ.)</button>
-        <button class="btn-sm btn-danger" style="flex:1" onclick="rejectLeave('${l.id}')">✕ ปฏิเสธ</button>
-      </div>
-    </div>`).join('');
+  // ถ้ายังไม่มีข้อมูลให้ขึ้นโหลด แต่ถ้ามีข้อมูลแล้วให้เว้นไว้ (ป้องกันกระพริบ)
+  if (!box.innerHTML.includes('leave-') && !box.innerHTML.includes('empty-state')) {
+    box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  }
+
+  try {
+    const res = await api('admin_getPendingLeaves');
+    
+    if (!res.success) {
+      // ถ้าดึงไม่ได้ และยังไม่มีข้อมูลเดิมอยู่ ให้โชว์ Error
+      if (box.innerHTML.includes('กำลังโหลด...')) {
+        box.innerHTML = `<div class="empty-state" style="color:var(--danger)">โหลดไม่สำเร็จ: ${res.message}</div>`;
+      }
+      return;
+    }
+    
+    if (res.leaves.length === 0) {
+      box.innerHTML = '<div class="empty-state">ไม่มีรายการลารออนุมัติ 🎉</div>';
+      return;
+    }
+
+    // ใช้ formatDisplayDate จัดรูปแบบวันที่
+    box.innerHTML = res.leaves.map(l => `
+      <div id="leave-${l.id}" style="padding:14px;background:var(--bg-color);border-radius:12px;border:2px solid var(--border-color); box-shadow: 2px 2px 0 var(--border-color);">
+        <div style="font-weight:700;font-size:1rem;">${l.fullName} <span style="color:var(--text-muted);font-size:.8rem;font-weight:500;">@${l.username}</span></div>
+        <div style="color:var(--primary);font-size:.85rem;font-weight:700;margin-top:4px;">ประเภท: ${l.type}</div>
+        <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px;font-weight:500;">
+          ${formatDisplayDate(l.startDate)} ถึง ${formatDisplayDate(l.endDate)} · เหตุผล: ${l.reason}
+        </div>
+        <div style="display:flex;gap:10px;margin-top:12px;">
+          <button class="btn-sm btn-emerald" style="flex:1" onclick="approveLeave('${l.id}')">✓ อนุมัติ (ผอ.)</button>
+          <button class="btn-sm btn-danger" style="flex:1" onclick="rejectLeave('${l.id}')">✕ ปฏิเสธ</button>
+        </div>
+      </div>`).join('');
+  } finally {
+    state.isLoadingAdminLeaves = false;
+  }
 }
 
 window.approveLeave = async (id) => {
@@ -1252,21 +1306,36 @@ window.approveLeave = async (id) => {
   const r = await api('admin_approveLeave', {id:id});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
-  else if (r.success) { invalidateAllReportCaches(); checkPendingCounts(); await checkTodayStatus(true); }
+  else if (r.success) { 
+    invalidateAllReportCaches(); 
+    checkPendingCounts(); 
+    await checkTodayStatus(true); 
+    await loadPendingLeaves(); // อัปเดตรายการทันที
+  }
 };
 window.rejectLeave = async (id) => {
   const el = document.getElementById(`leave-${id}`); if (el) el.style.display = 'none';
   const r = await api('admin_rejectLeave', {id:id});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
-  else if (r.success) { invalidateAllReportCaches(); checkPendingCounts(); await checkTodayStatus(true); }
+  else if (r.success) { 
+    invalidateAllReportCaches(); 
+    checkPendingCounts(); 
+    await checkTodayStatus(true); 
+    await loadPendingLeaves(); // อัปเดตรายการทันที
+  }
 };
 
 async function loadUsers() {
   const box = document.getElementById('usersList');
-  box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  if (!box.innerHTML.includes('user-row') && !box.innerHTML.includes('empty-state')) {
+    box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
+  }
   const res = await api('admin_listUsers');
-  if (!res.success) return;
+  if (!res.success) {
+    if (box.innerHTML.includes('กำลังโหลด...')) box.innerHTML = `<div class="empty-state" style="color:var(--danger)">${res.message}</div>`;
+    return;
+  }
   box.innerHTML = res.users.map(u => {
     let picSrc = u.profilePic || null;
     let avatarHtml = picSrc
