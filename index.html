@@ -1682,4 +1682,18 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     term1Start: document.getElementById('setTerm1Start').value,
     term1End: document.getElementById('setTerm1End').value,
     term2Start: document.getElementById('setTerm2Start').value,
-    term2End: document
+    term2End: document.getElementById('setTerm2End').value
+  };
+  
+  const res = await api('admin_updateSettings', payload);
+  btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
+  
+  if (res.success) { 
+    toast(res.message); 
+    state.settings = null; 
+  }
+  else toast(res.message, 'error');
+});
+</script>
+</body>
+</html>
