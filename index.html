@@ -261,7 +261,6 @@ tr:last-child td{border-bottom:none}
 .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 
-/* 🟢 live dot สำหรับ daily report */
 .live-indicator{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--success);font-weight:700}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
@@ -410,7 +409,7 @@ tr:last-child td{border-bottom:none}
     <header class="app-header">
       <div class="user-info">
         <div class="user-name">📈 รายงานผล</div>
-        <div class="user-role">ข้อมูลของฉัน</div>
+        <div class="user-role" id="reportHeaderRole">ข้อมูลของฉัน</div>
       </div>
       <button class="icon-btn" onclick="showScreen('dashboardScreen')">🔙</button>
     </header>
@@ -454,7 +453,7 @@ tr:last-child td{border-bottom:none}
 
       <div class="table-wrap">
         <table>
-          <thead><tr><th>วันที่</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th></tr></thead>
+          <thead><tr><th>วันที่ / ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th></tr></thead>
           <tbody id="termReportBody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กำลังโหลด...</td></tr></tbody>
         </table>
       </div>
@@ -670,14 +669,11 @@ const state = {
   editUserPicBase64: null,
   editUserSigBase64: null,
   pollTimer: null,
-  dailyDateAuto: true,   // 🟢 true = ติดตามวันปัจจุบันอัตโนมัติ
+  dailyDateAuto: true,
   reportsLoading: false,
   dailyLoading: false
 };
 
-// ============================================================
-// 🟢 HELPER: วันที่แบบ local timezone (ไม่ใช้ UTC)
-// ============================================================
 function getLocalDateStr(d = new Date()) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -685,7 +681,6 @@ function getLocalDateStr(d = new Date()) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// 🟢 คำนวณเทอมปัจจุบันจาก settings (เหมือนฝั่ง backend)
 function computeCurrentTermClient() {
   if (!state.settings) return '1';
   const s = state.settings;
@@ -709,9 +704,6 @@ function computeCurrentTermClient() {
   return '1';
 }
 
-// ============================================================
-// API HELPER
-// ============================================================
 async function api(cmd, extra = {}) {
   try {
     const res = await fetch(API_URL, {
@@ -725,9 +717,6 @@ async function api(cmd, extra = {}) {
   }
 }
 
-// ============================================================
-// UI HELPERS
-// ============================================================
 function toast(msg, type = 'success') {
   const el = document.getElementById('toast');
   document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '⚠️';
@@ -757,7 +746,6 @@ function showScreen(name) {
 
   if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
 
-  // 🟢 Dashboard: real-time daily report ทุก 10 วินาที
   if (name === 'dashboardScreen' && state.user) {
     if (state.user.role === 'admin') {
       document.getElementById('attendanceForm').style.display = 'none';
@@ -770,8 +758,8 @@ function showScreen(name) {
     state.pollTimer = setInterval(loadDailyReport, 10000);
   }
 
-  // 🟢 Reports: reset filter เป็น "ปัจจุบัน" ทุกครั้งที่เข้าหน้า + polling ทุก 30 วินาที
   if (name === 'reportsScreen') {
+    document.getElementById('reportHeaderRole').textContent = state.user.role === 'admin' ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
     initReportsDefaults();
     loadReports();
     state.pollTimer = setInterval(loadReports, 30000);
@@ -780,7 +768,6 @@ function showScreen(name) {
   if (name === 'profileScreen') updateProfileUI();
 }
 
-// 🟢 ตั้งค่า filter รายงานให้เป็น "ปัจจุบัน" (ปี/เทอม/เดือน)
 function initReportsDefaults() {
   const d = new Date();
   if (state.settings && state.settings.academicYear) {
@@ -798,9 +785,6 @@ function navTo(screen, el) {
   showScreen(screen);
 }
 
-// ============================================================
-// CLOCK
-// ============================================================
 setInterval(() => {
   const now = new Date();
   const hh = String(now.getHours()).padStart(2,'0'), mm = String(now.getMinutes()).padStart(2,'0'), ss = String(now.getSeconds()).padStart(2,'0');
@@ -811,9 +795,6 @@ setInterval(() => {
   if (cd) cd.textContent = `วัน${days[now.getDay()]}ที่ ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()+543}`;
 }, 1000);
 
-// ============================================================
-// GPS
-// ============================================================
 function getGPS() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) return reject(new Error('เบราว์เซอร์ไม่รองรับ GPS'));
@@ -846,9 +827,6 @@ function haversine(lat1, lon1, lat2, lon2) {
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-// ============================================================
-// AUTH LOGIC
-// ============================================================
 document.querySelectorAll('#authScreen .tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('#authScreen .tab').forEach(t => t.classList.remove('active'));
@@ -925,15 +903,23 @@ async function initUserSession() {
   const s = await api('getSettings');
   if (s.success) {
     state.settings = s.settings;
+    
+    // 🟢 Populate Reports Defaults
     document.getElementById('reportYear').value = s.settings.academicYear || '2569';
+    
+    // 🟢 Populate Admin Settings UI ทันที (ตลอดเวลาที่ล็อกอิน)
     document.getElementById('setAcademicYear').value = s.settings.academicYear || '';
     document.getElementById('setTerm1Start').value = s.settings.term1Start || '';
     document.getElementById('setTerm1End').value = s.settings.term1End || '';
     document.getElementById('setTerm2Start').value = s.settings.term2Start || '';
     document.getElementById('setTerm2End').value = s.settings.term2End || '';
+    document.getElementById('setOfficeName').value = s.settings.officeName || '';
+    document.getElementById('setOfficeLat').value = s.settings.officeLat || '';
+    document.getElementById('setOfficeLng').value = s.settings.officeLng || '';
+    document.getElementById('setRadius').value = s.settings.radius || '';
+    document.getElementById('setStrictReg').checked = !!s.settings.strictRegistration;
   }
   
-  // 🟢 ตั้งค่าวันของ daily report = วันนี้ (local time) และเปิดโหมด auto
   const dd = document.getElementById('dailyDate');
   if (dd) {
     dd.value = getLocalDateStr();
@@ -943,7 +929,6 @@ async function initUserSession() {
   showScreen('dashboardScreen');
 }
 
-// Auto Login
 (async function checkAuth() {
   if (!state.token || !state.user) return;
   const r = await api('getMyInfo');
@@ -970,9 +955,6 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   toast('ออกจากระบบแล้ว');
 });
 
-// ============================================================
-// ATTENDANCE LOGIC
-// ============================================================
 document.querySelectorAll('.action-btn').forEach(btn => {
   btn.addEventListener('click', async () => {
     const action = btn.dataset.action;
@@ -1063,8 +1045,6 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
   finally { btn.disabled = false; btn.innerHTML = '📍 บันทึกพร้อมตำแหน่ง'; }
 });
 
-// 🟢 ถ้าผู้ใช้เลือกวันเอง → ปิด auto mode (เว้นแต่เลือกวันนี้)
-// ถ้าเลือกวันนี้ → เปิด auto mode ต่อ
 document.getElementById('dailyDate').addEventListener('change', () => {
   const picked = document.getElementById('dailyDate').value;
   state.dailyDateAuto = (picked === getLocalDateStr());
@@ -1076,7 +1056,6 @@ async function loadDailyReport() {
   const dd = document.getElementById('dailyDate');
   if (!dd) return;
 
-  // 🟢 โหมด auto: บังคับวันที่ = วันนี้เสมอ (จะข้ามวันตอนเที่ยงคืนให้เอง)
   if (state.dailyDateAuto) {
     const today = getLocalDateStr();
     if (dd.value !== today) dd.value = today;
@@ -1085,7 +1064,7 @@ async function loadDailyReport() {
 
   state.dailyLoading = true;
   try {
-    const parts = dd.value.split('-'); // YYYY-MM-DD
+    const parts = dd.value.split('-');
     const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
     
     const tbody = document.getElementById('dailyReportBody');
@@ -1115,9 +1094,6 @@ async function loadDailyReport() {
   }
 }
 
-// ============================================================
-// REPORTS LOGIC
-// ============================================================
 document.getElementById('reportYear').addEventListener('change', loadReports);
 document.getElementById('reportTerm').addEventListener('change', loadReports);
 document.getElementById('reportMonth').addEventListener('change', loadReports);
@@ -1148,7 +1124,7 @@ async function loadReports() {
 
     tbody.innerHTML = res.records.map(r => `
       <tr>
-        <td>${r.date}</td>
+        <td>${state.user.role === 'admin' ? `<b>${r.name}</b><br><span style="font-size:0.75rem;color:var(--text-muted)">${r.date}</span>` : r.date}</td>
         <td style="color:var(--success);font-weight:700">${r.inTime}</td>
         <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
         <td>${r.note}</td>
@@ -1159,7 +1135,6 @@ async function loadReports() {
   }
 }
 
-// PDF Download Logic
 function openPdfModal() {
   const d = new Date();
   document.getElementById('pdfMonth').value = d.toISOString().slice(0, 7);
@@ -1195,9 +1170,6 @@ async function downloadPdf() {
 
 document.getElementById('exportPdfBtn').addEventListener('click', openPdfModal);
 
-// ============================================================
-// PROFILE LOGIC
-// ============================================================
 function updateProfileUI() {
   if(!state.user) return;
   document.getElementById('profUsername').value = state.user.username;
@@ -1281,9 +1253,6 @@ document.getElementById('passwordForm').addEventListener('submit', async (e) => 
   else toast(r.message, 'error');
 });
 
-// ============================================================
-// ADMIN LOGIC
-// ============================================================
 document.getElementById('adminBtn').addEventListener('click', () => {
   showScreen('adminScreen');
   loadAdminSettings(); 
@@ -1448,7 +1417,6 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   }
   else toast(res.message, 'error');
 });
-
 </script>
 </body>
 </html>
