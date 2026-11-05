@@ -436,9 +436,8 @@ tr:last-child td{border-bottom:none}
 // ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 
-// 🟢 SWR cache TTL
-const CACHE_TTL_REPORTS = 5 * 60 * 1000;  // 5 นาที
-const CACHE_TTL_DAILY   = 2 * 60 * 1000;  // 2 นาที
+const CACHE_TTL_REPORTS = 5 * 60 * 1000;
+const CACHE_TTL_DAILY   = 2 * 60 * 1000;
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
@@ -1070,10 +1069,6 @@ function updateCacheIndicator(ts) {
   el.style.display = 'inline-flex';
 }
 
-// ============================================================
-// 🟢 FAST ADMIN ACTIONS (Optimistic UI)
-// ============================================================
-
 function openEditAttendance(name, date, inTime, outTime, note) {
   document.getElementById('editAttName').value = name;
   document.getElementById('editAttOrigDate').value = date;
@@ -1118,21 +1113,17 @@ async function saveEditAttendance() {
     toast(res.message);
     closeEditAttendanceModal();
     
-    // 🟢 Optimistic DOM Update - อัปเดตแค่แถวนั้น ไม่ต้องโหลดใหม่
     const rowId = `report-row-${origDate.replace(/\//g, '')}-${name.replace(/\s/g, '')}`;
     const row = document.getElementById(rowId);
     if (row) {
       if (newDate !== origDate) {
-        // ถ้าเปลี่ยนวันที่ ต้องโหลดใหม่เพราะเรียงลำดับเปลี่ยน
         loadReports(true);
       } else {
-        // อัปเดตเซลล์ในตารางทันที
         row.cells[1].innerHTML = `<span style="color:var(--success);font-weight:700">${newInTime || '-'}</span>`;
         row.cells[2].innerHTML = `<span style="color:var(--danger);font-weight:700">${newOutTime || '-'}</span>`;
         row.cells[3].textContent = newNote || '-';
         row.cells[4].innerHTML = `<button class="btn-sm btn-warning" onclick="openEditAttendance('${name.replace(/'/g, "\\'")}', '${newDate}', '${newInTime}', '${newOutTime}', '${(newNote || '').replace(/'/g, "\\'")}')">✏️ แก้ไข</button>`;
         
-        // อัปเดตแคช
         const cacheKey = `${document.getElementById('reportYear').value}|${document.getElementById('reportTerm').value}|${document.getElementById('reportMonth').value}`;
         if (state.reportsCache[cacheKey]) {
           const cachedData = state.reportsCache[cacheKey].data;
@@ -1147,8 +1138,6 @@ async function saveEditAttendance() {
     } else {
       loadReports(true);
     }
-    
-    // สั่ง invalidate แคชหน้าหลักเพื่อให้ข้อมูลตรงกัน
     invalidateAllReportCaches();
   } else {
     toast(res.message, 'error');
@@ -1170,13 +1159,11 @@ async function downloadPdf() {
   const btn = document.getElementById('confirmPdfBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังสร้าง...';
   
-  // 🟢 Backend ส่ง Download URL ตรงๆ มาให้ แทน Base64
   const res = await api('exportPDF', { monthStr: monthVal, academicYear: academicYear });
   
   btn.disabled = false; btn.textContent = 'ดาวน์โหลด';
   
   if (res.success && res.downloadUrl) {
-    // เปิดลิงก์ดาวน์โหลดทันที
     const downloadLink = document.createElement("a");
     downloadLink.href = res.downloadUrl;
     downloadLink.target = "_blank";
@@ -1312,17 +1299,15 @@ async function loadPending() {
 
 window.approveUser = async (u) => {
   const el = document.getElementById(`pending-${u}`);
-  if (el) el.style.display = 'none'; // Optimistic hide
-  
+  if (el) el.style.display = 'none';
   const r = await api('admin_approve', {username:u});
   toast(r.message, r.success?'success':'error');
-  if (!r.success && el) el.style.display = 'block'; // Revert on fail
+  if (!r.success && el) el.style.display = 'block';
 };
 
 window.rejectUser = async (u) => {
   const el = document.getElementById(`pending-${u}`);
-  if (el) el.style.display = 'none'; // Optimistic hide
-  
+  if (el) el.style.display = 'none';
   const r = await api('admin_reject', {username:u});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
@@ -1349,7 +1334,6 @@ async function loadPendingLeaves() {
 window.approveLeave = async (id) => {
   const el = document.getElementById(`leave-${id}`);
   if (el) el.style.display = 'none';
-  
   const r = await api('admin_approveLeave', {id:id});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
@@ -1361,7 +1345,6 @@ window.approveLeave = async (id) => {
 window.rejectLeave = async (id) => {
   const el = document.getElementById(`leave-${id}`);
   if (el) el.style.display = 'none';
-  
   const r = await api('admin_rejectLeave', {id:id});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
@@ -1447,8 +1430,6 @@ async function saveEditUser() {
   if (res.success) {
     toast(res.message);
     closeEditUserModal();
-    
-    // 🟢 Optimistic DOM Update - อัปเดตแถวผู้ใช้ทันที ไม่ต้องโหลดใหม่
     const el = document.getElementById(`user-row-${username}`);
     if (el) {
       el.querySelector('.user-name').textContent = fullName;
@@ -1508,7 +1489,6 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
   if (res.success) { 
     toast(res.message); 
-    // 🟢 อัปเดต state.settings ในเครื่องทันที ไม่ต้องรีโหลด
     state.settings = {
       ...state.settings,
       officeName: payload.officeName,
