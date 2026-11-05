@@ -633,7 +633,6 @@ tr:last-child td{border-bottom:none}
       </select>
     </div>
 
-    <!-- 🟢 เพิ่มตัวเลือกการลงเวลานอกพื้นที่ -->
     <div class="field" style="background:var(--bg-color); padding:12px; border-radius:12px; border:2px solid var(--border-color);">
       <label class="checkbox-group" id="editGpsOverrideGroup">
         <input type="checkbox" id="editUserGpsOverride" style="width:20px; height:20px;"> 
@@ -1336,7 +1335,6 @@ async function loadUsers() {
   `).join('');
 }
 
-// 🟢 อัปเดตฟังก์ชันรับค่า gpsOverride เข้ามาด้วย
 function openEditUser(username, fullName, role, status, position, email, gpsOverride) {
   document.getElementById('editTargetUsername').value = username;
   document.getElementById('editUserUsername').value = username;
@@ -1352,11 +1350,10 @@ function openEditUser(username, fullName, role, status, position, email, gpsOver
     editPosSelect.value = 'ครู';
   }
 
-  // 🟢 ตั้งค่าสวิตช์ GPS Override
   const gpsCheck = document.getElementById('editUserGpsOverride');
   if (editPosSelect.value === 'ผอ.') {
     gpsCheck.checked = true;
-    gpsCheck.disabled = true; // ห้ามแก้ไขถ้าเป็น ผอ.
+    gpsCheck.disabled = true;
   } else {
     gpsCheck.checked = (gpsOverride === 'true');
     gpsCheck.disabled = false;
@@ -1371,7 +1368,6 @@ function openEditUser(username, fullName, role, status, position, email, gpsOver
   document.getElementById('editUserModal').classList.add('show');
 }
 
-// 🟢 ฟังก์ชันจัดการเมื่อเปลี่ยนตำแหน่งใน Dropdown
 document.getElementById('editUserPosition').addEventListener('change', function() {
   const gpsCheck = document.getElementById('editUserGpsOverride');
   if (this.value === 'ผอ.') {
@@ -1399,7 +1395,7 @@ async function saveEditUser() {
     role: document.getElementById('editUserRole').value,
     status: document.getElementById('editUserStatus').value,
     position: document.getElementById('editUserPosition').value,
-    gpsOverride: document.getElementById('editUserGpsOverride').checked, // 🟢 ส่งค่า GPS Override
+    gpsOverride: document.getElementById('editUserGpsOverride').checked,
     email: document.getElementById('editUserEmail').value.trim(),
     newPassword: document.getElementById('editUserPassword').value,
     profilePicBase64: state.editUserPicBase64,
