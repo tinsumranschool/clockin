@@ -8,123 +8,214 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
+/* ===================================================================
+   THEME VARIABLES (DYNAMIC HOLIDAYS)
+=================================================================== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --bg-color: #fdfbf7; --bg-pattern: #f0ece1; --text-main: #3b3a4a; --text-muted: #7a788c;
-  --primary: #ff9a62; --primary-hover: #ff8642; --secondary: #6cd4ff; --accent: #b983ff;
-  --success: #6ddf9a; --danger: #ff7b93; --warning: #ffd166;
-  --border-color: #3b3a4a; --border-width: 2px; --card-bg: #ffffff;
-  --radius-xl: 24px; --radius-lg: 16px; --radius-md: 12px; --nav-height: 75px;
+
+/* Default (Fallback) */
+:root {
+  --bg-color: #fdfbf7;
+  --bg-pattern: #f0ece1;
+  --text-main: #3b3a4a;
+  --text-muted: #7a788c;
+  --primary: #ff9a62;
+  --primary-hover: #ff8642;
+  --secondary: #6cd4ff;
+  --accent: #b983ff;
+  --success: #6ddf9a;
+  --danger: #ff7b93;
+  --warning: #ffd166;
+  --border-color: #3b3a4a;
+  --card-bg: #ffffff;
+  --nav-bg: #ffffff;
+  --border-width: 2px;
+  --radius-xl: 24px;
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --nav-height: 75px;
   --shadow-hard: 4px 4px 0px var(--border-color);
-  --shadow-soft: 6px 6px 0px rgba(59, 58, 74, 0.1);
+  --glow-primary: 0 0 12px rgba(255, 154, 98, 0.6);
 }
+
+body[data-theme="newyear"] { --bg-color: #0f172a; --bg-pattern: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --primary: #fbbf24; --primary-hover: #f59e0b; --secondary: #38bdf8; --accent: #f472b6; --border-color: #020617; --card-bg: #1e293b; --nav-bg: #0f172a; --glow-primary: 0 0 15px rgba(251, 191, 36, 0.6); }
+body[data-theme="valentine"] { --bg-color: #fff1f2; --bg-pattern: #ffe4e6; --text-main: #4c0519; --text-muted: #be123c; --primary: #f43f5e; --primary-hover: #e11d48; --secondary: #fda4af; --accent: #fb7185; --border-color: #881337; --card-bg: #ffffff; --nav-bg: #fff1f2; --glow-primary: 0 0 15px rgba(244, 63, 94, 0.5); }
+body[data-theme="songkran"] { --bg-color: #f0f9ff; --bg-pattern: #e0f2fe; --text-main: #082f49; --text-muted: #0369a1; --primary: #0ea5e9; --primary-hover: #0284c7; --secondary: #2dd4bf; --accent: #fbbf24; --border-color: #0c4a6e; --card-bg: #ffffff; --nav-bg: #f0f9ff; --glow-primary: 0 0 15px rgba(14, 165, 233, 0.5); }
+body[data-theme="halloween"] { --bg-color: #170a25; --bg-pattern: #2e1065; --text-main: #f8fafc; --text-muted: #cbd5e1; --primary: #ea580c; --primary-hover: #c2410c; --secondary: #9333ea; --accent: #fde047; --border-color: #000000; --card-bg: #2e1065; --nav-bg: #170a25; --glow-primary: 0 0 20px rgba(234, 88, 12, 0.7); }
+body[data-theme="loykrathong"] { --bg-color: #1e1b4b; --bg-pattern: #312e81; --text-main: #e0e7ff; --text-muted: #a5b4fc; --primary: #f59e0b; --primary-hover: #d97706; --secondary: #ec4899; --accent: #8b5cf6; --border-color: #0f172a; --card-bg: #312e81; --nav-bg: #1e1b4b; --glow-primary: 0 0 15px rgba(245, 158, 11, 0.6); }
+body[data-theme="christmas"] { --bg-color: #f8fafc; --bg-pattern: #e2e8f0; --text-main: #0f172a; --text-muted: #475569; --primary: #dc2626; --primary-hover: #b91c1c; --secondary: #16a34a; --accent: #eab308; --border-color: #0f172a; --card-bg: #ffffff; --nav-bg: #f8fafc; --glow-primary: 0 0 15px rgba(220, 38, 38, 0.5); }
+
+/* ===================================================================
+   BASE STYLES
+=================================================================== */
 body{
-  font-family:'Mali', 'Prompt', sans-serif; background-color:var(--bg-color);
+  font-family:'Mali', 'Prompt', sans-serif; 
+  background-color:var(--bg-color);
   background-image: radial-gradient(var(--bg-pattern) 2px, transparent 2px);
-  background-size: 24px 24px; color:var(--text-main); min-height:100vh;
-  display:flex; flex-direction:column; align-items:center;
-  padding:20px 16px calc(var(--nav-height) + 30px) 16px; position:relative; overflow-x:hidden;
+  background-size: 24px 24px;
+  color:var(--text-main);
+  min-height:100vh; display:flex; flex-direction:column; align-items:center;
+  padding:20px 16px calc(var(--nav-height) + 30px) 16px; 
+  position:relative; overflow-x:hidden;
+  transition: background-color 0.5s ease, color 0.5s ease;
 }
-.wrapper{position:relative;z-index:1;width:100%;max-width:620px;display:flex;flex-direction:column;gap:20px}
-.screen{display:none;flex-direction:column;gap:20px;width:100%;animation:popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
+
+.wrapper{position:relative;z-index:10;width:100%;max-width:620px;display:flex;flex-direction:column;gap:20px}
+.screen{display:none;flex-direction:column;gap:20px;width:100%;animation:popIn .4s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
 .screen.active{display:flex}
-@keyframes popIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:scale(1) translateY(0)}}
+@keyframes popIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+
+/* ===================================================================
+   FLOATING DECORATIONS
+=================================================================== */
+#holiday-decorations { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+.floating-emoji { position: absolute; font-size: 2rem; opacity: 0.6; animation: floatUp 12s linear infinite; bottom: -50px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
+@keyframes floatUp { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; } }
+
+/* ===================================================================
+   COMPONENTS & AVATARS
+=================================================================== */
 .brand{text-align:center;padding:10px 0 0}
-.brand-title{font-size:clamp(2.2rem,6vw,2.8rem);font-weight:700;color:var(--text-main);text-shadow: 2px 2px 0px #fff, 4px 4px 0px var(--primary);letter-spacing:-.02em;transform: rotate(-2deg);}
-.card{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:var(--radius-xl);padding:24px 22px;box-shadow:var(--shadow-hard);position:relative;transition: transform .2s;}
-.card::after {content:'';position:absolute;inset:4px;border-radius:20px;border:1px dashed rgba(59,58,74,0.2);pointer-events:none;}
-.app-header{display:flex;align-items:center;gap:12px;background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:var(--radius-lg);padding:12px 16px;box-shadow:var(--shadow-hard);}
+.brand-title{ font-size:clamp(2.2rem,6vw,2.8rem); font-weight:700; color:var(--text-main); text-shadow: 2px 2px 0px var(--bg-color), 4px 4px 0px var(--primary); letter-spacing:-.02em; transform: rotate(-2deg); animation: titleBounce 3s ease-in-out infinite; }
+@keyframes titleBounce { 0%, 100% { transform: rotate(-2deg) translateY(0); } 50% { transform: rotate(-2deg) translateY(-5px); } }
+
+.card{ background:var(--card-bg); border:var(--border-width) solid var(--border-color); border-radius:var(--radius-xl); padding:24px 22px; box-shadow:var(--shadow-hard); position:relative; transition: transform .2s, box-shadow .2s; }
+.card::after { content:''; position:absolute; inset:4px; border-radius:20px; border:1px dashed rgba(128,128,128,0.3); pointer-events:none; }
+.card:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0px var(--border-color); }
+
+.app-header{ display:flex; align-items:center; gap:12px; background:var(--card-bg); border:var(--border-width) solid var(--border-color); border-radius:var(--radius-lg); padding:12px 16px; box-shadow:var(--shadow-hard); }
 .user-info{flex:1;min-width:0;display:flex;align-items:center;gap:12px}
-.avatar{border-radius:50%;width:46px;height:46px;object-fit:cover;border:var(--border-width) solid var(--border-color);background:#eee;box-shadow: 2px 2px 0px var(--border-color);}
+
+.avatar{ border-radius:50%; width:46px; height:46px; object-fit:cover; border:var(--border-width) solid var(--border-color); background:#eee; box-shadow: var(--shadow-hard), var(--glow-primary); transition: transform 0.2s; }
+.avatar:hover { transform: scale(1.1) rotate(10deg); }
+
+.avatar-xs {
+  width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
+  border: 2px solid var(--border-color); background: var(--bg-pattern);
+  box-shadow: var(--glow-primary);
+  margin-right: 8px; display: inline-block; vertical-align: middle;
+  flex-shrink: 0; transition: transform 0.2s;
+}
+.avatar-xs:hover { transform: scale(1.2) rotate(5deg); }
+
 .user-name{font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .user-role{font-size:.8rem;color:var(--text-muted);margin-top:2px}
-.icon-btn{width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:12px;color:var(--text-main);cursor:pointer;font-size:1.1rem;box-shadow: 2px 2px 0px var(--border-color);transition: all .1s;position:relative;}
-.icon-btn:hover{background:var(--bg-pattern);}
-.icon-btn:active{transform:translate(2px, 2px);box-shadow: 0px 0px 0px var(--border-color);}
-.tabs{display:flex;gap:8px;background:var(--bg-pattern);padding:6px;border-radius:var(--radius-lg);border:var(--border-width) solid var(--border-color);overflow-x:auto;}
-.tab{flex:1;padding:10px 12px;border:var(--border-width) solid transparent;background:transparent;color:var(--text-muted);font-family:inherit;font-size:.9rem;font-weight:600;cursor:pointer;border-radius:12px;transition:all .2s;white-space:nowrap;}
-.tab.active{background:var(--card-bg);color:var(--text-main);border-color:var(--border-color);box-shadow: 2px 2px 0px var(--border-color);}
+
+.icon-btn{ width:40px;height:40px; display:flex;align-items:center;justify-content:center; background:var(--card-bg); border:var(--border-width) solid var(--border-color); border-radius:12px; color:var(--text-main); cursor:pointer; font-size:1.1rem; box-shadow: 2px 2px 0px var(--border-color); transition: all .1s; position:relative; }
+.icon-btn:hover{ background:var(--bg-pattern); transform: scale(1.05); }
+.icon-btn:active{ transform:translate(2px, 2px); box-shadow: 0px 0px 0px var(--border-color); }
+
+.tabs{ display:flex; gap:8px; background:var(--bg-pattern); padding:6px; border-radius:var(--radius-lg); border:var(--border-width) solid var(--border-color); overflow-x:auto; }
+.tab{ flex:1; padding:10px 12px; border:var(--border-width) solid transparent; background:transparent; color:var(--text-muted); font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer; border-radius:12px; transition:all .2s; white-space:nowrap; }
+.tab.active{ background:var(--card-bg); color:var(--text-main); border-color:var(--border-color); box-shadow: 2px 2px 0px var(--border-color); transform: scale(1.02); }
 .tab-content{display:none}
-.tab-content.active{display:block}
+.tab-content.active{display:block; animation: fadeIn 0.3s ease;}
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
 .field{margin-bottom:16px}
 .field-label{display:flex;align-items:center;gap:6px;font-size:.9rem;font-weight:600;color:var(--text-main);margin-bottom:8px}
-.req{color:var(--danger);font-size:1rem}
-.input,.textarea,.select{width:100%;background:var(--bg-color);border:var(--border-width) solid var(--border-color);border-radius:var(--radius-md);padding:12px 14px;color:var(--text-main);font-family:inherit;font-size:.95rem;outline:none;transition:all .2s;box-shadow: inset 1px 1px 3px rgba(0,0,0,0.05);}
-.input:focus,.textarea:focus,.select:focus{background:#fff;box-shadow: 3px 3px 0px var(--secondary);border-color:var(--border-color);transform: translate(-1px, -1px);}
-.input::placeholder,.textarea::placeholder{color:#a9a7b8}
+.req{color:var(--danger);font-size:1rem; animation: pulse 1s infinite;}
+.input,.textarea,.select{ width:100%; background:var(--bg-color); border:var(--border-width) solid var(--border-color); border-radius:var(--radius-md); padding:12px 14px; color:var(--text-main); font-family:inherit; font-size:.95rem; outline:none; transition:all .2s; box-shadow: inset 2px 2px 0px rgba(0,0,0,0.05); }
+.input:focus,.textarea:focus,.select:focus{ background:var(--card-bg); box-shadow: 4px 4px 0px var(--primary), var(--glow-primary); border-color:var(--border-color); transform: translate(-2px, -2px); }
+.input::placeholder,.textarea::placeholder{color:var(--text-muted); opacity: 0.6;}
 .checkbox-group{display:flex;align-items:center;gap:8px;font-size:.9rem;color:var(--text-main);cursor:pointer;font-weight:500}
-input[type="checkbox"]{width:18px;height:18px;cursor:pointer;accent-color:var(--primary);}
+input[type="checkbox"]{width:20px;height:20px;cursor:pointer;accent-color:var(--primary); border:2px solid var(--border-color); border-radius: 4px;}
+
 .action-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:8px}
-.action-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 8px;border-radius:var(--radius-lg);border:var(--border-width) solid var(--border-color);background:var(--card-bg);color:var(--text-main);font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .15s;position:relative;box-shadow: 3px 3px 0px var(--border-color);}
-.action-btn .icon{font-size:1.6rem;line-height:1;transition: transform .2s;}
-.action-btn:hover:not(:disabled) .icon{transform: scale(1.15) rotate(5deg);}
-.action-btn:active:not(:disabled){transform:translate(3px, 3px);box-shadow: 0px 0px 0px var(--border-color);}
-.action-btn:disabled{opacity:.3;cursor:not-allowed;filter:grayscale(1);background:var(--bg-pattern);transform:none;box-shadow:none;}
-.action-btn[data-action="เข้างาน"].active{background:#e6fbf0;border-color:var(--success);box-shadow: 3px 3px 0px var(--success);}
-.action-btn[data-action="ออกงาน"].active{background:#ffe6eb;border-color:var(--danger);box-shadow: 3px 3px 0px var(--danger);}
-.action-btn[data-action="ลา"].active{background:#fff3d6;border-color:var(--warning);box-shadow: 3px 3px 0px var(--warning);}
-.action-btn[data-action="ไปราชการ"].active{background:#e6f7ff;border-color:var(--secondary);box-shadow: 3px 3px 0px var(--secondary);}
-.submit-btn{width:100%;padding:16px;border:var(--border-width) solid var(--border-color);border-radius:var(--radius-lg);font-family:inherit;font-size:1.05rem;font-weight:700;cursor:pointer;color:var(--text-main);background:var(--primary);box-shadow: 4px 4px 0px var(--border-color);transition:all .1s ease;display:flex;justify-content:center;align-items:center;gap:8px;}
-.submit-btn:hover:not(:disabled){background:var(--primary-hover);}
-.submit-btn:active:not(:disabled){transform:translate(4px, 4px);box-shadow: 0px 0px 0px var(--border-color);}
+.action-btn{ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px; padding:16px 8px; border-radius:var(--radius-lg); border:var(--border-width) solid var(--border-color); background:var(--card-bg); color:var(--text-main); font-family:inherit; font-size:.9rem; font-weight:700; cursor:pointer; transition:all .1s; position:relative; box-shadow: 4px 4px 0px var(--border-color); }
+.action-btn .icon{font-size:2rem;line-height:1; transition: transform .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+.action-btn:hover:not(:disabled) .icon{ transform: scale(1.2) rotate(10deg); }
+.action-btn:active:not(:disabled){ transform:translate(4px, 4px); box-shadow: 0px 0px 0px var(--border-color); }
+.action-btn:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(1);background:var(--bg-pattern); transform:none; box-shadow:none; border-style: dashed;}
+.action-btn[data-action="เข้างาน"].active{ background:#e6fbf0; border-color:var(--success); box-shadow: inset 0 0 0 2px var(--success); color:#008040;}
+.action-btn[data-action="ออกงาน"].active{ background:#ffe6eb; border-color:var(--danger); box-shadow: inset 0 0 0 2px var(--danger); color:#cc0033;}
+.action-btn[data-action="ลา"].active{ background:#fff3d6; border-color:var(--warning); box-shadow: inset 0 0 0 2px var(--warning); color:#d97706;}
+.action-btn[data-action="ไปราชการ"].active{ background:#e6f7ff; border-color:var(--secondary); box-shadow: inset 0 0 0 2px var(--secondary); color:#0088cc;}
+
+.submit-btn{ width:100%; padding:16px; border:var(--border-width) solid var(--border-color); border-radius:var(--radius-lg); font-family:inherit; font-size:1.1rem; font-weight:700; cursor:pointer; color:#fff; background:var(--primary); box-shadow: 4px 4px 0px var(--border-color); transition:all .1s ease; display:flex; justify-content:center; align-items:center; gap:8px; text-shadow: 1px 1px 0px rgba(0,0,0,0.2); }
+.submit-btn:hover:not(:disabled){ background:var(--primary-hover); transform: scale(1.02); box-shadow: 4px 4px 0px var(--border-color), var(--glow-primary); }
+.submit-btn:active:not(:disabled){ transform:translate(4px, 4px); box-shadow: 0px 0px 0px var(--border-color); }
 .submit-btn:disabled{opacity:.6;cursor:not-allowed;filter:grayscale(0.5);}
-.btn-sm{padding:8px 14px;border-radius:10px;border:var(--border-width) solid var(--border-color);font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer;transition:all .1s;display:inline-flex;align-items:center;justify-content:center;gap:6px;box-shadow: 2px 2px 0px var(--border-color);background:var(--card-bg);color:var(--text-main);}
-.btn-sm:active{transform:translate(2px, 2px);box-shadow: 0px 0px 0px var(--border-color);}
-.btn-cyan{background:#e6f7ff;color:#0088cc;}
-.btn-emerald{background:#e6fbf0;color:#00a854;}
-.btn-danger{background:#ffe6eb;color:#cc0033;}
-.btn-neutral{background:var(--bg-pattern);color:var(--text-main);}
-.btn-warning{background:#fff3d6;color:#d97706;}
+
+.btn-sm{ padding:8px 14px; border-radius:12px; border:var(--border-width) solid var(--border-color); font-family:inherit; font-size:.85rem; font-weight:700; cursor:pointer; transition:all .1s; display:inline-flex; align-items:center; justify-content:center; gap:6px; box-shadow: 2px 2px 0px var(--border-color); background:var(--card-bg); color:var(--text-main); }
+.btn-sm:active{ transform:translate(2px, 2px); box-shadow: 0px 0px 0px var(--border-color); }
+.btn-cyan{background:#e6f7ff; color:#0088cc;}
+.btn-emerald{background:#e6fbf0; color:#00a854;}
+.btn-danger{background:#ffe6eb; color:#cc0033;}
+.btn-neutral{background:var(--bg-pattern); color:var(--text-main);}
+.btn-warning{background:#fff3d6; color:#d97706;}
+
+/* ===================================================================
+   TABLES & LISTS
+=================================================================== */
+.table-wrap{ overflow-x:auto; border-radius:16px; border:var(--border-width) solid var(--border-color); margin-top:12px; background:var(--card-bg); box-shadow: 4px 4px 0px rgba(0,0,0,0.05); }
+table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left}
+th{background:var(--bg-pattern);padding:12px 10px;font-weight:700;color:var(--text-main);white-space:nowrap;border-bottom:var(--border-width) solid var(--border-color); text-align: center;}
+td{padding:12px 10px;border-bottom:1px solid var(--border-color);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td { background: var(--bg-color); }
+.table-name{font-weight:700;color:var(--text-main); display: flex; align-items: center; gap: 4px;}
+
+.skeleton-row td{position: relative;overflow: hidden;background-color: var(--bg-pattern);color: transparent !important; border-bottom: none;}
+.skeleton-row td::after{content: "";position: absolute;top: 0;left: 0;right: 0;bottom: 0;background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);transform: translateX(-100%);animation: shimmer 1.5s infinite;}
+@keyframes shimmer{100% { transform: translateX(100%); }}
+
+/* ===================================================================
+   MODALS & TOAST
+=================================================================== */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px; opacity: 0; transition: opacity 0.3s;}
+.modal-overlay.show{display:flex; opacity: 1;}
+.modal{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:24px;padding:24px;max-width:480px;width:100%;box-shadow:8px 8px 0px var(--border-color); max-height:90vh; overflow-y:auto; transform: translateY(30px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
+.modal-overlay.show .modal{ transform: translateY(0);}
+
+.toast{ position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%; transform:translate(-50%, 150%); z-index:199;padding:14px 24px;border-radius:16px; background:var(--card-bg); border:var(--border-width) solid var(--border-color); font-size:.95rem;font-weight:700; transition:all .4s cubic-bezier(.34,1.56,.64,1); max-width:calc(100vw - 40px);display:flex;align-items:center;gap:10px; box-shadow: 6px 6px 0px var(--border-color); opacity: 0; visibility: hidden; pointer-events: none; }
+.toast.show{transform:translate(-50%, 0); opacity: 1; visibility: visible; pointer-events: auto;}
+.toast.success{color:var(--text-main); border-color:var(--success); box-shadow: 6px 6px 0px var(--success);}
+.toast.error{color:var(--text-main); border-color:var(--danger); box-shadow: 6px 6px 0px var(--danger);}
+
+/* ===================================================================
+   NAVIGATION
+=================================================================== */
+.bottom-nav{ position:fixed;bottom:0;left:0;right:0;height:var(--nav-height); background:var(--nav-bg); border-top:var(--border-width) solid var(--border-color); display:none;justify-content:space-around;align-items:center;z-index:90;padding:0 10px; box-shadow: 0 -4px 0px rgba(0,0,0,0.05); }
+.bottom-nav.show{display:flex}
+.nav-item{ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px; color:var(--text-muted);font-size:.75rem;font-weight:700;cursor:pointer; transition:all .2s; border-radius:16px; border:2px solid transparent; height: 60px; width: 80px; }
+.nav-item:hover { background: var(--bg-color); }
+.nav-item.active{color:var(--text-main);background:var(--bg-pattern); border-color:var(--border-color); box-shadow: 2px 2px 0px var(--border-color);}
+.nav-icon{font-size:1.4rem; transition: transform 0.2s;}
+.nav-item.active .nav-icon { transform: translateY(-3px) scale(1.1); }
+
+/* Utilities */
+.section-title{font-size:1.05rem;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.empty-state{text-align:center;padding:30px 12px;color:var(--text-muted);font-size:.9rem;border:2px dashed var(--border-color);border-radius:16px; background:var(--bg-color); font-weight:500;}
+.reason-section{max-height:0;overflow:hidden;opacity:0;transition:all .4s;margin-bottom:0}
+.reason-section.visible{max-height:500px;opacity:1;margin-bottom:16px}
 .gps-status{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:.88rem;font-weight:600;background:var(--bg-pattern);border:2px dashed var(--border-color);margin-bottom:16px;color:var(--text-muted);transition:all .3s;}
 .gps-status.ok{background:#e6fbf0;border-style:solid;border-color:var(--success);color:#008040;}
 .gps-status.bad{background:#ffe6eb;border-style:solid;border-color:var(--danger);color:#cc0033;}
 .gps-status.loading{background:#e6f7ff;border-style:solid;border-color:var(--secondary);color:#0088cc;}
-.table-wrap{overflow-x:auto;border-radius:12px;border:var(--border-width) solid var(--border-color);margin-top:12px;background:var(--card-bg);box-shadow: inset 2px 2px 5px rgba(0,0,0,0.05);}
-table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left}
-th{background:var(--bg-pattern);padding:12px 10px;font-weight:700;color:var(--text-main);white-space:nowrap;border-bottom:var(--border-width) solid var(--border-color);}
-td{padding:12px 10px;border-bottom:1px solid var(--bg-pattern);vertical-align:middle}
-tr:last-child td{border-bottom:none}
-.table-name{font-weight:600;color:var(--text-main)}
-.skeleton-row td{position: relative;overflow: hidden;background-color: #f8f8f8;color: transparent !important;}
-.skeleton-row td::after{content: "";position: absolute;top: 0;left: 0;right: 0;bottom: 0;background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);transform: translateX(-100%);animation: shimmer 1.5s infinite;}
-@keyframes shimmer{100% { transform: translateX(100%); }}
-.modal-overlay{position:fixed;inset:0;background:rgba(255,255,255,.7);backdrop-filter:blur(4px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px}
-.modal-overlay.show{display:flex}
-.modal{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:20px;padding:24px;max-width:480px;width:100%;box-shadow:6px 6px 0px var(--border-color);max-height:90vh;overflow-y:auto;}
-.toast{position:fixed;bottom:calc(var(--nav-height) + 20px);left:50%;transform:translate(-50%, 150%);z-index:99;padding:14px 24px;border-radius:16px;background:var(--card-bg);border:var(--border-width) solid var(--border-color);font-size:.95rem;font-weight:700;transition:all .4s cubic-bezier(.34,1.56,.64,1);max-width:calc(100vw - 40px);display:flex;align-items:center;gap:10px;box-shadow: 4px 4px 0px var(--border-color);opacity: 0;visibility: hidden;pointer-events: none;}
-.toast.show{transform:translate(-50%, 0);opacity: 1;visibility: visible;pointer-events: auto;}
-.toast.success{color:var(--text-main);border-color:var(--success);box-shadow: 4px 4px 0px var(--success);}
-.toast.error{color:var(--text-main);border-color:var(--danger);box-shadow: 4px 4px 0px var(--danger);}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;height:var(--nav-height);background:var(--card-bg);border-top:var(--border-width) solid var(--border-color);display:none;justify-content:space-around;align-items:center;z-index:90;padding:0 10px;}
-.bottom-nav.show{display:flex}
-.nav-item{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--text-muted);font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s;border-radius:12px;border:2px solid transparent;height: 60px;width: 80px;}
-.nav-item.active{color:var(--text-main);background:var(--bg-pattern);border-color:var(--border-color);}
-.nav-icon{font-size:1.4rem;}
-.section-title{font-size:1.05rem;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
-.empty-state{text-align:center;padding:30px 12px;color:var(--text-muted);font-size:.9rem;border:2px dashed var(--border-color);border-radius:12px;background:var(--bg-color);font-weight:500;}
-.reason-section{max-height:0;overflow:hidden;opacity:0;transition:all .35s;margin-bottom:0}
-.reason-section.visible{max-height:500px;opacity:1;margin-bottom:16px}
-.profile-pic-upload{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px}
-.avatar-lg{width:100px;height:100px;border-radius:50%;object-fit:cover;border:var(--border-width) solid var(--border-color);background:#eee;box-shadow: var(--shadow-hard);}
 .spinner{display:inline-block;width:18px;height:18px;border:3px solid rgba(0,0,0,.15);border-top-color:var(--text-main);border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px}
 @keyframes spin{to{transform:rotate(360deg)}}
-.user-row{display:flex;justify-content:space-between;align-items:center;padding:12px;background:var(--card-bg);border-radius:12px;gap:10px;border:2px solid var(--border-color);margin-bottom:8px;box-shadow: 2px 2px 0 var(--border-color);}
-.user-row-info{flex:1;min-width:0}
 .form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
 .form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .live-indicator{display:inline-flex;align-items:center;gap:6px;font-size:.72rem;color:var(--success);font-weight:700}
 .live-dot{width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 1.5s infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.badge-noti{position: absolute;top: -8px;right: -8px;background: var(--danger);color: #fff;border-radius: 50%;padding: 2px 6px;font-size: 10px;font-weight: bold;border: 2px solid #fff;display: none;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.2)}}
+.badge-noti{position: absolute;top: -8px;right: -8px;background: var(--danger);color: #fff;border-radius: 50%;padding: 2px 6px;font-size: 10px;font-weight: bold;border: 2px solid #fff;display: none; animation: titleBounce 2s infinite;}
 .cache-indicator{display:inline-flex;align-items:center;gap:4px;font-size:.68rem;color:var(--text-muted);font-weight:600;padding:2px 6px;background:var(--bg-pattern);border-radius:6px;border:1px solid var(--border-color);}
 @media (max-width: 480px) {.form-row-3 { grid-template-columns: 1fr; }}
+
+.user-row{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--bg-color);border-radius:14px;gap:10px;border:2px solid var(--border-color); margin-bottom:10px; box-shadow: 2px 2px 0 var(--border-color); transition: transform 0.2s;}
+.user-row:hover { transform: translateX(4px); }
+.user-row-info{flex:1;min-width:0; display:flex; align-items:center; gap:10px;}
 </style>
 </head>
 <body>
 
+<div id="holiday-decorations"></div>
+
 <div class="wrapper">
 
-  <!-- AUTH -->
+  <!-- AUTH SCREEN -->
   <div id="authScreen" class="screen active">
     <header class="brand"><h1 class="brand-title">ลงเวลาทำงาน</h1></header>
     <div class="card">
@@ -165,7 +256,7 @@ tr:last-child td{border-bottom:none}
     </header>
     <div class="card">
       <div style="text-align:center;padding-bottom:16px;margin-bottom:16px;border-bottom:2px dashed var(--border-color)">
-        <div id="clockTime" style="font-family:'Prompt',monospace;font-size:2.8rem;font-weight:700;letter-spacing:.02em;color:var(--text-main);text-shadow: 2px 2px 0px #fff, 3px 3px 0px var(--secondary);">--:--:--</div>
+        <div id="clockTime" style="font-family:'Prompt',monospace;font-size:3rem;font-weight:700;letter-spacing:.02em;color:var(--text-main);text-shadow: 2px 2px 0px var(--bg-color), 4px 4px 0px var(--primary);">--:--:--</div>
         <div id="clockDate" style="font-size:.9rem;color:var(--text-muted);margin-top:4px;font-weight:600;"></div>
       </div>
       <div id="adminNotice" style="display:none; text-align:center; padding:20px; background:var(--bg-pattern); border-radius:12px; border:2px dashed var(--border-color); margin-bottom:16px;">
@@ -278,11 +369,11 @@ tr:last-child td{border-bottom:none}
     </header>
     <div class="card">
       <form id="profileForm">
-        <div class="profile-pic-upload">
-          <img id="profilePicPreview" class="avatar-lg" src="" alt="profile">
+        <div class="profile-pic-upload" style="display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:20px">
+          <img id="profilePicPreview" class="avatar-lg" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:var(--border-width) solid var(--border-color);box-shadow:var(--shadow-hard), var(--glow-primary);" src="" alt="profile">
           <label class="btn-sm btn-cyan" style="cursor:pointer">📷 เปลี่ยนรูปภาพ<input type="file" id="profilePicInput" accept="image/*" style="display:none"></label>
         </div>
-        <div class="field"><label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label><input type="text" id="profUsername" class="input" required disabled></div>
+        <div class="field"><label class="field-label">ชื่อผู้ใช้ <span class="req">*</span></label><input type="text" id="profUsername" class="input" required disabled style="opacity:0.6;"></div>
         <div class="field"><label class="field-label">ชื่อ-นามสกุล <span class="req">*</span></label><input type="text" id="profFullName" class="input" required></div>
         <div class="field"><label class="field-label">ตำแหน่ง</label>
           <select id="profPosition" class="select"><option value="ครู">ครู</option><option value="ผอ.">ผอ.</option><option value="พนักงาน">พนักงาน</option><option value="ลูกจ้าง">ลูกจ้าง</option></select>
@@ -364,11 +455,11 @@ tr:last-child td{border-bottom:none}
 <!-- MODALS -->
 <div class="modal-overlay" id="pdfModal">
   <div class="modal">
-    <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">📄 ดาวน์โหลดรายงาน PDF</h3>
+    <h3 style="margin-bottom:14px;font-size:1.2rem;font-weight:700;">📄 ดาวน์โหลดรายงาน PDF</h3>
     <div class="field">
       <label class="field-label">เลือกเดือนที่ต้องการ</label>
       <select id="pdfMonthSelect" class="select" required>
-        <option value="all">ทุกเดือน (12 หน้า)</option>
+        <option value="all">ทุกเดือน (เฉพาะเดือนที่มีข้อมูล)</option>
         <option value="01">มกราคม</option><option value="02">กุมภาพันธ์</option><option value="03">มีนาคม</option>
         <option value="04">เมษายน</option><option value="05">พฤษภาคม</option><option value="06">มิถุนายน</option>
         <option value="07">กรกฎาคม</option><option value="08">สิงหาคม</option><option value="09">กันยายน</option>
@@ -384,7 +475,7 @@ tr:last-child td{border-bottom:none}
 
 <div class="modal-overlay" id="editUserModal">
   <div class="modal">
-    <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">✏️ แก้ไขข้อมูลผู้ใช้</h3>
+    <h3 style="margin-bottom:14px;font-size:1.2rem;font-weight:700;">✏️ แก้ไขข้อมูลผู้ใช้</h3>
     <input type="hidden" id="editTargetUsername">
     <input type="hidden" id="editUserRole">
     <div class="field"><label class="field-label">Username</label><input type="text" id="editUserUsername" class="input" disabled></div>
@@ -394,7 +485,6 @@ tr:last-child td{border-bottom:none}
     </div>
     <div class="field" style="background:var(--bg-color); padding:12px; border-radius:12px; border:2px solid var(--border-color);">
       <label class="checkbox-group" id="editGpsOverrideGroup"><input type="checkbox" id="editUserGpsOverride" style="width:20px; height:20px;"><span style="font-weight:700;">อนุญาตให้ลงเวลานอกพื้นที่ GPS</span></label>
-      <div id="editGpsOverrideHint" style="font-size:.75rem; color:var(--text-muted); margin-top:4px; margin-left:28px;">เปิดสิทธิ์ให้ลงเวลาได้ทุกที่โดยไม่ต้องอยู่ในรัศมี</div>
     </div>
     <div class="field"><label class="field-label">อีเมล</label><input type="email" id="editUserEmail" class="input"></div>
     <div class="field"><label class="field-label">รหัสผ่านใหม่ (เว้นว่างถ้าไม่เปลี่ยน)</label><input type="password" id="editUserPassword" class="input"></div>
@@ -412,7 +502,7 @@ tr:last-child td{border-bottom:none}
 
 <div class="modal-overlay" id="editAttendanceModal">
   <div class="modal">
-    <h3 style="margin-bottom:14px;font-size:1.1rem;font-weight:700;">✏️ แก้ไขประวัติการลงเวลา</h3>
+    <h3 style="margin-bottom:14px;font-size:1.2rem;font-weight:700;">✏️ แก้ไขประวัติการลงเวลา</h3>
     <input type="hidden" id="editAttName">
     <input type="hidden" id="editAttOrigDate">
     <div class="field"><label class="field-label">ชื่อ-นามสกุล</label><input type="text" id="editAttNameDisplay" class="input" disabled></div>
@@ -422,22 +512,135 @@ tr:last-child td{border-bottom:none}
       <div class="field"><label class="field-label">เวลาออก</label><input type="text" id="editAttOutTime" class="input" placeholder="เช่น 16:30 หรือ -"></div>
     </div>
     <div class="field"><label class="field-label">หมายเหตุ</label><textarea id="editAttNote" class="textarea" style="min-height:60px;"></textarea></div>
-    <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px;">
-      <button class="btn-sm btn-neutral" onclick="closeEditAttendanceModal()">ยกเลิก</button>
-      <button class="btn-sm btn-emerald" id="saveEditAttBtn" onclick="saveEditAttendance()">บันทึก</button>
+    <div style="display:flex;gap:10px;justify-content:space-between;margin-top:20px;">
+      <button class="btn-sm btn-danger" id="deleteEditAttBtn" onclick="deleteEditAttendance()">🗑️ ลบรายการ</button>
+      <div style="display:flex;gap:10px;">
+        <button class="btn-sm btn-neutral" onclick="closeEditAttendanceModal()">ยกเลิก</button>
+        <button class="btn-sm btn-emerald" id="saveEditAttBtn" onclick="saveEditAttendance()">บันทึก</button>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
 // ============================================================
+// 🎨 PREMIUM HOLIDAY THEME ENGINE
+// ============================================================
+function applyTheme() {
+  const now = new Date();
+  const m = now.getMonth() + 1; // 1-12
+  const d = now.getDate();
+  let theme = 'default';
+  let emojis = ['✨', '☁️', '⭐', '🌟'];
+
+  if (m === 1) { theme = 'newyear'; emojis = ['🎉', '🎆', '🥂', '✨', '🎊']; } 
+  else if (m === 2) { theme = 'valentine'; emojis = ['💖', '🌹', '💝', '💌', '💕']; } 
+  else if (m === 4) { theme = 'songkran'; emojis = ['💦', '🌊', '🌺', '🐟', '🪷']; } 
+  else if (m === 10 && d >= 25) { theme = 'halloween'; emojis = ['🎃', '👻', '🦇', '🕷️', '🧙‍♀️']; } 
+  else if (m === 11 && d <= 15) { theme = 'loykrathong'; emojis = ['🏮', '🌕', '🪷', '🕯️', '🌌']; } 
+  else if (m === 12 && d >= 15) { theme = 'christmas'; emojis = ['❄️', '🎄', '🎅', '🎁', '⛄']; }
+
+  document.body.setAttribute('data-theme', theme);
+  
+  const container = document.getElementById('holiday-decorations');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  const emojiCount = 20; 
+  for (let i = 0; i < emojiCount; i++) {
+    const span = document.createElement('span');
+    span.className = 'floating-emoji';
+    span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    span.style.left = `${Math.random() * 100}vw`;
+    span.style.animationDelay = `${Math.random() * 10}s`;
+    span.style.fontSize = `${Math.random() * 1.5 + 1.5}rem`;
+    span.style.animationDuration = `${Math.random() * 8 + 10}s`;
+    container.appendChild(span);
+  }
+}
+applyTheme();
+
+// ============================================================
+// 🔊 SOUND EFFECTS & WELCOME VOICE
+// ============================================================
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function initAudio() {
+  if (!audioCtx) audioCtx = new AudioContext();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playClickSound() {
+  initAudio();
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  
+  osc.type = 'sine';
+  osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+  osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
+  
+  gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+  gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+  
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  
+  osc.start();
+  osc.stop(audioCtx.currentTime + 0.1);
+}
+
+function playWelcomeVoice() {
+  if (sessionStorage.getItem('welcomePlayed')) return;
+  sessionStorage.setItem('welcomePlayed', 'true');
+  
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.onvoiceschanged = () => {
+      const u = new SpeechSynthesisUtterance('ยินดีต้อนรับจ้า');
+      u.lang = 'th-TH';
+      u.rate = 1.0;
+      u.pitch = 1.2;
+      
+      const voices = window.speechSynthesis.getVoices();
+      const thVoice = voices.find(v => v.lang.includes('th') && (v.name.includes('Female') || v.name.includes('Pattara'))) 
+                   || voices.find(v => v.lang.includes('th'));
+      
+      if (thVoice) u.voice = thVoice;
+      setTimeout(() => window.speechSynthesis.speak(u), 800);
+    };
+    
+    if (window.speechSynthesis.getVoices().length > 0) {
+      const u = new SpeechSynthesisUtterance('ยินดีต้อนรับจ้า');
+      u.lang = 'th-TH';
+      u.pitch = 1.2;
+      setTimeout(() => window.speechSynthesis.speak(u), 800);
+    }
+  }
+}
+
+document.addEventListener('click', (e) => {
+  initAudio();
+  if (e.target.closest('button') || e.target.closest('.tab') || e.target.closest('.nav-item') || e.target.closest('.action-btn')) {
+    playClickSound();
+  }
+});
+
+document.body.addEventListener('click', function initWelcome() {
+  playWelcomeVoice();
+  document.body.removeEventListener('click', initWelcome);
+}, { once: true });
+
+
+// ============================================================
 // CONFIG & STATE
 // ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 
-const CACHE_TTL_REPORTS = 5 * 60 * 1000;
-const CACHE_TTL_DAILY   = 2 * 60 * 1000;
-const POLL_INTERVAL_MS  = 15000; // 🟢 ดึงข้อมูลเงียบๆ ทุก 15 วินาที
+// Backend (Google Sheet) เป็นหลัก: cache ฝั่งเว็บสั้นมาก และ poll ตรวจซ้ำตลอด
+const CACHE_TTL_REPORTS = 20 * 1000;
+const CACHE_TTL_DAILY   = 15 * 1000;
+const POLL_INTERVAL_MS  = 10000;
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
@@ -459,10 +662,26 @@ const state = {
   reportsCache: {},
   reportsLoadingKey: null,
   reportsInited: false,
+  currentReportRecords: [],
+  adminUsers: [],
   dailyReportCache: {},
   dailyLoadingKey: null,
-  pollTimer: null // 🟢 ตัวแปรสำหรับ Polling
+  pollTimer: null,
+  userDict: {},
+  isPendingLeaveLocked: false
 };
+
+function esc(s) {
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function isManager() {
+  return !!state.user && (state.user.role === 'admin' || state.user.position === 'ผอ.');
+}
+function isAdminRole() {
+  return !!state.user && state.user.role === 'admin';
+}
 
 function getLocalDateStr(d = new Date()) {
   const yyyy = d.getFullYear();
@@ -499,10 +718,28 @@ async function api(cmd, extra = {}) {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' },
       body: JSON.stringify({ cmd, token: state.token, ...extra })
     });
-    return await res.json();
+    const data = await res.json();
+    // backend ปฏิเสธ session (หมดอายุ / ถูกระงับ / ถูกลบ) → ออกจากระบบทันที
+    if (data && data.code === 'AUTH' && cmd !== 'login' && cmd !== 'logout' && state.token) {
+      forceLogout(data.message);
+    }
+    return data;
   } catch (err) {
     return { success: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ' };
   }
+}
+
+function forceLogout(msg) {
+  localStorage.removeItem('tt_token');
+  localStorage.removeItem('tt_user');
+  sessionStorage.removeItem('voicePlayed');
+  state.token = ''; state.user = null;
+  clearAllCaches();
+  stopPolling();
+  state.dailyDateAuto = true;
+  const dd = document.getElementById('dailyDate'); if (dd) dd.value = '';
+  showScreen('authScreen');
+  toast(msg || 'กรุณาเข้าสู่ระบบใหม่', 'error');
 }
 
 function toast(msg, type = 'success') {
@@ -523,7 +760,7 @@ function speakPendingAlerts(hasLeave, hasOB) {
   if (!msg) return;
   const play = () => {
     const u = new SpeechSynthesisUtterance(msg);
-    u.lang = 'th-TH'; u.rate = 0.9;
+    u.lang = 'th-TH'; u.rate = 0.9; u.pitch = 1.1;
     window.speechSynthesis.speak(u);
   };
   play(); setTimeout(play, 2500);
@@ -542,33 +779,41 @@ function clearAllCaches() {
   state.dailyReportCache = {};
   state.dailyLoadingKey = null;
   state.lastStatusFetch = 0;
+  state.userDict = {};
+  state.selectedAction = null;
+  state.isPendingLeaveLocked = false;
 }
 
-// 🟢 ระบบ Polling เบื้องหลัง (Silent Refresh)
+// ---------- Polling: ดึงข้อมูลจาก backend ซ้ำตลอด ให้หน้าเว็บตรงกับ Sheet ----------
+function pollTick() {
+  if (document.hidden || !state.token) return;
+  const activeScreen = document.querySelector('.screen.active');
+  if (!activeScreen) return;
+  if (activeScreen.id === 'dashboardScreen') {
+    loadDailyReport(false, true);
+    checkTodayStatus(true);
+    if (isManager()) checkPendingCounts();
+  } else if (activeScreen.id === 'reportsScreen') {
+    loadReports(false, true);
+  }
+}
 function startPolling() {
   if (state.pollTimer) clearInterval(state.pollTimer);
-  state.pollTimer = setInterval(() => {
-    if (document.hidden) return; // ถ้าไม่ได้เปิดหน้าจออยู่ ไม่ต้องโหลด
-
-    const activeScreen = document.querySelector('.screen.active');
-    if (!activeScreen) return;
-
-    if (activeScreen.id === 'dashboardScreen') {
-      // อัปเดตตารางรายวันเงียบๆ
-      loadDailyReport(false, true); 
-      checkTodayStatus();
-    } else if (activeScreen.id === 'reportsScreen') {
-      // อัปเดตรายงานเงียบๆ
-      loadReports(false, true);
-    }
-  }, POLL_INTERVAL_MS);
+  state.pollTimer = setInterval(pollTick, POLL_INTERVAL_MS);
 }
-
 function stopPolling() {
-  if (state.pollTimer) {
-    clearInterval(state.pollTimer);
-    state.pollTimer = null;
-  }
+  if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
+}
+// กลับมาที่หน้าเว็บ → รีเฟรชทันที
+document.addEventListener('visibilitychange', () => { if (!document.hidden && state.pollTimer) pollTick(); });
+window.addEventListener('focus', () => { if (state.pollTimer) pollTick(); });
+
+function refreshDashboardMode() {
+  if (!state.user) return;
+  const isAdmin = state.user.role === 'admin';
+  document.getElementById('attendanceForm').style.display = isAdmin ? 'none' : 'block';
+  document.getElementById('adminNotice').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('adminBtn').style.display = isManager() ? 'flex' : 'none';
 }
 
 function showScreen(name) {
@@ -585,28 +830,21 @@ function showScreen(name) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   if (name === 'dashboardScreen' && state.user) {
-    if (state.user.role === 'admin') {
-      document.getElementById('attendanceForm').style.display = 'none';
-      document.getElementById('adminNotice').style.display = 'block';
-    } else {
-      document.getElementById('attendanceForm').style.display = 'block';
-      document.getElementById('adminNotice').style.display = 'none';
-      checkTodayStatus();
-    }
+    refreshDashboardMode();
+    checkTodayStatus(true);
     loadDailyReport();
   }
 
   if (name === 'reportsScreen') {
-    const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
-    document.getElementById('reportHeaderRole').textContent = isAdminOrDirector ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
-    document.getElementById('editColHeader').style.display = isAdminOrDirector ? 'table-cell' : 'none';
+    const mgr = isManager();
+    document.getElementById('reportHeaderRole').textContent = mgr ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
+    document.getElementById('editColHeader').style.display = mgr ? 'table-cell' : 'none';
     initReportsDefaults();
     loadReports();
   }
 
   if (name === 'profileScreen') updateProfileUI();
   
-  // เริ่ม Polling ใหม่เมื่อเปลี่ยนหน้า
   if (name === 'dashboardScreen' || name === 'reportsScreen') {
     startPolling();
   } else {
@@ -711,15 +949,53 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   state.loadingAuth = false; btn.disabled = false; btn.textContent = '🚀 เข้าสู่ระบบ';
 });
 
+// ---------- ลงทะเบียน ----------
+document.getElementById('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  if (state.loadingAuth) return;
+  const username = document.getElementById('regUsername').value.trim().toLowerCase();
+  const fullName = document.getElementById('regFullName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const password = document.getElementById('regPassword').value;
+  const password2 = document.getElementById('regPassword2').value;
+  if (!/^[a-z0-9_]{3,}$/.test(username)) return toast('ชื่อผู้ใช้ใช้ได้เฉพาะ a-z, 0-9, _ (อย่างน้อย 3 ตัว)', 'error');
+  if (!fullName) return toast('กรุณากรอกชื่อ-นามสกุล', 'error');
+  if (password.length < 6) return toast('รหัสผ่านอย่างน้อย 6 ตัวอักษร', 'error');
+  if (password !== password2) return toast('รหัสผ่านทั้งสองช่องไม่ตรงกัน', 'error');
+
+  const btn = document.getElementById('registerBtn');
+  const gpsEl = document.getElementById('regGpsStatus');
+  state.loadingAuth = true; btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังลงทะเบียน...';
+  let pos = { lat: null, lng: null };
+  try {
+    gpsEl.className = 'gps-status loading';
+    gpsEl.innerHTML = '<span>⏳</span><span>กำลังตรวจสอบตำแหน่ง...</span>';
+    pos = await getGPS();
+    gpsEl.className = 'gps-status ok';
+    gpsEl.innerHTML = '<span>✅</span><span>ได้รับตำแหน่ง GPS แล้ว</span>';
+  } catch (err) {
+    gpsEl.className = 'gps-status bad';
+    gpsEl.innerHTML = `<span>❌</span><span>${esc(err.message)}</span>`;
+  }
+  const res = await api('register', { username, password, fullName, email, lat: pos.lat, lng: pos.lng });
+  state.loadingAuth = false; btn.disabled = false; btn.textContent = '✨ ลงทะเบียน';
+  if (res.success) {
+    toast(res.message);
+    document.getElementById('registerForm').reset();
+    document.querySelector('#authScreen .tab[data-tab="login"]').click();
+  } else toast(res.message, 'error');
+});
+
 async function initUserSession() {
   if (!state.user || !state.token) return false;
   const res = await api('getInitData');
   if (!res.success) {
-    toast(res.message || 'ไม่สามารถโหลดข้อมูลได้', 'error');
+    if (res.code !== 'AUTH') toast(res.message || 'ไม่สามารถโหลดข้อมูลได้', 'error');
     return false;
   }
   state.settings = res.settings;
   state.user = res.user;
+  if (localStorage.getItem('tt_token')) localStorage.setItem('tt_user', JSON.stringify(res.user));
   state.todayRecord = res.todayRecord;
   state.todayLeave = res.todayLeave;
   state.todayPendingLeave = res.todayPendingLeave;
@@ -730,33 +1006,48 @@ async function initUserSession() {
   document.getElementById('dashRole').textContent = `${state.user.username} · ${displayPos}`;
   document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/46';
 
-  const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
-  document.getElementById('adminBtn').style.display = isAdminOrDirector ? 'flex' : 'none';
-
-  document.getElementById('setAcademicYear').value = res.settings.academicYear || '';
-  document.getElementById('setTerm1Start').value = res.settings.term1Start || '';
-  document.getElementById('setTerm1End').value = res.settings.term1End || '';
-  document.getElementById('setTerm2Start').value = res.settings.term2Start || '';
-  document.getElementById('setTerm2End').value = res.settings.term2End || '';
-  document.getElementById('setOfficeName').value = res.settings.officeName || '';
-  document.getElementById('setOfficeLat').value = res.settings.officeLat || '';
-  document.getElementById('setOfficeLng').value = res.settings.officeLng || '';
-  document.getElementById('setRadius').value = res.settings.radius || '';
-  document.getElementById('setStrictReg').checked = !!res.settings.strictRegistration;
-
+  fillSettingsForm(res.settings);
   updateActionButtonsUI();
   const dd = document.getElementById('dailyDate');
   if (dd) {
     dd.value = getLocalDateStr();
     state.dailyDateAuto = true;
   }
-  if (isAdminOrDirector) checkPendingCounts();
+  if (isManager()) checkPendingCounts();
   showScreen('dashboardScreen');
   return true;
 }
 
+function fillSettingsForm(s) {
+  document.getElementById('setAcademicYear').value = s.academicYear || '';
+  document.getElementById('setTerm1Start').value = s.term1Start || '';
+  document.getElementById('setTerm1End').value = s.term1End || '';
+  document.getElementById('setTerm2Start').value = s.term2Start || '';
+  document.getElementById('setTerm2End').value = s.term2End || '';
+  document.getElementById('setOfficeName').value = s.officeName || '';
+  document.getElementById('setOfficeLat').value = s.officeLat || '';
+  document.getElementById('setOfficeLng').value = s.officeLng || '';
+  document.getElementById('setRadius').value = s.radius || '';
+  document.getElementById('setStrictReg').checked = !!s.strictRegistration;
+}
+
+// รับข้อมูลผู้ใช้ล่าสุดจาก backend (เช่น แอดมินเปลี่ยนตำแหน่ง/สิทธิ์ใน Sheet)
+function applyUserUpdate(u) {
+  if (!u || !state.user) return;
+  const changed = u.position !== state.user.position || u.role !== state.user.role || u.fullName !== state.user.fullName;
+  state.user = { ...state.user, ...u };
+  if (localStorage.getItem('tt_token')) localStorage.setItem('tt_user', JSON.stringify(state.user));
+  document.getElementById('dashName').textContent = state.user.fullName;
+  document.getElementById('dashRole').textContent = `${state.user.username} · ${state.user.position || 'ครู'}`;
+  if (state.user.profilePic) document.getElementById('dashPic').src = state.user.profilePic;
+  if (changed) {
+    refreshDashboardMode();
+    if (isManager()) checkPendingCounts();
+  }
+}
+
 async function checkPendingCounts() {
-  if (state.user && (state.user.position === 'ผอ.' || state.user.role === 'admin')) {
+  if (isManager()) {
     const res = await api('getPendingCounts');
     if (res.success) {
       const total = res.countLeave + res.countOB;
@@ -795,8 +1086,9 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   toast('ออกจากระบบแล้ว');
 });
 
+// ---------- สถานะวันนี้ (backend เป็นผู้กำหนด ปุ่มรีเซ็ตตาม Sheet เสมอ) ----------
 async function checkTodayStatus(force = false) {
-  if (!state.user || state.user.role === 'admin') return;
+  if (!state.user) return;
   if (!force && Date.now() - state.lastStatusFetch < 10000) {
     updateActionButtonsUI();
     return;
@@ -807,6 +1099,8 @@ async function checkTodayStatus(force = false) {
     state.todayLeave = res.leave;
     state.todayPendingLeave = res.pendingLeave;
     state.lastStatusFetch = Date.now();
+    if (res.settings) state.settings = { ...state.settings, ...res.settings };
+    if (res.user) applyUserUpdate(res.user);
     updateActionButtonsUI();
   }
 }
@@ -814,30 +1108,50 @@ async function checkTodayStatus(force = false) {
 function updateActionButtonsUI() {
   const btns = document.querySelectorAll('.action-btn');
   btns.forEach(btn => { btn.disabled = false; btn.classList.remove('active'); });
+  const hasTime = t => !!t && t !== '-' && t !== '';
+
   if (state.todayRecord) {
-    if (state.todayRecord.inTime && state.todayRecord.inTime !== '-' && state.todayRecord.inTime !== '') {
+    if (hasTime(state.todayRecord.inTime)) {
       const btnIn = document.querySelector('.action-btn[data-action="เข้างาน"]');
-      if(btnIn) { btnIn.disabled = true; btnIn.classList.add('active'); }
+      if (btnIn) { btnIn.disabled = true; btnIn.classList.add('active'); }
     }
-    if (state.todayRecord.outTime && state.todayRecord.outTime !== '-' && state.todayRecord.outTime !== '') {
+    if (hasTime(state.todayRecord.outTime)) {
       const btnOut = document.querySelector('.action-btn[data-action="ออกงาน"]');
-      if(btnOut) { btnOut.disabled = true; btnOut.classList.add('active'); }
+      if (btnOut) { btnOut.disabled = true; btnOut.classList.add('active'); }
     }
   }
+  
   if (state.todayPendingLeave) {
     btns.forEach(btn => btn.disabled = true);
-    toast('คุณมีคำขอที่รอการอนุมัติอยู่ ไม่สามารถลงเวลาได้', 'error');
+    if (state.isPendingLeaveLocked !== true) {
+      toast('คุณมีคำขอที่รอการอนุมัติอยู่ ไม่สามารถลงเวลาได้', 'error');
+      state.isPendingLeaveLocked = true;
+    }
+  } else {
+    state.isPendingLeaveLocked = false;
   }
+  
   if (state.todayLeave) {
     const type = state.todayLeave.type;
     if (type !== 'ลาครึ่งเช้า' && type !== 'ลาครึ่งบ่าย') {
       const btnIn = document.querySelector('.action-btn[data-action="เข้างาน"]');
       const btnOut = document.querySelector('.action-btn[data-action="ออกงาน"]');
-      if(btnIn) { btnIn.disabled = true; btnIn.classList.add('active'); }
-      if(btnOut) { btnOut.disabled = true; btnOut.classList.add('active'); }
+      if (btnIn) { btnIn.disabled = true; btnIn.classList.add('active'); }
+      if (btnOut) { btnOut.disabled = true; btnOut.classList.add('active'); }
+      btns.forEach(btn => { btn.disabled = true; });
     } else {
       const btnLeave = document.querySelector('.action-btn[data-action="ลา"]');
-      if(btnLeave) { btnLeave.disabled = true; btnLeave.classList.add('active'); }
+      if (btnLeave) { btnLeave.disabled = true; btnLeave.classList.add('active'); }
+    }
+  }
+
+  // คงการเลือกปุ่มของผู้ใช้ไว้ถ้ายังกดได้ / ยกเลิกถ้าปุ่มถูกล็อก
+  if (state.selectedAction) {
+    const sel = document.querySelector(`.action-btn[data-action="${state.selectedAction}"]`);
+    if (sel && !sel.disabled) sel.classList.add('active');
+    else {
+      state.selectedAction = null;
+      document.getElementById('reasonSection').classList.remove('visible');
     }
   }
 }
@@ -904,7 +1218,7 @@ async function checkGPS() {
     }
   } catch (err) {
     gpsEl.className = 'gps-status bad';
-    gpsEl.innerHTML = `<span>❌</span><span>${err.message}</span>`;
+    gpsEl.innerHTML = `<span>❌</span><span>${esc(err.message)}</span>`;
   }
 }
 
@@ -913,11 +1227,12 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
   if (!state.selectedAction) return toast('เลือกประเภทการลงเวลา', 'error');
   const reason = document.getElementById('reasonInput').value.trim();
   const note = document.getElementById('noteInput').value.trim();
+  const isLeaveOrOB = (state.selectedAction === 'ลา' || state.selectedAction === 'ไปราชการ');
+  if (isLeaveOrOB && !reason) return toast('กรุณาระบุเหตุผล', 'error');
   const btn = document.getElementById('submitBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
   try {
     let pos = { lat: 0, lng: 0 };
-    const isLeaveOrOB = (state.selectedAction === 'ลา' || state.selectedAction === 'ไปราชการ');
     if (!isLeaveOrOB) pos = await getFreshPosition();
     const payload = { action: state.selectedAction, reason, note, lat: pos.lat, lng: pos.lng };
     if (state.selectedAction === 'ลา') {
@@ -938,8 +1253,12 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
       invalidateAllReportCaches();
       loadDailyReport(true);
       checkTodayStatus(true);
-      if (state.user.position === 'ผอ.' || state.user.role === 'admin') checkPendingCounts();
-    } else toast(res.message, 'error');
+      if (isManager()) checkPendingCounts();
+    } else {
+      toast(res.message, 'error');
+      // ถ้า backend ปฏิเสธ (เช่น ข้อมูลใน Sheet เปลี่ยนไป) ให้ซิงก์สถานะปุ่มใหม่ทันที
+      checkTodayStatus(true);
+    }
   } catch (err) { toast(err.message, 'error'); }
   finally { btn.disabled = false; btn.innerHTML = '📍 บันทึกข้อมูล'; }
 });
@@ -950,6 +1269,22 @@ document.getElementById('dailyDate').addEventListener('change', () => {
   loadDailyReport();
 });
 
+function getInitials(name) {
+  if(!name) return "?";
+  let parts = name.trim().split(" ");
+  if(parts.length >= 2) return parts[0].charAt(0) + parts[1].charAt(0);
+  return name.charAt(0);
+}
+
+function avatarFor(picSrc, name) {
+  const initials = esc(getInitials(name));
+  const fallback = `<div style="display:none; width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
+  if (picSrc) {
+    return `<img src="${esc(picSrc)}" class="avatar-xs" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">${fallback}`;
+  }
+  return `<div style="width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
+}
+
 function renderDailyReport(records) {
   const tbody = document.getElementById('dailyReportBody');
   if (!records || records.length === 0) {
@@ -957,18 +1292,13 @@ function renderDailyReport(records) {
     return;
   }
   tbody.innerHTML = records.map(r => {
-    let displayNote = r.note || '-';
-    if (!(displayNote.includes('ลาครึ่งเช้า') || displayNote.includes('ลาครึ่งบ่าย') ||
-          displayNote.includes('ลาทั้งวัน') || displayNote.includes('ลาหลายวัน') ||
-          displayNote.includes('ไปราชการ'))) {
-      displayNote = '-';
-    }
+    const picSrc = r.profilePic || (state.user && state.user.fullName === r.fullName ? state.user.profilePic : null);
     return `
       <tr>
-        <td class="table-name">${r.fullName}</td>
-        <td style="color:var(--success);font-weight:700">${r.inTime}</td>
-        <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
-        <td>${displayNote}</td>
+        <td class="table-name">${avatarFor(picSrc, r.fullName)} ${esc(r.fullName)}</td>
+        <td style="color:var(--success);font-weight:700">${esc(r.inTime)}</td>
+        <td style="color:var(--danger);font-weight:700">${esc(r.outTime)}</td>
+        <td>${esc(r.note || '-')}</td>
       </tr>`;
   }).join('');
 }
@@ -991,7 +1321,7 @@ async function loadDailyReport(force = false, isPolling = false) {
   const needsFetch = force || !cached || isStale;
 
   if (cached) {
-    if (!isPolling) renderDailyReport(cached.data); // ถ้าเป็น polling ไม่ต้อง re-render ถ้าไม่จำเป็น
+    if (!isPolling) renderDailyReport(cached.data);
     if (!needsFetch && !isPolling) return;
   } else if (!isPolling) {
     document.getElementById('dailyReportBody').innerHTML = `
@@ -1010,13 +1340,11 @@ async function loadDailyReport(force = false, isPolling = false) {
     if (!res.success) {
       if (!cached && !isPolling) {
         document.getElementById('dailyReportBody').innerHTML =
-          `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`;
+          `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${esc(res.message)}</td></tr>`;
       }
       return;
     }
     const records = res.records || [];
-    
-    // 🟢 ตรวจสอบว่าข้อมูลเปลี่ยนไปจากเดิมไหม (Hash Check) ถ้าไม่เปลี่ยน ไม่ต้องวาดใหม่
     const newHash = JSON.stringify(records);
     const oldHash = cached ? JSON.stringify(cached.data) : '';
     
@@ -1036,23 +1364,28 @@ document.getElementById('reportMonth').addEventListener('change', () => loadRepo
 
 function renderReportsTable(records) {
   const tbody = document.getElementById('termReportBody');
+  state.currentReportRecords = records || [];
   if (!records || records.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>';
     return;
   }
-  const isAdminOrDirector = (state.user.role === 'admin' || state.user.position === 'ผอ.');
-  tbody.innerHTML = records.map(r => `
-    <tr id="report-row-${r.date.replace(/\//g, '')}-${r.name.replace(/\s/g, '')}">
-      <td>${isAdminOrDirector ? `<b>${r.name}</b><br><span style="font-size:0.75rem;color:var(--text-muted)">${r.date}</span>` : r.date}</td>
-      <td style="color:var(--success);font-weight:700">${r.inTime}</td>
-      <td style="color:var(--danger);font-weight:700">${r.outTime}</td>
-      <td>${r.note}</td>
-      ${isAdminOrDirector ? `<td><button class="btn-sm btn-warning" onclick="openEditAttendance('${r.name.replace(/'/g, "\\'")}', '${r.date}', '${r.inTime}', '${r.outTime}', '${(r.note || '').replace(/'/g, "\\'")}')">✏️ แก้ไข</button></td>` : ''}
-    </tr>`).join('');
+  const mgr = isManager();
+  
+  tbody.innerHTML = records.map((r, i) => {
+    const picSrc = r.profilePic || (state.user && state.user.fullName === r.name ? state.user.profilePic : null);
+    return `
+      <tr>
+        <td>${mgr ? `<div style="display:flex; align-items:center; margin-bottom:4px;">${avatarFor(picSrc, r.name)} <b>${esc(r.name)}</b></div><span style="font-size:0.75rem;color:var(--text-muted); margin-left:40px;">${esc(r.date)}</span>` : esc(r.date)}</td>
+        <td style="color:var(--success);font-weight:700">${esc(r.inTime)}</td>
+        <td style="color:var(--danger);font-weight:700">${esc(r.outTime)}</td>
+        <td>${esc(r.note)}</td>
+        ${mgr ? `<td><button class="btn-sm btn-warning" onclick="openEditAttendanceByIdx(${i})">✏️ แก้ไข</button></td>` : ''}
+      </tr>`;
+  }).join('');
 }
 
 async function loadReports(force = false, isPolling = false) {
-  const year = document.getElementById('reportYear').value;
+  const year = document.getElementById('reportYear').value.trim();
   const term = document.getElementById('reportTerm').value;
   const month = document.getElementById('reportMonth').value;
 
@@ -1086,19 +1419,17 @@ async function loadReports(force = false, isPolling = false) {
   state.reportsLoadingKey = cacheKey;
   try {
     const res = await api('getReports', { year, term, month });
-    const currentKey = `${document.getElementById('reportYear').value}|${document.getElementById('reportTerm').value}|${document.getElementById('reportMonth').value}`;
+    const currentKey = `${document.getElementById('reportYear').value.trim()}|${document.getElementById('reportTerm').value}|${document.getElementById('reportMonth').value}`;
     if (currentKey !== cacheKey) return;
 
     if (!res.success) {
       if (!cached && !isPolling) {
         document.getElementById('termReportBody').innerHTML =
-          `<tr><td colspan="5" style="text-align:center;color:var(--danger)">${res.message}</td></tr>`;
+          `<tr><td colspan="5" style="text-align:center;color:var(--danger)">${esc(res.message)}</td></tr>`;
       }
       return;
     }
     const records = res.records || [];
-    
-    // 🟢 Hash Check
     const newHash = JSON.stringify(records);
     const oldHash = cached ? JSON.stringify(cached.data) : '';
     
@@ -1123,14 +1454,17 @@ function updateCacheIndicator(ts) {
   el.style.display = 'inline-flex';
 }
 
-function openEditAttendance(name, date, inTime, outTime, note) {
-  document.getElementById('editAttName').value = name;
-  document.getElementById('editAttOrigDate').value = date;
-  document.getElementById('editAttNameDisplay').value = name;
-  document.getElementById('editAttDate').value = date;
-  document.getElementById('editAttInTime').value = inTime;
-  document.getElementById('editAttOutTime').value = outTime;
-  document.getElementById('editAttNote').value = note;
+// ---------- แก้ไข / ลบ ประวัติการลงเวลา (แอดมิน/ผอ.) ----------
+function openEditAttendanceByIdx(i) {
+  const r = state.currentReportRecords[i];
+  if (!r) return;
+  document.getElementById('editAttName').value = r.name;
+  document.getElementById('editAttOrigDate').value = r.date;
+  document.getElementById('editAttNameDisplay').value = r.name;
+  document.getElementById('editAttDate').value = r.date;
+  document.getElementById('editAttInTime').value = r.inTime;
+  document.getElementById('editAttOutTime').value = r.outTime;
+  document.getElementById('editAttNote').value = (r.note && r.note !== '-') ? r.note : '';
   document.getElementById('editAttendanceModal').classList.add('show');
 }
 
@@ -1138,25 +1472,25 @@ function closeEditAttendanceModal() {
   document.getElementById('editAttendanceModal').classList.remove('show');
 }
 
+function afterAttendanceEdited() {
+  invalidateAllReportCaches();
+  loadReports(true);
+  loadDailyReport(true);
+  checkTodayStatus(true);
+}
+
 async function saveEditAttendance() {
   const btn = document.getElementById('saveEditAttBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
-  
-  const origDate = document.getElementById('editAttOrigDate').value;
-  const name = document.getElementById('editAttName').value;
-  const newDate = document.getElementById('editAttDate').value;
-  const newInTime = document.getElementById('editAttInTime').value;
-  const newOutTime = document.getElementById('editAttOutTime').value;
-  const newNote = document.getElementById('editAttNote').value;
 
   const payload = {
-    name: name,
-    origDate: origDate,
-    newDate: newDate,
-    inTime: newInTime,
-    outTime: newOutTime,
-    note: newNote,
-    year: document.getElementById('reportYear').value,
+    name: document.getElementById('editAttName').value,
+    origDate: document.getElementById('editAttOrigDate').value,
+    newDate: document.getElementById('editAttDate').value.trim(),
+    inTime: document.getElementById('editAttInTime').value.trim(),
+    outTime: document.getElementById('editAttOutTime').value.trim(),
+    note: document.getElementById('editAttNote').value,
+    year: document.getElementById('reportYear').value.trim(),
     term: document.getElementById('reportTerm').value
   };
   
@@ -1166,49 +1500,33 @@ async function saveEditAttendance() {
   if (res.success) {
     toast(res.message);
     closeEditAttendanceModal();
-    
-    // 🟢 OPTIMISTIC UI: อัปเดต Local Cache ทันที ไม่ต้องรอโหลดใหม่
-    const cacheKey = `${payload.year}|${payload.term}|${document.getElementById('reportMonth').value}`;
-    if (state.reportsCache[cacheKey] && state.reportsCache[cacheKey].data) {
-      const records = state.reportsCache[cacheKey].data;
-      const idx = records.findIndex(r => r.date === origDate && r.name === name);
-      
-      if (idx !== -1) {
-        if (newDate !== origDate) {
-          // ถ้าเปลี่ยนวันที่ ต้องดึงข้อมูลใหม่เพราะมันอาจจะอยู่นอกเดือนที่เลือก
-          loadReports(true); 
-        } else {
-          // ถ้าแค่อัปเดตเวลา/หมายเหตุ ให้เปลี่ยนใน Array แล้ว Sort ใหม่ทันที
-          records[idx].inTime = newInTime || '-';
-          records[idx].outTime = newOutTime || '-';
-          records[idx].note = newNote || '-';
-          records[idx].rawInTime = newInTime || '99:99';
-
-          // เรียงลำดับใหม่ให้เหมือนฝั่ง Backend
-          records.sort((a, b) => {
-            const [dA, mA, yA] = a.date.split('/').map(Number);
-            const [dB, mB, yB] = b.date.split('/').map(Number);
-            if (yA !== yB) return yA - yB;
-            if (mA !== mB) return mA - mB;
-            if (dA !== dB) return dA - dB;
-            return a.rawInTime.localeCompare(b.rawInTime);
-          });
-
-          // วาดตารางใหม่ 0ms
-          renderReportsTable(records);
-          toast('อัปเดตข้อมูลในหน้าจอทันที');
-        }
-      } else {
-        loadReports(true);
-      }
-    } else {
-      loadReports(true);
-    }
-    
-    // สั่งให้แคชหน้าหลักและรายงานอื่นๆ รีเฟรชในรอบถัดไป
-    invalidateAllReportCaches();
+    afterAttendanceEdited();
   } else {
     toast(res.message, 'error');
+    if (/ไม่พบข้อมูลเดิม/.test(res.message || '')) { closeEditAttendanceModal(); afterAttendanceEdited(); }
+  }
+}
+
+async function deleteEditAttendance() {
+  const name = document.getElementById('editAttName').value;
+  const date = document.getElementById('editAttOrigDate').value;
+  if (!confirm(`ลบรายการของ ${name} วันที่ ${date} ?`)) return;
+  const btn = document.getElementById('deleteEditAttBtn');
+  btn.disabled = true;
+  const res = await api('admin_deleteAttendance', {
+    name, origDate: date,
+    year: document.getElementById('reportYear').value.trim(),
+    term: document.getElementById('reportTerm').value
+  });
+  btn.disabled = false;
+  if (res.success) {
+    toast(res.message);
+    closeEditAttendanceModal();
+    afterAttendanceEdited();
+  } else {
+    toast(res.message, 'error');
+    closeEditAttendanceModal();
+    afterAttendanceEdited();
   }
 }
 
@@ -1221,7 +1539,7 @@ function closePdfModal() { document.getElementById('pdfModal').classList.remove(
 
 async function downloadPdf() {
   const monthVal = document.getElementById('pdfMonthSelect').value;
-  const academicYear = document.getElementById('reportYear').value;
+  const academicYear = document.getElementById('reportYear').value.trim();
   if (!monthVal) return toast('กรุณาเลือกเดือน', 'error');
   const btn = document.getElementById('confirmPdfBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังสร้าง...';
@@ -1249,6 +1567,9 @@ function updateProfileUI() {
   const validPositions = ['ครู', 'ผอ.', 'พนักงาน', 'ลูกจ้าง'];
   const profPosSelect = document.getElementById('profPosition');
   profPosSelect.value = validPositions.includes(state.user.position) ? state.user.position : 'ครู';
+  // เฉพาะแอดมิน/ผอ. เท่านั้นที่เลือกตำแหน่ง ผอ. เองได้ (ผู้อื่นให้แอดมินตั้งให้)
+  const canPickDirector = isManager();
+  Array.from(profPosSelect.options).forEach(o => { if (o.value === 'ผอ.') o.disabled = !canPickDirector; });
   document.getElementById('profEmail').value = state.user.email || '';
   document.getElementById('profilePicPreview').src = state.user.profilePic || 'https://via.placeholder.com/100';
   const sigPreview = document.getElementById('sigPreview');
@@ -1304,10 +1625,11 @@ document.getElementById('profileForm').addEventListener('submit', async (e) => {
   const res = await api('updateProfile', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกข้อมูล';
   if (res.success) {
-    toast(res.message);
+    toast('บันทึกข้อมูลสำเร็จ');
     state.user = res.user;
-    localStorage.setItem('tt_user', JSON.stringify(res.user));
+    if (localStorage.getItem('tt_token')) localStorage.setItem('tt_user', JSON.stringify(res.user));
     state.profilePicBase64 = null; state.signatureBase64 = null;
+    clearAllCaches();
     await initUserSession();
     updateProfileUI();
   } else toast(res.message, 'error');
@@ -1323,39 +1645,43 @@ document.getElementById('passwordForm').addEventListener('submit', async (e) => 
   else toast(r.message, 'error');
 });
 
+// ---------- Admin panel (แอดมินเห็นครบ / ผอ. เห็นเฉพาะแท็บอนุมัติ) ----------
+function activateAdminTab(name) {
+  document.querySelectorAll('#adminScreen .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('#adminScreen .tab-content').forEach(c => c.classList.remove('active'));
+  document.getElementById(name + 'Tab').classList.add('active');
+  if (name === 'pending') loadPending();
+  if (name === 'leaves') loadPendingLeaves();
+  if (name === 'users') loadUsers();
+  if (name === 'settings') loadAdminSettings();
+}
+
 document.getElementById('adminBtn').addEventListener('click', () => {
   showScreen('adminScreen');
-  loadAdminSettings();
-  loadPending();
-  loadPendingLeaves();
+  const admin = isAdminRole();
+  document.querySelectorAll('#adminScreen .tab').forEach(t => {
+    t.style.display = (admin || t.dataset.tab === 'leaves') ? '' : 'none';
+  });
+  activateAdminTab(admin ? 'pending' : 'leaves');
 });
 
 document.querySelectorAll('#adminScreen .tab').forEach(tab => {
-  tab.addEventListener('click', () => {
-    document.querySelectorAll('#adminScreen .tab').forEach(t => t.classList.remove('active'));
-    tab.classList.add('active');
-    document.querySelectorAll('#adminScreen .tab-content').forEach(c => c.classList.remove('active'));
-    document.getElementById(tab.dataset.tab + 'Tab').classList.add('active');
-    if (tab.dataset.tab === 'pending') loadPending();
-    if (tab.dataset.tab === 'leaves') loadPendingLeaves();
-    if (tab.dataset.tab === 'users') loadUsers();
-    if (tab.dataset.tab === 'settings') loadAdminSettings();
-  });
+  tab.addEventListener('click', () => activateAdminTab(tab.dataset.tab));
 });
 
 async function loadPending() {
   const box = document.getElementById('pendingList');
   box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
   const res = await api('admin_listPending');
-  if (!res.success) return;
+  if (!res.success) { box.innerHTML = `<div class="empty-state">${esc(res.message)}</div>`; return; }
   if (res.users.length === 0) return box.innerHTML = '<div class="empty-state">ไม่มีผู้ใช้รออนุมัติ 🎉</div>';
   box.innerHTML = res.users.map(u => `
-    <div id="pending-${u.username}" style="padding:14px;background:var(--bg-color);border-radius:12px;border:2px solid var(--border-color); box-shadow: 2px 2px 0 var(--border-color);">
-      <div style="font-weight:700;font-size:1rem;">${u.fullName} <span style="color:var(--text-muted);font-size:.8rem;font-weight:500;">@${u.username}</span></div>
-      <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px;font-weight:500;">${u.registeredAt} · ระยะ ${u.regDistance} ม.</div>
+    <div id="pending-${esc(u.username)}" style="padding:14px;background:var(--bg-color);border-radius:12px;border:2px solid var(--border-color); box-shadow: 2px 2px 0 var(--border-color);">
+      <div style="font-weight:700;font-size:1rem;">${esc(u.fullName)} <span style="color:var(--text-muted);font-size:.8rem;font-weight:500;">@${esc(u.username)}</span></div>
+      <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px;font-weight:500;">${esc(u.registeredAt)} · ระยะ ${esc(u.regDistance)} ม.</div>
       <div style="display:flex;gap:10px;margin-top:12px;">
-        <button class="btn-sm btn-emerald" style="flex:1" onclick="approveUser('${u.username}')">✓ อนุมัติ</button>
-        <button class="btn-sm btn-danger" style="flex:1" onclick="rejectUser('${u.username}')">✕ ปฏิเสธ</button>
+        <button class="btn-sm btn-emerald" style="flex:1" onclick="approveUser('${esc(u.username)}')">✓ อนุมัติ</button>
+        <button class="btn-sm btn-danger" style="flex:1" onclick="rejectUser('${esc(u.username)}')">✕ ปฏิเสธ</button>
       </div>
     </div>`).join('');
 }
@@ -1380,56 +1706,60 @@ async function loadPendingLeaves() {
   const box = document.getElementById('leavesList');
   box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
   const res = await api('admin_getPendingLeaves');
-  if (!res.success) return;
+  if (!res.success) { box.innerHTML = `<div class="empty-state">${esc(res.message)}</div>`; return; }
   if (res.leaves.length === 0) return box.innerHTML = '<div class="empty-state">ไม่มีรายการลารออนุมัติ 🎉</div>';
   box.innerHTML = res.leaves.map(l => `
-    <div id="leave-${l.id}" style="padding:14px;background:var(--bg-color);border-radius:12px;border:2px solid var(--border-color); box-shadow: 2px 2px 0 var(--border-color);">
-      <div style="font-weight:700;font-size:1rem;">${l.fullName} <span style="color:var(--text-muted);font-size:.8rem;font-weight:500;">@${l.username}</span></div>
-      <div style="color:var(--primary);font-size:.85rem;font-weight:700;margin-top:4px;">ประเภท: ${l.type}</div>
-      <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px;font-weight:500;">${l.startDate} ถึง ${l.endDate} · เหตุผล: ${l.reason}</div>
+    <div id="leave-${esc(l.id)}" style="padding:14px;background:var(--bg-color);border-radius:12px;border:2px solid var(--border-color); box-shadow: 2px 2px 0 var(--border-color);">
+      <div style="font-weight:700;font-size:1rem;">${esc(l.fullName)} <span style="color:var(--text-muted);font-size:.8rem;font-weight:500;">@${esc(l.username)}</span></div>
+      <div style="color:var(--primary);font-size:.85rem;font-weight:700;margin-top:4px;">ประเภท: ${esc(l.type)}</div>
+      <div style="color:var(--text-muted);font-size:.8rem;margin-top:4px;font-weight:500;">${esc(l.startDate)} ถึง ${esc(l.endDate)} · เหตุผล: ${esc(l.reason)}</div>
       <div style="display:flex;gap:10px;margin-top:12px;">
-        <button class="btn-sm btn-emerald" style="flex:1" onclick="approveLeave('${l.id}')">✓ อนุมัติ (ผอ.)</button>
-        <button class="btn-sm btn-danger" style="flex:1" onclick="rejectLeave('${l.id}')">✕ ปฏิเสธ</button>
+        <button class="btn-sm btn-emerald" style="flex:1" onclick="approveLeave('${esc(l.id)}')">✓ อนุมัติ (ผอ.)</button>
+        <button class="btn-sm btn-danger" style="flex:1" onclick="rejectLeave('${esc(l.id)}')">✕ ปฏิเสธ</button>
       </div>
     </div>`).join('');
 }
 
-window.approveLeave = async (id) => {
+async function handleLeaveDecision(cmd, id) {
   const el = document.getElementById(`leave-${id}`);
   if (el) el.style.display = 'none';
-  const r = await api('admin_approveLeave', {id:id});
+  const r = await api(cmd, {id:id});
   toast(r.message, r.success?'success':'error');
-  if (!r.success && el) el.style.display = 'block';
-  else if (r.success) {
+  if (r.success) {
     invalidateAllReportCaches();
     checkPendingCounts();
+  } else {
+    // รายการอาจถูกดำเนินการ/ยกเลิกไปแล้ว → โหลดรายการใหม่ตามข้อมูลจริงใน backend
+    loadPendingLeaves();
   }
-};
-window.rejectLeave = async (id) => {
-  const el = document.getElementById(`leave-${id}`);
-  if (el) el.style.display = 'none';
-  const r = await api('admin_rejectLeave', {id:id});
-  toast(r.message, r.success?'success':'error');
-  if (!r.success && el) el.style.display = 'block';
-  else if (r.success) {
-    invalidateAllReportCaches();
-    checkPendingCounts();
-  }
-};
+}
+window.approveLeave = (id) => handleLeaveDecision('admin_approveLeave', id);
+window.rejectLeave  = (id) => handleLeaveDecision('admin_rejectLeave', id);
 
 async function loadUsers() {
   const box = document.getElementById('usersList');
   box.innerHTML = '<div class="empty-state">กำลังโหลด...</div>';
   const res = await api('admin_listUsers');
-  if (!res.success) return;
-  box.innerHTML = res.users.map(u => `
-    <div class="user-row" id="user-row-${u.username}">
+  if (!res.success) { box.innerHTML = `<div class="empty-state">${esc(res.message)}</div>`; return; }
+  state.adminUsers = res.users;
+  
+  box.innerHTML = res.users.map((u, i) => `
+    <div class="user-row">
       <div class="user-row-info">
-        <div class="user-name" style="font-weight:700;font-size:.95rem">${u.fullName}</div>
-        <div class="user-desc" style="color:var(--text-muted);font-size:.75rem;margin-top:2px;">@${u.username} · ${u.position || 'ครู'} · ${u.status} ${u.gpsOverride === 'true' ? '<span style="color:var(--success); font-weight:700;">(นอกรัศมีได้)</span>' : ''}</div>
+        ${avatarFor(u.profilePic || null, u.fullName)}
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" style="font-weight:700;font-size:.95rem">${esc(u.fullName)}</div>
+          <div class="user-desc" style="color:var(--text-muted);font-size:.75rem;margin-top:2px;">@${esc(u.username)} · ${esc(u.position || 'ครู')} · ${esc(u.status)} ${u.gpsOverride === 'true' ? '<span style="color:var(--success); font-weight:700;">(นอกรัศมีได้)</span>' : ''}</div>
+        </div>
       </div>
-      <button class="btn-sm btn-cyan" onclick="openEditUser('${u.username}', '${u.fullName}', '${u.role}', '${u.status}', '${u.position}', '${u.email}', '${u.gpsOverride}')">✏️ แก้ไข</button>
+      <button class="btn-sm btn-cyan" onclick="openEditUserByIdx(${i})">✏️ แก้ไข</button>
     </div>`).join('');
+}
+
+function openEditUserByIdx(i) {
+  const u = state.adminUsers[i];
+  if (!u) return;
+  openEditUser(u.username, u.fullName, u.role, u.status, u.position, u.email, u.gpsOverride);
 }
 
 function openEditUser(username, fullName, role, status, position, email, gpsOverride) {
@@ -1468,19 +1798,13 @@ async function saveEditUser() {
   const btn = document.getElementById('saveEditUserBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
   
-  const username = document.getElementById('editTargetUsername').value;
-  const fullName = document.getElementById('editUserFullName').value.trim();
-  const position = document.getElementById('editUserPosition').value;
-  const status = document.getElementById('editUserStatus').value;
-  const gpsOverride = document.getElementById('editUserGpsOverride').checked;
-
   const payload = {
-    targetUsername: username,
-    fullName: fullName,
+    targetUsername: document.getElementById('editTargetUsername').value,
+    fullName: document.getElementById('editUserFullName').value.trim(),
     role: document.getElementById('editUserRole').value,
-    status: status,
-    position: position,
-    gpsOverride: gpsOverride,
+    status: document.getElementById('editUserStatus').value,
+    position: document.getElementById('editUserPosition').value,
+    gpsOverride: document.getElementById('editUserGpsOverride').checked,
     email: document.getElementById('editUserEmail').value.trim(),
     newPassword: document.getElementById('editUserPassword').value,
     profilePicBase64: state.editUserPicBase64,
@@ -1493,12 +1817,8 @@ async function saveEditUser() {
   if (res.success) {
     toast(res.message);
     closeEditUserModal();
-    const el = document.getElementById(`user-row-${username}`);
-    if (el) {
-      el.querySelector('.user-name').textContent = fullName;
-      const gpsText = (position === 'ผอ.' || gpsOverride) ? '<span style="color:var(--success); font-weight:700;">(นอกรัศมีได้)</span>' : '';
-      el.querySelector('.user-desc').innerHTML = `@${username} · ${position} · ${status} ${gpsText}`;
-    }
+    invalidateAllReportCaches();
+    loadUsers();
   } else {
     toast(res.message, 'error');
   }
@@ -1507,17 +1827,8 @@ async function saveEditUser() {
 async function loadAdminSettings() {
   const s = await api('getSettings');
   if (!s.success) return toast(s.message, 'error');
-  state.settings = s.settings;
-  document.getElementById('setOfficeName').value = s.settings.officeName || '';
-  document.getElementById('setOfficeLat').value = s.settings.officeLat || '';
-  document.getElementById('setOfficeLng').value = s.settings.officeLng || '';
-  document.getElementById('setRadius').value = s.settings.radius || '';
-  document.getElementById('setStrictReg').checked = !!s.settings.strictRegistration;
-  document.getElementById('setAcademicYear').value = s.settings.academicYear || '';
-  document.getElementById('setTerm1Start').value = s.settings.term1Start || '';
-  document.getElementById('setTerm1End').value = s.settings.term1End || '';
-  document.getElementById('setTerm2Start').value = s.settings.term2Start || '';
-  document.getElementById('setTerm2End').value = s.settings.term2End || '';
+  state.settings = { ...state.settings, ...s.settings };
+  fillSettingsForm(s.settings);
 }
 
 document.getElementById('btnUseCurrentGps').addEventListener('click', async () => {
@@ -1551,20 +1862,11 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   const res = await api('admin_updateSettings', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
   if (res.success) { 
-    toast(res.message); 
-    state.settings = {
-      ...state.settings,
-      officeName: payload.officeName,
-      officeLat: payload.officeLat,
-      officeLng: payload.officeLng,
-      radius: payload.radius,
-      strictRegistration: payload.strictRegistration,
-      academicYear: payload.academicYear,
-      term1Start: payload.term1Start,
-      term1End: payload.term1End,
-      term2Start: payload.term2Start,
-      term2End: payload.term2End
-    };
+    toast(res.message);
+    // ดึงค่าที่ backend คำนวณจริง (เช่น เทอม/ปีปัจจุบัน) กลับมาแสดง
+    state.reportsInited = false;
+    clearAllCaches();
+    await loadAdminSettings();
   }
   else toast(res.message, 'error');
 });
