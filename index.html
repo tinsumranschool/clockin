@@ -86,7 +86,7 @@ body{
   width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
   border: 2px solid var(--border-color); background: var(--bg-pattern);
   box-shadow: var(--glow-primary);
-  margin-right: 8px; display: inline-block; vertical-align: middle;
+  display: inline-block; vertical-align: middle;
   flex-shrink: 0; transition: transform 0.2s;
 }
 .avatar-xs:hover { transform: scale(1.2) rotate(5deg); }
@@ -139,12 +139,17 @@ input[type="checkbox"]{width:20px;height:20px;cursor:pointer;accent-color:var(--
 .btn-warning{background:#fff3d6; color:#d97706;}
 
 .table-wrap{ overflow-x:auto; border-radius:16px; border:var(--border-width) solid var(--border-color); margin-top:12px; background:var(--card-bg); box-shadow: 4px 4px 0px rgba(0,0,0,0.05); }
+.table-wrap table { table-layout: fixed; width: 100%; }
 table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left}
 th{background:var(--bg-pattern);padding:12px 10px;font-weight:700;color:var(--text-main);white-space:nowrap;border-bottom:var(--border-width) solid var(--border-color); text-align: center;}
-td{padding:12px 10px;border-bottom:1px solid var(--border-color);vertical-align:middle}
+td{padding:12px 10px;border-bottom:1px solid var(--border-color);vertical-align:middle; word-break: break-word;}
 tr:last-child td{border-bottom:none}
 tr:hover td { background: var(--bg-color); }
 .table-name{font-weight:700;color:var(--text-main); display: flex; align-items: center; gap: 4px;}
+
+@media (max-width: 480px) {
+  .table-wrap table th, .table-wrap table td { padding: 8px 4px; font-size: 0.75rem; }
+}
 
 .skeleton-row td{position: relative;overflow: hidden;background-color: var(--bg-pattern);color: transparent !important; border-bottom: none;}
 .skeleton-row td::after{content: "";position: absolute;top: 0;left: 0;right: 0;bottom: 0;background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);transform: translateX(-100%);animation: shimmer 1.5s infinite;}
@@ -302,7 +307,14 @@ tr:hover td { background: var(--bg-color); }
         <input type="date" id="dailyDate" class="input" style="width:auto;padding:6px 10px;font-size:.85rem">
       </div>
       <div class="table-wrap">
-        <table><thead><tr><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th></tr></thead>
+        <table>
+          <colgroup>
+            <col style="width: 35%;">
+            <col style="width: 20%;">
+            <col style="width: 20%;">
+            <col style="width: 25%;">
+          </colgroup>
+          <thead><tr><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th></tr></thead>
           <tbody id="dailyReportBody">
             <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
             <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
@@ -342,14 +354,23 @@ tr:hover td { background: var(--bg-color); }
           <button class="btn-sm btn-neutral" onclick="loadReports(true)">🔄 รีเฟรช</button>
           <span class="cache-indicator" id="reportsCacheIndicator" style="display:none;">⚡ แคช</span>
         </div>
-        <button class="btn-sm btn-cyan" id="exportPdfBtn">📄 ดาวน์โหลด PDF</button>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div id="userReportPicContainer"></div>
+          <button class="btn-sm btn-cyan" id="exportPdfBtn">📄 ดาวน์โหลด PDF</button>
+        </div>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>วันที่ / ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th><th id="editColHeader" style="display:none;">จัดการ</th></tr></thead>
+          <colgroup>
+            <col style="width: 30%;">
+            <col style="width: 18%;">
+            <col style="width: 18%;">
+            <col style="width: 34%;">
+          </colgroup>
+          <thead><tr><th id="reportTableHeader">วันที่ / ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th></tr></thead>
           <tbody id="termReportBody">
-            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
-            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
+            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
+            <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
           </tbody>
         </table>
       </div>
@@ -449,6 +470,15 @@ tr:hover td { background: var(--bg-color); }
 <div class="modal-overlay" id="pdfModal">
   <div class="modal">
     <h3 style="margin-bottom:14px;font-size:1.2rem;font-weight:700;">📄 ดาวน์โหลดรายงาน PDF</h3>
+    
+    <div class="field" id="pdfModeField">
+      <label class="field-label">เลือกข้อมูลที่ต้องการดาวน์โหลด</label>
+      <select id="pdfScopeSelect" class="select" required>
+        <option value="self">เฉพาะของฉัน</option>
+        <option value="school">ของทั้งโรงเรียน</option>
+      </select>
+    </div>
+    
     <div class="field">
       <label class="field-label">เลือกเดือนที่ต้องการ</label>
       <select id="pdfMonthSelect" class="select" required>
@@ -584,7 +614,6 @@ document.addEventListener('click', (e) => {
 // ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 
-// ⚡ ปรับ polling ให้ถี่ขึ้น (เหมือน Doitao) — 2 วินาที
 const CACHE_TTL_REPORTS = 2000;
 const CACHE_TTL_DAILY   = 2000;
 const POLL_INTERVAL_MS  = 2000;
@@ -697,7 +726,6 @@ function clearAllCaches() {
   state.isPendingLeaveLocked = false;
 }
 
-// ---------- Polling ----------
 function pollTick() {
   if (document.hidden || !state.token) return;
   const activeScreen = document.querySelector('.screen.active');
@@ -749,7 +777,20 @@ async function showScreen(name) {
   if (name === 'reportsScreen') {
     const mgr = isManager();
     document.getElementById('reportHeaderRole').textContent = mgr ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
-    document.getElementById('editColHeader').style.display = mgr ? 'table-cell' : 'none';
+    
+    // ปรับหัวตารางและรูปโปรไฟล์ตาม Role
+    if (mgr) {
+      document.getElementById('reportTableHeader').textContent = 'วันที่ / ชื่อ';
+      document.getElementById('userReportPicContainer').innerHTML = '';
+    } else {
+      document.getElementById('reportTableHeader').textContent = 'วันที่';
+      if (state.user && state.user.profilePic) {
+        document.getElementById('userReportPicContainer').innerHTML = `<img src="${state.user.profilePic}" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--border-color); object-fit: cover;">`;
+      } else {
+        document.getElementById('userReportPicContainer').innerHTML = `<div style="width: 40px; height: 40px; border-radius: 50%; background: var(--bg-pattern); border: 2px solid var(--border-color); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.2rem; color: var(--text-main);">${getInitials(state.user.fullName)}</div>`;
+      }
+    }
+
     initReportsDefaults();
     loadReports();
   }
@@ -758,7 +799,6 @@ async function showScreen(name) {
   else stopPolling();
 }
 
-// ⚡ default year/term/month ของหน้า reports = วันล่าสุดที่มีข้อมูล (หรือวันนี้)
 function initReportsDefaults() {
   if (state.reportsInited) return;
   const d = new Date();
@@ -766,13 +806,11 @@ function initReportsDefaults() {
   const month = String(d.getMonth() + 1).padStart(2, '0');
   const term = computeCurrentTermClient();
 
-  // ตั้ง default ทันที (sync)
   document.getElementById('reportYear').value = beYear;
   document.getElementById('reportTerm').value = term;
   document.getElementById('reportMonth').value = month;
   state.reportsInited = true;
 
-  // ⚡ override ด้วยวันล่าสุดแบบ async
   api('getLatestAttendanceDate').then(res => {
     if (res.success && res.date && res.year && res.month) {
       const curYear = document.getElementById('reportYear').value;
@@ -1016,13 +1054,10 @@ async function checkTodayStatus(force = false) {
   }
 }
 
-// 🔒 เงื่อนไขล็อกใหม่:
-//   - ครึ่งเช้า (ลา/ไปราชการ) → ปลดล็อกปุ่มเข้างาน/ออกงาน
-//   - ครึ่งบ่าย/ทั้งวัน/หลายวัน → ล็อกทั้งหมด
 function shouldLockAll(leave) {
   if (!leave) return false;
   const t = String(leave.type || '');
-  if (t === 'ลาครึ่งเช้า' || t === 'ไปราชการครึ่งเช้า') return false;
+  if (t === 'ลาครึ่งเช้า' || t === 'ไปราชการครึ่งเช้า' || t === 'ลาครึ่งบ่าย' || t === 'ไปราชการครึ่งบ่าย') return false;
   return true;
 }
 
@@ -1054,12 +1089,20 @@ function updateActionButtonsUI() {
 
   if (state.todayLeave) {
     if (shouldLockAll(state.todayLeave)) {
-      // ล็อกทั้งหมด
       btns.forEach(btn => { btn.disabled = true; btn.classList.add('active'); });
     } else {
-      // ครึ่งเช้า — ล็อกเฉพาะปุ่ม ลา / ไปราชการ (ปุ่ม in/out ยังใช้ได้)
+      const leaveType = state.todayLeave.type;
+      const btnIn = document.querySelector('.action-btn[data-action="เข้างาน"]');
+      const btnOut = document.querySelector('.action-btn[data-action="ออกงาน"]');
       const btnLeave = document.querySelector('.action-btn[data-action="ลา"]');
       const btnOB = document.querySelector('.action-btn[data-action="ไปราชการ"]');
+      
+      if (leaveType.includes('ครึ่งเช้า')) {
+        if (btnIn) { btnIn.disabled = true; btnIn.classList.add('active'); }
+      } else if (leaveType.includes('ครึ่งบ่าย')) {
+        if (btnOut) { btnOut.disabled = true; btnOut.classList.add('active'); }
+      }
+      
       if (btnLeave) { btnLeave.disabled = true; btnLeave.classList.add('active'); }
       if (btnOB) { btnOB.disabled = true; btnOB.classList.add('active'); }
     }
@@ -1071,6 +1114,8 @@ function updateActionButtonsUI() {
     else {
       state.selectedAction = null;
       document.getElementById('reasonSection').classList.remove('visible');
+      document.getElementById('leaveOptions').style.display = 'none';
+      document.getElementById('obOptions').style.display = 'none';
     }
   }
 }
@@ -1224,11 +1269,11 @@ function getInitials(name) {
 
 function avatarFor(picSrc, name) {
   const initials = esc(getInitials(name));
-  const fallback = `<div style="display:none; width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
+  const fallback = `<div style="display:none; width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); align-items:center; justify-content:center; font-weight:700; color:var(--text-main); box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
   if (picSrc) {
     return `<img src="${esc(picSrc)}" class="avatar-xs" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">${fallback}`;
   }
-  return `<div style="width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
+  return `<div style="width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-main); box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
 }
 
 function renderDailyReport(records) {
@@ -1239,9 +1284,13 @@ function renderDailyReport(records) {
   }
   tbody.innerHTML = records.map(r => {
     const picSrc = r.profilePic || (state.user && state.user.fullName === r.fullName ? state.user.profilePic : null);
+    const firstName = r.fullName.split(' ')[0];
     return `
       <tr>
-        <td class="table-name">${avatarFor(picSrc, r.fullName)} ${esc(r.fullName)}</td>
+        <td class="table-name" style="justify-content:center; flex-direction:column; gap:4px; text-align:center;">
+          ${avatarFor(picSrc, r.fullName)}
+          <span style="font-weight:bold; font-size:0.8rem;">${esc(firstName)}</span>
+        </td>
         <td style="color:var(--success);font-weight:700">${esc(r.inTime)}</td>
         <td style="color:var(--danger);font-weight:700">${esc(r.outTime)}</td>
         <td>${esc(r.note || '-')}</td>
@@ -1312,19 +1361,21 @@ function renderReportsTable(records) {
   const tbody = document.getElementById('termReportBody');
   state.currentReportRecords = records || [];
   if (!records || records.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>';
     return;
   }
   const mgr = isManager();
   tbody.innerHTML = records.map((r, i) => {
     const picSrc = r.profilePic || (state.user && state.user.fullName === r.name ? state.user.profilePic : null);
+    const firstName = r.name.split(' ')[0];
     return `
       <tr>
-        <td>${mgr ? `<div style="display:flex; align-items:center; margin-bottom:4px;">${avatarFor(picSrc, r.name)} <b>${esc(r.name)}</b></div><span style="font-size:0.75rem;color:var(--text-muted); margin-left:40px;">${esc(r.date)}</span>` : esc(r.date)}</td>
+        <td style="text-align:center;">
+          ${mgr ? `<div style="display:flex; flex-direction:column; align-items:center; gap:4px; margin-bottom:4px;">${avatarFor(picSrc, r.name)} <b>${esc(firstName)}</b></div><span style="font-size:0.75rem;color:var(--text-muted);">${esc(r.date)}</span>` : esc(r.date)}
+        </td>
         <td style="color:var(--success);font-weight:700">${esc(r.inTime)}</td>
         <td style="color:var(--danger);font-weight:700">${esc(r.outTime)}</td>
         <td>${esc(r.note)}</td>
-        ${mgr ? `<td><button class="btn-sm btn-warning" onclick="openEditAttendanceByIdx(${i})">✏️ แก้ไข</button></td>` : ''}
       </tr>`;
   }).join('');
 }
@@ -1336,7 +1387,7 @@ async function loadReports(force = false, isPolling = false) {
 
   if (!year || !term) {
     if (!isPolling) document.getElementById('termReportBody').innerHTML =
-      '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">กรุณาระบุปีการศึกษา</td></tr>';
+      '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">กรุณาระบุปีการศึกษา</td></tr>';
     return;
   }
 
@@ -1356,8 +1407,8 @@ async function loadReports(force = false, isPolling = false) {
     if (!needsFetch && !isPolling) return;
   } else if (!isPolling) {
     document.getElementById('termReportBody').innerHTML = `
-      <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
-      <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>`;
+      <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
+      <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>`;
     updateCacheIndicator(null);
   }
 
@@ -1370,7 +1421,7 @@ async function loadReports(force = false, isPolling = false) {
     if (!res.success) {
       if (!cached && !isPolling) {
         document.getElementById('termReportBody').innerHTML =
-          `<tr><td colspan="5" style="text-align:center;color:var(--danger)">${esc(res.message)}</td></tr>`;
+          `<tr><td colspan="4" style="text-align:center;color:var(--danger)">${esc(res.message)}</td></tr>`;
       }
       return;
     }
@@ -1399,86 +1450,14 @@ function updateCacheIndicator(ts) {
   el.style.display = 'inline-flex';
 }
 
-function openEditAttendanceByIdx(i) {
-  const r = state.currentReportRecords[i];
-  if (!r) return;
-  document.getElementById('editAttName').value = r.name;
-  document.getElementById('editAttOrigDate').value = r.date;
-  document.getElementById('editAttNameDisplay').value = r.name;
-  document.getElementById('editAttDate').value = r.date;
-  document.getElementById('editAttInTime').value = r.inTime;
-  document.getElementById('editAttOutTime').value = r.outTime;
-  document.getElementById('editAttNote').value = (r.note && r.note !== '-') ? r.note : '';
-  document.getElementById('editAttendanceModal').classList.add('show');
-}
-
-function closeEditAttendanceModal() {
-  document.getElementById('editAttendanceModal').classList.remove('show');
-}
-
-function afterAttendanceEdited() {
-  invalidateAllReportCaches();
-  Promise.all([
-    loadReports(true),
-    loadDailyReport(true),
-    checkTodayStatus(true)
-  ]).catch(() => {});
-}
-
-async function saveEditAttendance() {
-  const btn = document.getElementById('saveEditAttBtn');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
-
-  const payload = {
-    name: document.getElementById('editAttName').value,
-    origDate: document.getElementById('editAttOrigDate').value,
-    newDate: document.getElementById('editAttDate').value.trim(),
-    inTime: document.getElementById('editAttInTime').value.trim(),
-    outTime: document.getElementById('editAttOutTime').value.trim(),
-    note: document.getElementById('editAttNote').value,
-    year: document.getElementById('reportYear').value.trim(),
-    term: document.getElementById('reportTerm').value
-  };
-
-  const res = await api('admin_editAttendance', payload);
-  btn.disabled = false; btn.textContent = 'บันทึก';
-
-  if (res.success) {
-    toast(res.message);
-    closeEditAttendanceModal();
-    afterAttendanceEdited();
-  } else {
-    toast(res.message, 'error');
-    if (/ไม่พบข้อมูลเดิม/.test(res.message || '')) { closeEditAttendanceModal(); afterAttendanceEdited(); }
-  }
-}
-
-async function deleteEditAttendance() {
-  const name = document.getElementById('editAttName').value;
-  const date = document.getElementById('editAttOrigDate').value;
-  if (!confirm(`ลบรายการของ ${name} วันที่ ${date} ?`)) return;
-  const btn = document.getElementById('deleteEditAttBtn');
-  btn.disabled = true;
-  const res = await api('admin_deleteAttendance', {
-    name, origDate: date,
-    year: document.getElementById('reportYear').value.trim(),
-    term: document.getElementById('reportTerm').value
-  });
-  btn.disabled = false;
-  if (res.success) {
-    toast(res.message);
-    closeEditAttendanceModal();
-    afterAttendanceEdited();
-  } else {
-    toast(res.message, 'error');
-    closeEditAttendanceModal();
-    afterAttendanceEdited();
-  }
-}
-
 function openPdfModal() {
   const rMonth = document.getElementById('reportMonth').value;
   document.getElementById('pdfMonthSelect').value = rMonth;
+  
+  // ถ้าไม่ใช่แอดมิน/ผอ. บังคับเลือกเฉพาะของตัวเอง หรือ ซ่อนตัวเลือกก็ได้ แต่โจทย์บอกให้เลือกได้ 2 แบบ
+  // เราเปิดให้ทุกคนเลือกได้ แต่ Backend จะไม่เซฟลง Archive ถ้าเป็น User ทั่วไป
+  document.getElementById('pdfScopeSelect').value = 'self';
+  
   document.getElementById('pdfModal').classList.add('show');
 }
 function closePdfModal() { document.getElementById('pdfModal').classList.remove('show'); }
@@ -1486,16 +1465,18 @@ function closePdfModal() { document.getElementById('pdfModal').classList.remove(
 async function downloadPdf() {
   const monthVal = document.getElementById('pdfMonthSelect').value;
   const academicYear = document.getElementById('reportYear').value.trim();
+  const scope = document.getElementById('pdfScopeSelect').value;
   if (!monthVal) return toast('กรุณาเลือกเดือน', 'error');
+  
   const btn = document.getElementById('confirmPdfBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังสร้าง...';
-  const res = await api('exportPDF', { monthStr: monthVal, academicYear: academicYear });
+  const res = await api('exportPDF', { monthStr: monthVal, academicYear: academicYear, mode: scope });
   btn.disabled = false; btn.textContent = 'ดาวน์โหลด';
   if (res.success && res.downloadUrl) {
     const downloadLink = document.createElement("a");
     downloadLink.href = res.downloadUrl;
     downloadLink.target = "_blank";
-    downloadLink.download = `attendance.${monthVal}_${academicYear}.pdf`;
+    downloadLink.download = `attendance_${scope}_${monthVal}_${academicYear}.pdf`;
     downloadLink.click();
     toast('ดาวน์โหลด PDF สำเร็จ');
     closePdfModal();
