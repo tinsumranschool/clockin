@@ -638,9 +638,9 @@ document.body.addEventListener('click', function initWelcome() {
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 
 // Backend (Google Sheet) เป็นหลัก: cache ฝั่งเว็บสั้นมาก และ poll ตรวจซ้ำตลอด
-const CACHE_TTL_REPORTS = 20 * 1000;
-const CACHE_TTL_DAILY   = 15 * 1000;
-const POLL_INTERVAL_MS  = 10000;
+const CACHE_TTL_REPORTS = 8 * 1000;
+const CACHE_TTL_DAILY   = 5 * 1000;
+const POLL_INTERVAL_MS  = 5000;
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
@@ -1474,9 +1474,13 @@ function closeEditAttendanceModal() {
 
 function afterAttendanceEdited() {
   invalidateAllReportCaches();
-  loadReports(true);
-  loadDailyReport(true);
-  checkTodayStatus(true);
+  // โหลดทุกอย่างพร้อมกันทันที ไม่รอ poll รอบถัดไป
+  Promise.all([
+    loadReports(true),
+    loadDailyReport(true),
+    checkTodayStatus(true)
+  ]).catch(() => {});
+  // poll รอบถัดไปก็จะ sync ซ้ำอีกครั้ง (safety net)
 }
 
 async function saveEditAttendance() {
