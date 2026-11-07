@@ -61,6 +61,31 @@ body{ font-family:'Mali', 'Prompt', sans-serif; background-color:var(--bg-color)
 .icon-btn:hover{ background:var(--bg-pattern); transform: scale(1.05); }
 .icon-btn:active{ transform:translate(2px, 2px); box-shadow: 0px 0px 0px var(--border-color); }
 
+.btn-back {
+  background: var(--primary);
+  color: #fff;
+  border: var(--border-width) solid var(--border-color);
+  border-radius: 12px;
+  padding: 8px 14px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 2px 2px 0px var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all .1s;
+}
+.btn-back:hover {
+  background: var(--primary-hover);
+  transform: scale(1.02);
+}
+.btn-back:active {
+  transform: translate(2px, 2px);
+  box-shadow: 0 0 0 var(--border-color);
+}
+
 .tabs{ display:flex; gap:8px; background:var(--bg-pattern); padding:6px; border-radius:var(--radius-lg); border:var(--border-width) solid var(--border-color); overflow-x:auto; }
 .tab{ flex:1; padding:10px 12px; border:var(--border-width) solid transparent; background:transparent; color:var(--text-muted); font-family:inherit; font-size:.9rem; font-weight:600; cursor:pointer; border-radius:12px; transition:all .2s; white-space:nowrap; }
 .tab.active{ background:var(--card-bg); color:var(--text-main); border-color:var(--border-color); box-shadow: 2px 2px 0px var(--border-color); transform: scale(1.02); }
@@ -154,7 +179,6 @@ tr:hover td { background: var(--bg-color); }
 .user-row:hover { transform: translateX(4px); }
 .user-row-info{flex:1;min-width:0; display:flex; align-items:center; gap:10px;}
 
-/* Reports header with avatar next to PDF button */
 .reports-action-bar { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
 .reports-action-bar .left { display:flex; gap:8px; align-items:center; }
 .reports-action-bar .right { display:flex; gap:8px; align-items:center; }
@@ -225,7 +249,6 @@ tr:hover td { background: var(--bg-color); }
           </div>
         </div>
         <div class="reason-section" id="reasonSection">
-          <!-- ตัวเลือกลา: ลาทั้งวัน (มีช่วงวันที่) / ครึ่งเช้า / ครึ่งบ่าย -->
           <div id="leaveOptions" style="display:none; margin-bottom:12px;">
             <label class="field-label">ประเภทการลา</label>
             <select id="leaveTypeSelect" class="select" style="margin-bottom:10px;">
@@ -234,7 +257,6 @@ tr:hover td { background: var(--bg-color); }
               <option value="ลาครึ่งบ่าย">ลาครึ่งบ่าย</option>
             </select>
           </div>
-          <!-- ตัวเลือกไปราชการ -->
           <div id="obOptions" style="display:none; margin-bottom:12px;">
             <label class="field-label">ประเภทไปราชการ</label>
             <select id="obTypeSelect" class="select" style="margin-bottom:10px;">
@@ -243,7 +265,6 @@ tr:hover td { background: var(--bg-color); }
               <option value="ครึ่งบ่าย">ครึ่งบ่าย</option>
             </select>
           </div>
-          <!-- ช่วงวันที่ (แสดงเมื่อ full-day) -->
           <div id="dateRangeDiv" style="display:none; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
             <div><label class="field-label" style="font-size:0.75rem;">ตั้งแต่วันที่</label><input type="date" id="leaveStartDate" class="input"></div>
             <div><label class="field-label" style="font-size:0.75rem;">ถึงวันที่</label><input type="date" id="leaveEndDate" class="input"></div>
@@ -258,7 +279,6 @@ tr:hover td { background: var(--bg-color); }
       <div class="section-title">
         <div style="display:flex; align-items:center; gap:10px;">
           <span>📊 รายงานประจำวัน <span class="live-indicator"><span class="live-dot"></span>LIVE</span></span>
-          <button class="btn-sm btn-neutral" onclick="loadDailyReport(true)" title="รีเฟรช">🔄</button>
         </div>
         <input type="date" id="dailyDate" class="input" style="width:auto;padding:6px 10px;font-size:.85rem">
       </div>
@@ -280,7 +300,7 @@ tr:hover td { background: var(--bg-color); }
         <div class="user-name">📈 รายงานผล</div>
         <div class="user-role" id="reportHeaderRole">ข้อมูลของฉัน</div>
       </div>
-      <button class="icon-btn" onclick="showScreen('dashboardScreen')">🔙</button>
+      <button class="btn-back" onclick="showScreen('dashboardScreen')">⬅️ กลับ</button>
     </header>
     <div class="card">
       <div class="form-row-3" style="margin-bottom:16px">
@@ -300,7 +320,6 @@ tr:hover td { background: var(--bg-color); }
       </div>
       <div class="reports-action-bar">
         <div class="left">
-          <button class="btn-sm btn-neutral" onclick="loadReports(true)">🔄 รีเฟรช</button>
           <span class="cache-indicator" id="reportsCacheIndicator" style="display:none;">⚡ แคช</span>
         </div>
         <div class="right">
@@ -327,7 +346,7 @@ tr:hover td { background: var(--bg-color); }
         <div class="user-name">👤 ตั้งค่าโปรไฟล์</div>
         <div class="user-role">แก้ไขข้อมูลส่วนตัว</div>
       </div>
-      <button class="icon-btn" onclick="showScreen('dashboardScreen')">🔙</button>
+      <button class="btn-back" onclick="showScreen('dashboardScreen')">⬅️ กลับ</button>
     </header>
     <div class="card">
       <form id="profileForm">
@@ -363,7 +382,7 @@ tr:hover td { background: var(--bg-color); }
   <!-- ADMIN -->
   <div id="adminScreen" class="screen">
     <header class="app-header">
-      <button class="icon-btn" onclick="showScreen('dashboardScreen')">🔙</button>
+      <button class="btn-back" onclick="showScreen('dashboardScreen')">⬅️ กลับ</button>
       <div class="user-info">
         <div class="user-name">Admin Panel</div>
         <div class="user-role">จัดการระบบ</div>
@@ -1003,7 +1022,6 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   toast('ออกจากระบบแล้ว');
 });
 
-// ---------- สถานะวันนี้ ----------
 async function checkTodayStatus(force = false) {
   if (!state.user) return;
   if (!force && Date.now() - state.lastStatusFetch < 10000) {
@@ -1023,7 +1041,6 @@ async function checkTodayStatus(force = false) {
   }
 }
 
-// ============ ปุ่มตาม spec ใหม่ ============
 function updateActionButtonsUI() {
   const btns = document.querySelectorAll('.action-btn');
   btns.forEach(btn => { btn.disabled = false; btn.classList.remove('active'); });
@@ -1055,12 +1072,8 @@ function updateActionButtonsUI() {
   const hasFull = approvedList.some(t => FULL_LOCK.indexOf(t) >= 0);
 
   if (hasFull) {
-    // ล็อคทุกปุ่มเมื่อมีธุระทั้งวัน/หลายวัน
     btns.forEach(btn => { btn.disabled = true; });
   }
-  // ครึ่งเช้า/ครึ่งบ่าย: ไม่ล็อคปุ่มลา/OB ตาม spec (ปุ่มเข้างาน/ออกงานยังใช้งานได้)
-
-  // อัปเดตตัวเลือกในฟอร์มลา/OB
   updateLeaveOptionsAvailability(approvedList);
 
   if (state.selectedAction) {
@@ -1073,7 +1086,6 @@ function updateActionButtonsUI() {
   }
 }
 
-// เปิด/ปิด option ใน select ตาม approved leaves
 function updateLeaveOptionsAvailability(approvedList) {
   const hasMorning = approvedList.some(t => t === 'ลาครึ่งเช้า' || t === 'ไปราชการครึ่งเช้า');
   const hasAfternoon = approvedList.some(t => t === 'ลาครึ่งบ่าย' || t === 'ไปราชการครึ่งบ่าย');
@@ -1471,7 +1483,6 @@ function openPdfModal() {
 }
 function closePdfModal() { document.getElementById('pdfModal').classList.remove('show'); }
 
-// ============ PDF download รองรับทั้ง manager (URL) และ user (base64) ============
 async function downloadPdf() {
   const monthVal = document.getElementById('pdfMonthSelect').value;
   const academicYear = document.getElementById('reportYear').value.trim();
@@ -1482,10 +1493,8 @@ async function downloadPdf() {
   btn.disabled = false; btn.textContent = 'ดาวน์โหลด';
   if (res.success) {
     if (res.downloadUrl) {
-      // manager → เปิด link ในแท็บใหม่
       window.open(res.downloadUrl, '_blank');
     } else if (res.pdfBase64) {
-      // user ทั่วไป → ดาวน์โหลดลงเครื่องทันที (ไม่ upload Drive)
       const byteChars = atob(res.pdfBase64);
       const bytes = new Uint8Array(byteChars.length);
       for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
@@ -1792,7 +1801,6 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   } else toast(res.message, 'error');
 });
 
-// ============ Migrate Button ============
 document.getElementById('btnMigrateSheets').addEventListener('click', async () => {
   if (!confirm('Migrate ชีทเก่า attendance1/2-YYYY → attendanceYYYY และลบชีทเก่า?\n(ทำครั้งเดียว - ข้อมูลจะถูก merge เข้าชีทใหม่)')) return;
   const btn = document.getElementById('btnMigrateSheets');
