@@ -276,18 +276,30 @@ tr:hover td { background: var(--bg-color); }
           </div>
         </div>
         <div class="reason-section" id="reasonSection">
+          <!-- ตัวเลือกลา (แสดงเมื่อกดปุ่ม "ลา") -->
           <div id="leaveOptions" style="display:none; margin-bottom:12px;">
-            <label class="field-label">ตัวเลือกการลา</label>
+            <label class="field-label">ประเภทการลา</label>
             <select id="leaveTypeSelect" class="select" style="margin-bottom:10px;">
               <option value="ลาทั้งวัน">ลาทั้งวัน</option>
               <option value="ลาครึ่งเช้า">ลาครึ่งเช้า</option>
               <option value="ลาครึ่งบ่าย">ลาครึ่งบ่าย</option>
               <option value="ลาหลายวัน">ลาหลายวัน</option>
             </select>
-            <div id="dateRangeDiv" style="display:none; grid-template-columns: 1fr 1fr; gap:10px;">
-              <div><label class="field-label" style="font-size:0.75rem;">ตั้งแต่วันที่</label><input type="date" id="leaveStartDate" class="input"></div>
-              <div><label class="field-label" style="font-size:0.75rem;">ถึงวันที่</label><input type="date" id="leaveEndDate" class="input"></div>
-            </div>
+          </div>
+          <!-- ตัวเลือกไปราชการ (แสดงเมื่อกดปุ่ม "ไปราชการ") -->
+          <div id="obOptions" style="display:none; margin-bottom:12px;">
+            <label class="field-label">ประเภทไปราชการ</label>
+            <select id="obTypeSelect" class="select" style="margin-bottom:10px;">
+              <option value="">ทั้งวัน</option>
+              <option value="ครึ่งเช้า">ครึ่งเช้า</option>
+              <option value="ครึ่งบ่าย">ครึ่งบ่าย</option>
+              <option value="หลายวัน">หลายวัน</option>
+            </select>
+          </div>
+          <!-- ช่วงวันที่ (ลาหลายวัน / ไปราชการหลายวัน) -->
+          <div id="dateRangeDiv" style="display:none; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
+            <div><label class="field-label" style="font-size:0.75rem;">ตั้งแต่วันที่</label><input type="date" id="leaveStartDate" class="input"></div>
+            <div><label class="field-label" style="font-size:0.75rem;">ถึงวันที่</label><input type="date" id="leaveEndDate" class="input"></div>
           </div>
           <div class="field" style="margin-bottom:12px"><label class="field-label">เหตุผล <span class="req">*</span></label><textarea id="reasonInput" class="textarea" placeholder="ระบุเหตุผล..." style="min-height:60px"></textarea></div>
         </div>
@@ -427,15 +439,9 @@ tr:hover td { background: var(--bg-color); }
         <button type="button" class="btn-sm btn-cyan" id="btnUseCurrentGps" style="width:100%;margin-bottom:16px;">📍 ใช้ตำแหน่ง GPS ปัจจุบัน</button>
         <div class="field"><label class="field-label">รัศมี (เมตร)</label><input type="number" id="setRadius" class="input"></div>
         <div class="field"><label class="checkbox-group"><input type="checkbox" id="setStrictReg"> บังคับรัศมีตอนลงทะเบียน</label></div>
-        <div class="section-title" style="margin-top:20px;border-top:2px dashed var(--border-color);padding-top:16px">📅 ปีการศึกษา / เทอม</div>
+        <div class="section-title" style="margin-top:20px;border-top:2px dashed var(--border-color);padding-top:16px">📅 ปีการศึกษา</div>
         <div class="field"><label class="field-label">ปีการศึกษา (พ.ศ.)</label><input type="text" id="setAcademicYear" class="input" placeholder="เช่น 2569">
-          <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px;font-weight:500;">💡 ระบบจะสร้าง Sheet ให้เฉพาะเทอมที่กรอกวันที่เปิด <b>และ</b> ปิดครบทั้งคู่เท่านั้น</div>
-        </div>
-        <div class="form-row-2">
-          <div class="field"><label class="field-label">เปิดเทอม 1</label><input type="date" id="setTerm1Start" class="input"></div>
-          <div class="field"><label class="field-label">ปิดเทอม 1</label><input type="date" id="setTerm1End" class="input"></div>
-          <div class="field"><label class="field-label">เปิดเทอม 2</label><input type="date" id="setTerm2Start" class="input"></div>
-          <div class="field"><label class="field-label">ปิดเทอม 2</label><input type="date" id="setTerm2End" class="input"></div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px;font-weight:500;">💡 ระบบสร้าง Sheet <b>attendance{ปี}</b> อัตโนมัติเมื่อมีการลงเวลา โดยใช้กฎเดือน: พ.ค.–15 ต.ค. = เทอม 1 / 16 ต.ค.–เม.ย. = เทอม 2</div>
         </div>
         <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
       </div>
@@ -638,9 +644,9 @@ document.body.addEventListener('click', function initWelcome() {
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 
 // Backend (Google Sheet) เป็นหลัก: cache ฝั่งเว็บสั้นมาก และ poll ตรวจซ้ำตลอด
-const CACHE_TTL_REPORTS = 8 * 1000;
-const CACHE_TTL_DAILY   = 5 * 1000;
-const POLL_INTERVAL_MS  = 5000;
+const CACHE_TTL_REPORTS = 4 * 1000;
+const CACHE_TTL_DAILY   = 2 * 1000;
+const POLL_INTERVAL_MS  = 2000;
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
@@ -690,25 +696,23 @@ function getLocalDateStr(d = new Date()) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+/** คำนวณเทอมจากวันที่ ms ตามกฎเดือน
+ *  พ.ค.(5) – 15 ต.ค.(10/15) = เทอม 1
+ *  16 ต.ค. – เม.ย.(4)       = เทอม 2
+ *  ปีการศึกษา = ปี พ.ศ. ของวันนั้น
+ */
+function termForDateClient(ms) {
+  const d = new Date(ms);
+  const buddhistYear = d.getFullYear() + 543;
+  const month = d.getMonth() + 1;
+  const day   = d.getDate();
+  const inTerm1 = (month >= 5 && month <= 9) || (month === 10 && day <= 15);
+  return { term: inTerm1 ? '1' : '2', year: String(buddhistYear) };
+}
 function computeCurrentTermClient() {
-  if (!state.settings) return '1';
-  const s = state.settings;
-  const now = Date.now();
-  const t1s = s.term1Start ? new Date(s.term1Start).getTime() : 0;
-  const t1e = s.term1End ? new Date(s.term1End).setHours(23,59,59,999) : 0;
-  const t2s = s.term2Start ? new Date(s.term2Start).getTime() : 0;
-  const t2e = s.term2End ? new Date(s.term2End).setHours(23,59,59,999) : 0;
-  const hasT1 = !!(t1s && t1e), hasT2 = !!(t2s && t2e);
-  if (hasT2 && now >= t2s && now <= t2e) return '2';
-  if (hasT1 && now >= t1s && now <= t1e) return '1';
-  if (hasT2 && !hasT1) return '2';
-  if (hasT1 && !hasT2) return '1';
-  if (hasT1 && hasT2) {
-    if (now < t1s) return '1';
-    if (now > t2e) return '2';
-    if (now > t1e && now < t2s) return '1';
-  }
-  return '1';
+  // ถ้า backend ส่ง currentTerm/currentYear มาแล้ว ใช้เลย (เชื่อถือได้กว่า)
+  if (state.settings && state.settings.currentTerm) return state.settings.currentTerm;
+  return termForDateClient(Date.now()).term;
 }
 
 async function api(cmd, extra = {}) {
@@ -804,9 +808,21 @@ function startPolling() {
 function stopPolling() {
   if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
 }
-// กลับมาที่หน้าเว็บ → รีเฟรชทันที
-document.addEventListener('visibilitychange', () => { if (!document.hidden && state.pollTimer) pollTick(); });
-window.addEventListener('focus', () => { if (state.pollTimer) pollTick(); });
+// กลับมาที่หน้าเว็บ → รีเฟรชทันที (force=true เพื่อข้าม cache)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && state.token) {
+    loadDailyReport(true);
+    loadReports(true);
+    checkTodayStatus(true);
+  }
+});
+window.addEventListener('focus', () => {
+  if (state.token) {
+    loadDailyReport(true);
+    loadReports(true);
+    checkTodayStatus(true);
+  }
+});
 
 function refreshDashboardMode() {
   if (!state.user) return;
@@ -853,15 +869,15 @@ function showScreen(name) {
 }
 
 function initReportsDefaults() {
-  if (state.reportsInited) return;
-  const d = new Date();
-  document.getElementById('reportYear').value =
-    state.settings?.currentYear || state.settings?.academicYear || String(d.getFullYear() + 543);
-  document.getElementById('reportTerm').value =
-    state.settings?.currentTerm || computeCurrentTermClient();
-  document.getElementById('reportMonth').value =
-    String(d.getMonth() + 1).padStart(2, '0');
-  state.reportsInited = true;
+  // เซ็ต default ทุกครั้งที่เปิดหน้ารายงาน
+  // ใช้ currentTerm/currentYear จาก backend (หรือคำนวณจากวันปัจจุบัน)
+  const { term: todayTerm, year: todayYear } = termForDateClient(Date.now());
+  const curYear = state.settings?.currentYear || todayYear;
+  const curTerm = state.settings?.currentTerm || todayTerm;
+  const curMonth = String(new Date().getMonth() + 1).padStart(2, '0');
+  document.getElementById('reportYear').value = curYear;
+  document.getElementById('reportTerm').value = curTerm;
+  document.getElementById('reportMonth').value = curMonth;
 }
 
 function navTo(screen, el) {
@@ -1020,10 +1036,6 @@ async function initUserSession() {
 
 function fillSettingsForm(s) {
   document.getElementById('setAcademicYear').value = s.academicYear || '';
-  document.getElementById('setTerm1Start').value = s.term1Start || '';
-  document.getElementById('setTerm1End').value = s.term1End || '';
-  document.getElementById('setTerm2Start').value = s.term2Start || '';
-  document.getElementById('setTerm2End').value = s.term2End || '';
   document.getElementById('setOfficeName').value = s.officeName || '';
   document.getElementById('setOfficeLat').value = s.officeLat || '';
   document.getElementById('setOfficeLng').value = s.officeLng || '';
@@ -1133,15 +1145,19 @@ function updateActionButtonsUI() {
   
   if (state.todayLeave) {
     const type = state.todayLeave.type;
-    if (type !== 'ลาครึ่งเช้า' && type !== 'ลาครึ่งบ่าย') {
-      const btnIn = document.querySelector('.action-btn[data-action="เข้างาน"]');
-      const btnOut = document.querySelector('.action-btn[data-action="ออกงาน"]');
-      if (btnIn) { btnIn.disabled = true; btnIn.classList.add('active'); }
-      if (btnOut) { btnOut.disabled = true; btnOut.classList.add('active'); }
+    // HALF_LEAVES = ลาครึ่งเช้า / ลาครึ่งบ่าย / ไปราชการครึ่งเช้า / ไปราชการครึ่งบ่าย → เปิดให้กดเข้า/ออกได้
+    // FULL_LOCK_LEAVES = ลาทั้งวัน / ลาหลายวัน / ไปราชการ(ทั้งวัน) / ไปราชการหลายวัน → ล็อคทุกปุ่ม
+    const HALF_LEAVES = ['ลาครึ่งเช้า','ลาครึ่งบ่าย','ไปราชการครึ่งเช้า','ไปราชการครึ่งบ่าย'];
+    const FULL_LOCK_LEAVES = ['ลาทั้งวัน','ลาหลายวัน','ไปราชการ','ไปราชการหลายวัน'];
+    if (FULL_LOCK_LEAVES.indexOf(type) >= 0) {
+      // ล็อคทุกปุ่ม
       btns.forEach(btn => { btn.disabled = true; });
-    } else {
+    } else if (HALF_LEAVES.indexOf(type) >= 0) {
+      // ล็อคปุ่มลา/ไปราชการ แต่เปิดให้กดเข้า/ออกงานได้
       const btnLeave = document.querySelector('.action-btn[data-action="ลา"]');
+      const btnOB = document.querySelector('.action-btn[data-action="ไปราชการ"]');
       if (btnLeave) { btnLeave.disabled = true; btnLeave.classList.add('active'); }
+      if (btnOB) { btnOB.disabled = true; btnOB.classList.add('active'); }
     }
   }
 
@@ -1174,13 +1190,17 @@ document.querySelectorAll('.action-btn').forEach(btn => {
     if (action === 'ลา') {
       reasonSec.classList.add('visible');
       leaveOpts.style.display = 'block';
+      document.getElementById('obOptions').style.display = 'none';
       gpsEl.style.display = 'none';
       handleLeaveTypeChange();
     } else if (action === 'ไปราชการ') {
       reasonSec.classList.add('visible');
       leaveOpts.style.display = 'none';
+      document.getElementById('obOptions').style.display = 'block';
       gpsEl.style.display = 'none';
+      handleObTypeChange();
     } else {
+      document.getElementById('obOptions').style.display = 'none';
       reasonSec.classList.remove('visible');
       document.getElementById('reasonInput').value = '';
       gpsEl.style.display = 'flex';
@@ -1200,7 +1220,19 @@ function handleLeaveTypeChange() {
     dateRange.style.display = 'none';
   }
 }
+function handleObTypeChange() {
+  const type = document.getElementById('obTypeSelect').value;
+  const dateRange = document.getElementById('dateRangeDiv');
+  if (type === 'หลายวัน') {
+    dateRange.style.display = 'grid';
+    document.getElementById('leaveStartDate').value = getLocalDateStr();
+    document.getElementById('leaveEndDate').value = getLocalDateStr();
+  } else {
+    dateRange.style.display = 'none';
+  }
+}
 document.getElementById('leaveTypeSelect').addEventListener('change', handleLeaveTypeChange);
+document.getElementById('obTypeSelect').addEventListener('change', handleObTypeChange);
 
 async function checkGPS() {
   const gpsEl = document.getElementById('gpsStatus');
@@ -1238,6 +1270,13 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
     if (state.selectedAction === 'ลา') {
       payload.leaveType = document.getElementById('leaveTypeSelect').value;
       if (payload.leaveType === 'ลาหลายวัน') {
+        payload.startDate = document.getElementById('leaveStartDate').value;
+        payload.endDate = document.getElementById('leaveEndDate').value;
+      }
+    }
+    if (state.selectedAction === 'ไปราชการ') {
+      payload.leaveType = document.getElementById('obTypeSelect').value; // ครึ่งเช้า / ครึ่งบ่าย / หลายวัน / ''(ทั้งวัน)
+      if (payload.leaveType === 'หลายวัน') {
         payload.startDate = document.getElementById('leaveStartDate').value;
         payload.endDate = document.getElementById('leaveEndDate').value;
       }
@@ -1857,11 +1896,7 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     officeLng: Number(document.getElementById('setOfficeLng').value),
     radius: Number(document.getElementById('setRadius').value),
     strictRegistration: document.getElementById('setStrictReg').checked,
-    academicYear: document.getElementById('setAcademicYear').value.trim(),
-    term1Start: document.getElementById('setTerm1Start').value,
-    term1End: document.getElementById('setTerm1End').value,
-    term2Start: document.getElementById('setTerm2Start').value,
-    term2End: document.getElementById('setTerm2End').value
+    academicYear: document.getElementById('setAcademicYear').value.trim()
   };
   const res = await api('admin_updateSettings', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
