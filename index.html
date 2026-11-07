@@ -8,36 +8,16 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* ===================================================================
-   THEME VARIABLES (DYNAMIC HOLIDAYS)
-=================================================================== */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-
-/* Default (Fallback) */
 :root {
-  --bg-color: #fdfbf7;
-  --bg-pattern: #f0ece1;
-  --text-main: #3b3a4a;
-  --text-muted: #7a788c;
-  --primary: #ff9a62;
-  --primary-hover: #ff8642;
-  --secondary: #6cd4ff;
-  --accent: #b983ff;
-  --success: #6ddf9a;
-  --danger: #ff7b93;
-  --warning: #ffd166;
-  --border-color: #3b3a4a;
-  --card-bg: #ffffff;
-  --nav-bg: #ffffff;
-  --border-width: 2px;
-  --radius-xl: 24px;
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --nav-height: 75px;
+  --bg-color: #fdfbf7; --bg-pattern: #f0ece1; --text-main: #3b3a4a; --text-muted: #7a788c;
+  --primary: #ff9a62; --primary-hover: #ff8642; --secondary: #6cd4ff; --accent: #b983ff;
+  --success: #6ddf9a; --danger: #ff7b93; --warning: #ffd166; --border-color: #3b3a4a;
+  --card-bg: #ffffff; --nav-bg: #ffffff; --border-width: 2px;
+  --radius-xl: 24px; --radius-lg: 16px; --radius-md: 12px; --nav-height: 75px;
   --shadow-hard: 4px 4px 0px var(--border-color);
   --glow-primary: 0 0 12px rgba(255, 154, 98, 0.6);
 }
-
 body[data-theme="newyear"] { --bg-color: #0f172a; --bg-pattern: #1e293b; --text-main: #f8fafc; --text-muted: #94a3b8; --primary: #fbbf24; --primary-hover: #f59e0b; --secondary: #38bdf8; --accent: #f472b6; --border-color: #020617; --card-bg: #1e293b; --nav-bg: #0f172a; --glow-primary: 0 0 15px rgba(251, 191, 36, 0.6); }
 body[data-theme="valentine"] { --bg-color: #fff1f2; --bg-pattern: #ffe4e6; --text-main: #4c0519; --text-muted: #be123c; --primary: #f43f5e; --primary-hover: #e11d48; --secondary: #fda4af; --accent: #fb7185; --border-color: #881337; --card-bg: #ffffff; --nav-bg: #fff1f2; --glow-primary: 0 0 15px rgba(244, 63, 94, 0.5); }
 body[data-theme="songkran"] { --bg-color: #f0f9ff; --bg-pattern: #e0f2fe; --text-main: #082f49; --text-muted: #0369a1; --primary: #0ea5e9; --primary-hover: #0284c7; --secondary: #2dd4bf; --accent: #fbbf24; --border-color: #0c4a6e; --card-bg: #ffffff; --nav-bg: #f0f9ff; --glow-primary: 0 0 15px rgba(14, 165, 233, 0.5); }
@@ -45,36 +25,16 @@ body[data-theme="halloween"] { --bg-color: #170a25; --bg-pattern: #2e1065; --tex
 body[data-theme="loykrathong"] { --bg-color: #1e1b4b; --bg-pattern: #312e81; --text-main: #e0e7ff; --text-muted: #a5b4fc; --primary: #f59e0b; --primary-hover: #d97706; --secondary: #ec4899; --accent: #8b5cf6; --border-color: #0f172a; --card-bg: #312e81; --nav-bg: #1e1b4b; --glow-primary: 0 0 15px rgba(245, 158, 11, 0.6); }
 body[data-theme="christmas"] { --bg-color: #f8fafc; --bg-pattern: #e2e8f0; --text-main: #0f172a; --text-muted: #475569; --primary: #dc2626; --primary-hover: #b91c1c; --secondary: #16a34a; --accent: #eab308; --border-color: #0f172a; --card-bg: #ffffff; --nav-bg: #f8fafc; --glow-primary: 0 0 15px rgba(220, 38, 38, 0.5); }
 
-/* ===================================================================
-   BASE STYLES
-=================================================================== */
-body{
-  font-family:'Mali', 'Prompt', sans-serif; 
-  background-color:var(--bg-color);
-  background-image: radial-gradient(var(--bg-pattern) 2px, transparent 2px);
-  background-size: 24px 24px;
-  color:var(--text-main);
-  min-height:100vh; display:flex; flex-direction:column; align-items:center;
-  padding:20px 16px calc(var(--nav-height) + 30px) 16px; 
-  position:relative; overflow-x:hidden;
-  transition: background-color 0.5s ease, color 0.5s ease;
-}
-
+body{ font-family:'Mali', 'Prompt', sans-serif; background-color:var(--bg-color); background-image: radial-gradient(var(--bg-pattern) 2px, transparent 2px); background-size: 24px 24px; color:var(--text-main); min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:20px 16px calc(var(--nav-height) + 30px) 16px; position:relative; overflow-x:hidden; transition: background-color 0.5s ease, color 0.5s ease; }
 .wrapper{position:relative;z-index:10;width:100%;max-width:620px;display:flex;flex-direction:column;gap:20px}
 .screen{display:none;flex-direction:column;gap:20px;width:100%;animation:popIn .4s cubic-bezier(0.175, 0.885, 0.32, 1.275)}
 .screen.active{display:flex}
 @keyframes popIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
 
-/* ===================================================================
-   FLOATING DECORATIONS
-=================================================================== */
 #holiday-decorations { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
 .floating-emoji { position: absolute; font-size: 2rem; opacity: 0.6; animation: floatUp 12s linear infinite; bottom: -50px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); }
 @keyframes floatUp { 0% { transform: translateY(0) rotate(0deg); opacity: 0; } 10% { opacity: 0.8; } 90% { opacity: 0.8; } 100% { transform: translateY(-110vh) rotate(360deg); opacity: 0; } }
 
-/* ===================================================================
-   COMPONENTS & AVATARS
-=================================================================== */
 .brand{text-align:center;padding:10px 0 0}
 .brand-title{ font-size:clamp(2.2rem,6vw,2.8rem); font-weight:700; color:var(--text-main); text-shadow: 2px 2px 0px var(--bg-color), 4px 4px 0px var(--primary); letter-spacing:-.02em; transform: rotate(-2deg); animation: titleBounce 3s ease-in-out infinite; }
 @keyframes titleBounce { 0%, 100% { transform: rotate(-2deg) translateY(0); } 50% { transform: rotate(-2deg) translateY(-5px); } }
@@ -85,17 +45,13 @@ body{
 
 .app-header{ display:flex; align-items:center; gap:12px; background:var(--card-bg); border:var(--border-width) solid var(--border-color); border-radius:var(--radius-lg); padding:12px 16px; box-shadow:var(--shadow-hard); }
 .user-info{flex:1;min-width:0;display:flex;align-items:center;gap:12px}
+.user-info.vertical { flex-direction: column; text-align: center; gap: 6px; }
 
 .avatar{ border-radius:50%; width:46px; height:46px; object-fit:cover; border:var(--border-width) solid var(--border-color); background:#eee; box-shadow: var(--shadow-hard), var(--glow-primary); transition: transform 0.2s; }
 .avatar:hover { transform: scale(1.1) rotate(10deg); }
+.avatar-lg{ width:64px; height:64px; border-radius:50%; object-fit:cover; border:var(--border-width) solid var(--border-color); background:#eee; box-shadow: var(--shadow-hard), var(--glow-primary); }
 
-.avatar-xs {
-  width: 32px; height: 32px; border-radius: 50%; object-fit: cover;
-  border: 2px solid var(--border-color); background: var(--bg-pattern);
-  box-shadow: var(--glow-primary);
-  margin-right: 8px; display: inline-block; vertical-align: middle;
-  flex-shrink: 0; transition: transform 0.2s;
-}
+.avatar-xs { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); background: var(--bg-pattern); box-shadow: var(--glow-primary); margin-right: 8px; display: inline-block; vertical-align: middle; flex-shrink: 0; transition: transform 0.2s; }
 .avatar-xs:hover { transform: scale(1.2) rotate(5deg); }
 
 .user-name{font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -145,9 +101,6 @@ input[type="checkbox"]{width:20px;height:20px;cursor:pointer;accent-color:var(--
 .btn-neutral{background:var(--bg-pattern); color:var(--text-main);}
 .btn-warning{background:#fff3d6; color:#d97706;}
 
-/* ===================================================================
-   TABLES & LISTS
-=================================================================== */
 .table-wrap{ overflow-x:auto; border-radius:16px; border:var(--border-width) solid var(--border-color); margin-top:12px; background:var(--card-bg); box-shadow: 4px 4px 0px rgba(0,0,0,0.05); }
 table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left}
 th{background:var(--bg-pattern);padding:12px 10px;font-weight:700;color:var(--text-main);white-space:nowrap;border-bottom:var(--border-width) solid var(--border-color); text-align: center;}
@@ -160,9 +113,6 @@ tr:hover td { background: var(--bg-color); }
 .skeleton-row td::after{content: "";position: absolute;top: 0;left: 0;right: 0;bottom: 0;background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);transform: translateX(-100%);animation: shimmer 1.5s infinite;}
 @keyframes shimmer{100% { transform: translateX(100%); }}
 
-/* ===================================================================
-   MODALS & TOAST
-=================================================================== */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);backdrop-filter:blur(6px);z-index:100;display:none;align-items:center;justify-content:center;padding:20px; opacity: 0; transition: opacity 0.3s;}
 .modal-overlay.show{display:flex; opacity: 1;}
 .modal{background:var(--card-bg);border:var(--border-width) solid var(--border-color);border-radius:24px;padding:24px;max-width:480px;width:100%;box-shadow:8px 8px 0px var(--border-color); max-height:90vh; overflow-y:auto; transform: translateY(30px); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);}
@@ -173,9 +123,6 @@ tr:hover td { background: var(--bg-color); }
 .toast.success{color:var(--text-main); border-color:var(--success); box-shadow: 6px 6px 0px var(--success);}
 .toast.error{color:var(--text-main); border-color:var(--danger); box-shadow: 6px 6px 0px var(--danger);}
 
-/* ===================================================================
-   NAVIGATION
-=================================================================== */
 .bottom-nav{ position:fixed;bottom:0;left:0;right:0;height:var(--nav-height); background:var(--nav-bg); border-top:var(--border-width) solid var(--border-color); display:none;justify-content:space-around;align-items:center;z-index:90;padding:0 10px; box-shadow: 0 -4px 0px rgba(0,0,0,0.05); }
 .bottom-nav.show{display:flex}
 .nav-item{ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px; color:var(--text-muted);font-size:.75rem;font-weight:700;cursor:pointer; transition:all .2s; border-radius:16px; border:2px solid transparent; height: 60px; width: 80px; }
@@ -184,11 +131,10 @@ tr:hover td { background: var(--bg-color); }
 .nav-icon{font-size:1.4rem; transition: transform 0.2s;}
 .nav-item.active .nav-icon { transform: translateY(-3px) scale(1.1); }
 
-/* Utilities */
 .section-title{font-size:1.05rem;font-weight:700;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
 .empty-state{text-align:center;padding:30px 12px;color:var(--text-muted);font-size:.9rem;border:2px dashed var(--border-color);border-radius:16px; background:var(--bg-color); font-weight:500;}
 .reason-section{max-height:0;overflow:hidden;opacity:0;transition:all .4s;margin-bottom:0}
-.reason-section.visible{max-height:500px;opacity:1;margin-bottom:16px}
+.reason-section.visible{max-height:800px;opacity:1;margin-bottom:16px}
 .gps-status{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:12px;font-size:.88rem;font-weight:600;background:var(--bg-pattern);border:2px dashed var(--border-color);margin-bottom:16px;color:var(--text-muted);transition:all .3s;}
 .gps-status.ok{background:#e6fbf0;border-style:solid;border-color:var(--success);color:#008040;}
 .gps-status.bad{background:#ffe6eb;border-style:solid;border-color:var(--danger);color:#cc0033;}
@@ -207,6 +153,11 @@ tr:hover td { background: var(--bg-color); }
 .user-row{display:flex;justify-content:space-between;align-items:center;padding:14px;background:var(--bg-color);border-radius:14px;gap:10px;border:2px solid var(--border-color); margin-bottom:10px; box-shadow: 2px 2px 0 var(--border-color); transition: transform 0.2s;}
 .user-row:hover { transform: translateX(4px); }
 .user-row-info{flex:1;min-width:0; display:flex; align-items:center; gap:10px;}
+
+/* Reports header with avatar next to PDF button */
+.reports-action-bar { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
+.reports-action-bar .left { display:flex; gap:8px; align-items:center; }
+.reports-action-bar .right { display:flex; gap:8px; align-items:center; }
 </style>
 </head>
 <body>
@@ -244,12 +195,10 @@ tr:hover td { background: var(--bg-color); }
   <!-- DASHBOARD -->
   <div id="dashboardScreen" class="screen">
     <header class="app-header">
-      <div class="user-info">
-        <img id="dashPic" class="avatar" src="" alt="profile">
-        <div>
-          <div class="user-name" id="dashName">—</div>
-          <div class="user-role" id="dashRole">—</div>
-        </div>
+      <div class="user-info vertical">
+        <img id="dashPic" class="avatar-lg" src="" alt="profile">
+        <div class="user-name" id="dashName">—</div>
+        <div class="user-role" id="dashRole">—</div>
       </div>
       <button class="icon-btn" id="adminBtn" style="display:none" title="Admin">⚙️<span class="badge-noti" id="approveBadge">0</span></button>
       <button class="icon-btn" id="logoutBtn" title="ออกจากระบบ">🚪</button>
@@ -276,27 +225,25 @@ tr:hover td { background: var(--bg-color); }
           </div>
         </div>
         <div class="reason-section" id="reasonSection">
-          <!-- ตัวเลือกลา (แสดงเมื่อกดปุ่ม "ลา") -->
+          <!-- ตัวเลือกลา: ลาทั้งวัน (มีช่วงวันที่) / ครึ่งเช้า / ครึ่งบ่าย -->
           <div id="leaveOptions" style="display:none; margin-bottom:12px;">
             <label class="field-label">ประเภทการลา</label>
             <select id="leaveTypeSelect" class="select" style="margin-bottom:10px;">
-              <option value="ลาทั้งวัน">ลาทั้งวัน</option>
+              <option value="ลาทั้งวัน">ลาทั้งวัน (มีช่วงวันที่)</option>
               <option value="ลาครึ่งเช้า">ลาครึ่งเช้า</option>
               <option value="ลาครึ่งบ่าย">ลาครึ่งบ่าย</option>
-              <option value="ลาหลายวัน">ลาหลายวัน</option>
             </select>
           </div>
-          <!-- ตัวเลือกไปราชการ (แสดงเมื่อกดปุ่ม "ไปราชการ") -->
+          <!-- ตัวเลือกไปราชการ -->
           <div id="obOptions" style="display:none; margin-bottom:12px;">
             <label class="field-label">ประเภทไปราชการ</label>
             <select id="obTypeSelect" class="select" style="margin-bottom:10px;">
-              <option value="">ทั้งวัน</option>
+              <option value="">ทั้งวัน (มีช่วงวันที่)</option>
               <option value="ครึ่งเช้า">ครึ่งเช้า</option>
               <option value="ครึ่งบ่าย">ครึ่งบ่าย</option>
-              <option value="หลายวัน">หลายวัน</option>
             </select>
           </div>
-          <!-- ช่วงวันที่ (ลาหลายวัน / ไปราชการหลายวัน) -->
+          <!-- ช่วงวันที่ (แสดงเมื่อ full-day) -->
           <div id="dateRangeDiv" style="display:none; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
             <div><label class="field-label" style="font-size:0.75rem;">ตั้งแต่วันที่</label><input type="date" id="leaveStartDate" class="input"></div>
             <div><label class="field-label" style="font-size:0.75rem;">ถึงวันที่</label><input type="date" id="leaveEndDate" class="input"></div>
@@ -351,16 +298,19 @@ tr:hover td { background: var(--bg-color); }
           </select>
         </div>
       </div>
-      <div class="section-title" style="margin-bottom:10px; justify-content:space-between">
-        <div style="display:flex; gap:8px; align-items:center;">
+      <div class="reports-action-bar">
+        <div class="left">
           <button class="btn-sm btn-neutral" onclick="loadReports(true)">🔄 รีเฟรช</button>
           <span class="cache-indicator" id="reportsCacheIndicator" style="display:none;">⚡ แคช</span>
         </div>
-        <button class="btn-sm btn-cyan" id="exportPdfBtn">📄 ดาวน์โหลด PDF</button>
+        <div class="right">
+          <img id="reportsPdfAvatar" class="avatar-xs" src="" alt="profile" style="width:32px;height:32px;">
+          <button class="btn-sm btn-cyan" id="exportPdfBtn">📄 ดาวน์โหลด PDF</button>
+        </div>
       </div>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>วันที่ / ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th><th id="editColHeader" style="display:none;">จัดการ</th></tr></thead>
+          <thead><tr><th id="reportsDateHeader">วันที่ / ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th><th id="editColHeader" style="display:none;">จัดการ</th></tr></thead>
           <tbody id="termReportBody">
             <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
             <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
@@ -439,10 +389,25 @@ tr:hover td { background: var(--bg-color); }
         <button type="button" class="btn-sm btn-cyan" id="btnUseCurrentGps" style="width:100%;margin-bottom:16px;">📍 ใช้ตำแหน่ง GPS ปัจจุบัน</button>
         <div class="field"><label class="field-label">รัศมี (เมตร)</label><input type="number" id="setRadius" class="input"></div>
         <div class="field"><label class="checkbox-group"><input type="checkbox" id="setStrictReg"> บังคับรัศมีตอนลงทะเบียน</label></div>
-        <div class="section-title" style="margin-top:20px;border-top:2px dashed var(--border-color);padding-top:16px">📅 ปีการศึกษา</div>
-        <div class="field"><label class="field-label">ปีการศึกษา (พ.ศ.)</label><input type="text" id="setAcademicYear" class="input" placeholder="เช่น 2569">
-          <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px;font-weight:500;">💡 ระบบสร้าง Sheet <b>attendance{ปี}</b> อัตโนมัติเมื่อมีการลงเวลา โดยใช้กฎเดือน: พ.ค.–15 ต.ค. = เทอม 1 / 16 ต.ค.–เม.ย. = เทอม 2</div>
+
+        <div class="section-title" style="margin-top:20px;border-top:2px dashed var(--border-color);padding-top:16px">📅 วันเปิด/ปิดเทอม</div>
+        <div class="form-row-2">
+          <div class="field"><label class="field-label">เปิดเทอม 1</label><input type="date" id="setT1Start" class="input"></div>
+          <div class="field"><label class="field-label">ปิดเทอม 1</label><input type="date" id="setT1End" class="input"></div>
         </div>
+        <div class="form-row-2">
+          <div class="field"><label class="field-label">เปิดเทอม 2</label><input type="date" id="setT2Start" class="input"></div>
+          <div class="field"><label class="field-label">ปิดเทอม 2</label><input type="date" id="setT2End" class="input"></div>
+        </div>
+        <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:12px;font-weight:500;">💡 ใช้สำหรับ: auto-fill หยุดหลังปิดเทอม / PDF รายงานถึงวันปิดเทอม</div>
+
+        <div class="section-title" style="margin-top:20px;border-top:2px dashed var(--border-color);padding-top:16px">📆 ปีการศึกษา</div>
+        <div class="field"><label class="field-label">ปีการศึกษา (พ.ศ.)</label><input type="text" id="setAcademicYear" class="input" placeholder="เช่น 2569">
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px;font-weight:500;">💡 ระบบสร้าง Sheet <b>attendance{ปี}</b> อัตโนมัติเมื่อมีการลงเวลา</div>
+        </div>
+
+        <button type="button" class="btn-sm btn-warning" id="btnMigrateSheets" style="width:100%;margin-bottom:16px;">🔧 Migrate ชีทเก่า (attendance1/2-YYYY → attendanceYYYY)</button>
+
         <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
       </div>
     </div>
@@ -530,30 +495,25 @@ tr:hover td { background: var(--bg-color); }
 
 <script>
 // ============================================================
-// 🎨 PREMIUM HOLIDAY THEME ENGINE
+// THEME ENGINE
 // ============================================================
 function applyTheme() {
   const now = new Date();
-  const m = now.getMonth() + 1; // 1-12
+  const m = now.getMonth() + 1;
   const d = now.getDate();
   let theme = 'default';
   let emojis = ['✨', '☁️', '⭐', '🌟'];
-
-  if (m === 1) { theme = 'newyear'; emojis = ['🎉', '🎆', '🥂', '✨', '🎊']; } 
-  else if (m === 2) { theme = 'valentine'; emojis = ['💖', '🌹', '💝', '💌', '💕']; } 
-  else if (m === 4) { theme = 'songkran'; emojis = ['💦', '🌊', '🌺', '🐟', '🪷']; } 
-  else if (m === 10 && d >= 25) { theme = 'halloween'; emojis = ['🎃', '👻', '🦇', '🕷️', '🧙‍♀️']; } 
-  else if (m === 11 && d <= 15) { theme = 'loykrathong'; emojis = ['🏮', '🌕', '🪷', '🕯️', '🌌']; } 
+  if (m === 1) { theme = 'newyear'; emojis = ['🎉', '🎆', '🥂', '✨', '🎊']; }
+  else if (m === 2) { theme = 'valentine'; emojis = ['💖', '🌹', '💝', '💌', '💕']; }
+  else if (m === 4) { theme = 'songkran'; emojis = ['💦', '🌊', '🌺', '🐟', '🪷']; }
+  else if (m === 10 && d >= 25) { theme = 'halloween'; emojis = ['🎃', '👻', '🦇', '🕷️', '🧙‍♀️']; }
+  else if (m === 11 && d <= 15) { theme = 'loykrathong'; emojis = ['🏮', '🌕', '🪷', '🕯️', '🌌']; }
   else if (m === 12 && d >= 15) { theme = 'christmas'; emojis = ['❄️', '🎄', '🎅', '🎁', '⛄']; }
-
   document.body.setAttribute('data-theme', theme);
-  
   const container = document.getElementById('holiday-decorations');
   if (!container) return;
   container.innerHTML = '';
-  
-  const emojiCount = 20; 
-  for (let i = 0; i < emojiCount; i++) {
+  for (let i = 0; i < 20; i++) {
     const span = document.createElement('span');
     span.className = 'floating-emoji';
     span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
@@ -567,83 +527,45 @@ function applyTheme() {
 applyTheme();
 
 // ============================================================
-// 🔊 SOUND EFFECTS & WELCOME VOICE
+// SOUND
 // ============================================================
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
-
-function initAudio() {
-  if (!audioCtx) audioCtx = new AudioContext();
-  if (audioCtx.state === 'suspended') audioCtx.resume();
-}
-
+function initAudio() { if (!audioCtx) audioCtx = new AudioContext(); if (audioCtx.state === 'suspended') audioCtx.resume(); }
 function playClickSound() {
-  initAudio();
-  if (!audioCtx) return;
+  initAudio(); if (!audioCtx) return;
   const osc = audioCtx.createOscillator();
   const gain = audioCtx.createGain();
-  
   osc.type = 'sine';
   osc.frequency.setValueAtTime(600, audioCtx.currentTime);
   osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.1);
-  
   gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
   gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-  
-  osc.connect(gain);
-  gain.connect(audioCtx.destination);
-  
-  osc.start();
-  osc.stop(audioCtx.currentTime + 0.1);
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.start(); osc.stop(audioCtx.currentTime + 0.1);
 }
-
 function playWelcomeVoice() {
   if (sessionStorage.getItem('welcomePlayed')) return;
   sessionStorage.setItem('welcomePlayed', 'true');
-  
   if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = () => {
-      const u = new SpeechSynthesisUtterance('ยินดีต้อนรับจ้า');
-      u.lang = 'th-TH';
-      u.rate = 1.0;
-      u.pitch = 1.2;
-      
-      const voices = window.speechSynthesis.getVoices();
-      const thVoice = voices.find(v => v.lang.includes('th') && (v.name.includes('Female') || v.name.includes('Pattara'))) 
-                   || voices.find(v => v.lang.includes('th'));
-      
-      if (thVoice) u.voice = thVoice;
-      setTimeout(() => window.speechSynthesis.speak(u), 800);
-    };
-    
-    if (window.speechSynthesis.getVoices().length > 0) {
-      const u = new SpeechSynthesisUtterance('ยินดีต้อนรับจ้า');
-      u.lang = 'th-TH';
-      u.pitch = 1.2;
-      setTimeout(() => window.speechSynthesis.speak(u), 800);
-    }
+    const u = new SpeechSynthesisUtterance('ยินดีต้อนรับจ้า');
+    u.lang = 'th-TH'; u.rate = 1.0; u.pitch = 1.2;
+    setTimeout(() => window.speechSynthesis.speak(u), 800);
   }
 }
-
 document.addEventListener('click', (e) => {
   initAudio();
-  if (e.target.closest('button') || e.target.closest('.tab') || e.target.closest('.nav-item') || e.target.closest('.action-btn')) {
-    playClickSound();
-  }
+  if (e.target.closest('button') || e.target.closest('.tab') || e.target.closest('.nav-item') || e.target.closest('.action-btn')) playClickSound();
 });
-
 document.body.addEventListener('click', function initWelcome() {
   playWelcomeVoice();
   document.body.removeEventListener('click', initWelcome);
 }, { once: true });
 
-
 // ============================================================
 // CONFIG & STATE
 // ============================================================
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
-
-// Backend (Google Sheet) เป็นหลัก: cache ฝั่งเว็บสั้นมาก และ poll ตรวจซ้ำตลอด
 const CACHE_TTL_REPORTS = 4 * 1000;
 const CACHE_TTL_DAILY   = 2 * 1000;
 const POLL_INTERVAL_MS  = 2000;
@@ -664,6 +586,7 @@ const state = {
   todayRecord: null,
   todayLeave: null,
   todayPendingLeave: null,
+  approvedList: [],
   lastStatusFetch: 0,
   reportsCache: {},
   reportsLoadingKey: null,
@@ -681,26 +604,22 @@ function esc(s) {
   return String(s === null || s === undefined ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
-
+function getFirstName(fullName) {
+  if (!fullName) return '';
+  return String(fullName).trim().split(/\s+/)[0] || fullName;
+}
 function isManager() {
   return !!state.user && (state.user.role === 'admin' || state.user.position === 'ผอ.');
 }
 function isAdminRole() {
   return !!state.user && state.user.role === 'admin';
 }
-
 function getLocalDateStr(d = new Date()) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd}`;
 }
-
-/** คำนวณเทอมจากวันที่ ms ตามกฎเดือน
- *  พ.ค.(5) – 15 ต.ค.(10/15) = เทอม 1
- *  16 ต.ค. – เม.ย.(4)       = เทอม 2
- *  ปีการศึกษา = ปี พ.ศ. ของวันนั้น
- */
 function termForDateClient(ms) {
   const d = new Date(ms);
   const buddhistYear = d.getFullYear() + 543;
@@ -708,11 +627,6 @@ function termForDateClient(ms) {
   const day   = d.getDate();
   const inTerm1 = (month >= 5 && month <= 9) || (month === 10 && day <= 15);
   return { term: inTerm1 ? '1' : '2', year: String(buddhistYear) };
-}
-function computeCurrentTermClient() {
-  // ถ้า backend ส่ง currentTerm/currentYear มาแล้ว ใช้เลย (เชื่อถือได้กว่า)
-  if (state.settings && state.settings.currentTerm) return state.settings.currentTerm;
-  return termForDateClient(Date.now()).term;
 }
 
 async function api(cmd, extra = {}) {
@@ -723,7 +637,6 @@ async function api(cmd, extra = {}) {
       body: JSON.stringify({ cmd, token: state.token, ...extra })
     });
     const data = await res.json();
-    // backend ปฏิเสธ session (หมดอายุ / ถูกระงับ / ถูกลบ) → ออกจากระบบทันที
     if (data && data.code === 'AUTH' && cmd !== 'login' && cmd !== 'logout' && state.token) {
       forceLogout(data.message);
     }
@@ -732,7 +645,6 @@ async function api(cmd, extra = {}) {
     return { success: false, message: 'เชื่อมต่อเซิร์ฟเวอร์ไม่สำเร็จ' };
   }
 }
-
 function forceLogout(msg) {
   localStorage.removeItem('tt_token');
   localStorage.removeItem('tt_user');
@@ -745,7 +657,6 @@ function forceLogout(msg) {
   showScreen('authScreen');
   toast(msg || 'กรุณาเข้าสู่ระบบใหม่', 'error');
 }
-
 function toast(msg, type = 'success') {
   const el = document.getElementById('toast');
   document.getElementById('toastIcon').textContent = type === 'success' ? '✅' : '⚠️';
@@ -753,7 +664,6 @@ function toast(msg, type = 'success') {
   el.className = `toast ${type} show`;
   setTimeout(() => el.classList.remove('show'), 4000);
 }
-
 function speakPendingAlerts(hasLeave, hasOB) {
   if (sessionStorage.getItem('voicePlayed') === 'true') return;
   if (!('speechSynthesis' in window)) return;
@@ -770,12 +680,10 @@ function speakPendingAlerts(hasLeave, hasOB) {
   play(); setTimeout(play, 2500);
   sessionStorage.setItem('voicePlayed', 'true');
 }
-
 function invalidateAllReportCaches() {
   Object.keys(state.reportsCache).forEach(k => { state.reportsCache[k].ts = 0; });
   Object.keys(state.dailyReportCache).forEach(k => { state.dailyReportCache[k].ts = 0; });
 }
-
 function clearAllCaches() {
   state.reportsCache = {};
   state.reportsLoadingKey = null;
@@ -788,7 +696,6 @@ function clearAllCaches() {
   state.isPendingLeaveLocked = false;
 }
 
-// ---------- Polling: ดึงข้อมูลจาก backend ซ้ำตลอด ให้หน้าเว็บตรงกับ Sheet ----------
 function pollTick() {
   if (document.hidden || !state.token) return;
   const activeScreen = document.querySelector('.screen.active');
@@ -808,7 +715,6 @@ function startPolling() {
 function stopPolling() {
   if (state.pollTimer) { clearInterval(state.pollTimer); state.pollTimer = null; }
 }
-// กลับมาที่หน้าเว็บ → รีเฟรชทันที (force=true เพื่อข้าม cache)
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && state.token) {
     loadDailyReport(true);
@@ -850,27 +756,22 @@ function showScreen(name) {
     checkTodayStatus(true);
     loadDailyReport();
   }
-
   if (name === 'reportsScreen') {
     const mgr = isManager();
-    document.getElementById('reportHeaderRole').textContent = mgr ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
+    document.getElementById('reportHeaderRole').textContent = mgr ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลทุกคน (อ่านอย่างเดียว)';
     document.getElementById('editColHeader').style.display = mgr ? 'table-cell' : 'none';
+    document.getElementById('reportsDateHeader').textContent = mgr ? 'วันที่ / ชื่อ' : 'วันที่';
+    if (state.user && state.user.profilePic) {
+      document.getElementById('reportsPdfAvatar').src = state.user.profilePic;
+    }
     initReportsDefaults();
     loadReports();
   }
-
   if (name === 'profileScreen') updateProfileUI();
-  
-  if (name === 'dashboardScreen' || name === 'reportsScreen') {
-    startPolling();
-  } else {
-    stopPolling();
-  }
+  if (name === 'dashboardScreen' || name === 'reportsScreen') startPolling(); else stopPolling();
 }
 
 function initReportsDefaults() {
-  // เซ็ต default ทุกครั้งที่เปิดหน้ารายงาน
-  // ใช้ currentTerm/currentYear จาก backend (หรือคำนวณจากวันปัจจุบัน)
   const { term: todayTerm, year: todayYear } = termForDateClient(Date.now());
   const curYear = state.settings?.currentYear || todayYear;
   const curTerm = state.settings?.currentTerm || todayTerm;
@@ -879,7 +780,6 @@ function initReportsDefaults() {
   document.getElementById('reportTerm').value = curTerm;
   document.getElementById('reportMonth').value = curMonth;
 }
-
 function navTo(screen, el) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   el.classList.add('active');
@@ -965,7 +865,6 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   state.loadingAuth = false; btn.disabled = false; btn.textContent = '🚀 เข้าสู่ระบบ';
 });
 
-// ---------- ลงทะเบียน ----------
 document.getElementById('registerForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   if (state.loadingAuth) return;
@@ -1015,20 +914,20 @@ async function initUserSession() {
   state.todayRecord = res.todayRecord;
   state.todayLeave = res.todayLeave;
   state.todayPendingLeave = res.todayPendingLeave;
+  state.approvedList = res.approvedList || [];
   state.lastStatusFetch = Date.now();
 
-  document.getElementById('dashName').textContent = state.user.fullName;
+  document.getElementById('dashName').textContent = getFirstName(state.user.fullName);
   const displayPos = state.user.position || 'ครู';
   document.getElementById('dashRole').textContent = `${state.user.username} · ${displayPos}`;
-  document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/46';
+  document.getElementById('dashPic').src = state.user.profilePic || 'https://via.placeholder.com/64';
+  const rptAvatar = document.getElementById('reportsPdfAvatar');
+  if (rptAvatar) rptAvatar.src = state.user.profilePic || '';
 
   fillSettingsForm(res.settings);
   updateActionButtonsUI();
   const dd = document.getElementById('dailyDate');
-  if (dd) {
-    dd.value = getLocalDateStr();
-    state.dailyDateAuto = true;
-  }
+  if (dd) { dd.value = getLocalDateStr(); state.dailyDateAuto = true; }
   if (isManager()) checkPendingCounts();
   showScreen('dashboardScreen');
   return true;
@@ -1041,17 +940,24 @@ function fillSettingsForm(s) {
   document.getElementById('setOfficeLng').value = s.officeLng || '';
   document.getElementById('setRadius').value = s.radius || '';
   document.getElementById('setStrictReg').checked = !!s.strictRegistration;
+  document.getElementById('setT1Start').value = s.term1_start || '';
+  document.getElementById('setT1End').value = s.term1_end || '';
+  document.getElementById('setT2Start').value = s.term2_start || '';
+  document.getElementById('setT2End').value = s.term2_end || '';
 }
 
-// รับข้อมูลผู้ใช้ล่าสุดจาก backend (เช่น แอดมินเปลี่ยนตำแหน่ง/สิทธิ์ใน Sheet)
 function applyUserUpdate(u) {
   if (!u || !state.user) return;
   const changed = u.position !== state.user.position || u.role !== state.user.role || u.fullName !== state.user.fullName;
   state.user = { ...state.user, ...u };
   if (localStorage.getItem('tt_token')) localStorage.setItem('tt_user', JSON.stringify(state.user));
-  document.getElementById('dashName').textContent = state.user.fullName;
+  document.getElementById('dashName').textContent = getFirstName(state.user.fullName);
   document.getElementById('dashRole').textContent = `${state.user.username} · ${state.user.position || 'ครู'}`;
-  if (state.user.profilePic) document.getElementById('dashPic').src = state.user.profilePic;
+  if (state.user.profilePic) {
+    document.getElementById('dashPic').src = state.user.profilePic;
+    const rptAvatar = document.getElementById('reportsPdfAvatar');
+    if (rptAvatar) rptAvatar.src = state.user.profilePic;
+  }
   if (changed) {
     refreshDashboardMode();
     if (isManager()) checkPendingCounts();
@@ -1059,17 +965,16 @@ function applyUserUpdate(u) {
 }
 
 async function checkPendingCounts() {
-  if (isManager()) {
-    const res = await api('getPendingCounts');
-    if (res.success) {
-      const total = res.countLeave + res.countOB;
-      const badge = document.getElementById('approveBadge');
-      if (badge) {
-        badge.textContent = total > 0 ? total : '';
-        badge.style.display = total > 0 ? 'inline-block' : 'none';
-      }
-      if (total > 0) speakPendingAlerts(res.countLeave > 0, res.countOB > 0);
+  if (!isManager()) return;
+  const res = await api('getPendingCounts');
+  if (res.success) {
+    const total = res.countLeave + res.countOB;
+    const badge = document.getElementById('approveBadge');
+    if (badge) {
+      badge.textContent = total > 0 ? total : '';
+      badge.style.display = total > 0 ? 'inline-block' : 'none';
     }
+    if (total > 0) speakPendingAlerts(res.countLeave > 0, res.countOB > 0);
   }
 }
 
@@ -1098,7 +1003,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   toast('ออกจากระบบแล้ว');
 });
 
-// ---------- สถานะวันนี้ (backend เป็นผู้กำหนด ปุ่มรีเซ็ตตาม Sheet เสมอ) ----------
+// ---------- สถานะวันนี้ ----------
 async function checkTodayStatus(force = false) {
   if (!state.user) return;
   if (!force && Date.now() - state.lastStatusFetch < 10000) {
@@ -1110,6 +1015,7 @@ async function checkTodayStatus(force = false) {
     state.todayRecord = res.record;
     state.todayLeave = res.leave;
     state.todayPendingLeave = res.pendingLeave;
+    state.approvedList = res.approvedList || [];
     state.lastStatusFetch = Date.now();
     if (res.settings) state.settings = { ...state.settings, ...res.settings };
     if (res.user) applyUserUpdate(res.user);
@@ -1117,6 +1023,7 @@ async function checkTodayStatus(force = false) {
   }
 }
 
+// ============ ปุ่มตาม spec ใหม่ ============
 function updateActionButtonsUI() {
   const btns = document.querySelectorAll('.action-btn');
   btns.forEach(btn => { btn.disabled = false; btn.classList.remove('active'); });
@@ -1132,7 +1039,7 @@ function updateActionButtonsUI() {
       if (btnOut) { btnOut.disabled = true; btnOut.classList.add('active'); }
     }
   }
-  
+
   if (state.todayPendingLeave) {
     btns.forEach(btn => btn.disabled = true);
     if (state.isPendingLeaveLocked !== true) {
@@ -1142,26 +1049,20 @@ function updateActionButtonsUI() {
   } else {
     state.isPendingLeaveLocked = false;
   }
-  
-  if (state.todayLeave) {
-    const type = state.todayLeave.type;
-    // HALF_LEAVES = ลาครึ่งเช้า / ลาครึ่งบ่าย / ไปราชการครึ่งเช้า / ไปราชการครึ่งบ่าย → เปิดให้กดเข้า/ออกได้
-    // FULL_LOCK_LEAVES = ลาทั้งวัน / ลาหลายวัน / ไปราชการ(ทั้งวัน) / ไปราชการหลายวัน → ล็อคทุกปุ่ม
-    const HALF_LEAVES = ['ลาครึ่งเช้า','ลาครึ่งบ่าย','ไปราชการครึ่งเช้า','ไปราชการครึ่งบ่าย'];
-    const FULL_LOCK_LEAVES = ['ลาทั้งวัน','ลาหลายวัน','ไปราชการ','ไปราชการหลายวัน'];
-    if (FULL_LOCK_LEAVES.indexOf(type) >= 0) {
-      // ล็อคทุกปุ่ม
-      btns.forEach(btn => { btn.disabled = true; });
-    } else if (HALF_LEAVES.indexOf(type) >= 0) {
-      // ล็อคปุ่มลา/ไปราชการ แต่เปิดให้กดเข้า/ออกงานได้
-      const btnLeave = document.querySelector('.action-btn[data-action="ลา"]');
-      const btnOB = document.querySelector('.action-btn[data-action="ไปราชการ"]');
-      if (btnLeave) { btnLeave.disabled = true; btnLeave.classList.add('active'); }
-      if (btnOB) { btnOB.disabled = true; btnOB.classList.add('active'); }
-    }
-  }
 
-  // คงการเลือกปุ่มของผู้ใช้ไว้ถ้ายังกดได้ / ยกเลิกถ้าปุ่มถูกล็อก
+  const approvedList = state.approvedList || (state.todayLeave ? [state.todayLeave.type] : []);
+  const FULL_LOCK = ['ลาทั้งวัน','ไปราชการ'];
+  const hasFull = approvedList.some(t => FULL_LOCK.indexOf(t) >= 0);
+
+  if (hasFull) {
+    // ล็อคทุกปุ่มเมื่อมีธุระทั้งวัน/หลายวัน
+    btns.forEach(btn => { btn.disabled = true; });
+  }
+  // ครึ่งเช้า/ครึ่งบ่าย: ไม่ล็อคปุ่มลา/OB ตาม spec (ปุ่มเข้างาน/ออกงานยังใช้งานได้)
+
+  // อัปเดตตัวเลือกในฟอร์มลา/OB
+  updateLeaveOptionsAvailability(approvedList);
+
   if (state.selectedAction) {
     const sel = document.querySelector(`.action-btn[data-action="${state.selectedAction}"]`);
     if (sel && !sel.disabled) sel.classList.add('active');
@@ -1169,6 +1070,32 @@ function updateActionButtonsUI() {
       state.selectedAction = null;
       document.getElementById('reasonSection').classList.remove('visible');
     }
+  }
+}
+
+// เปิด/ปิด option ใน select ตาม approved leaves
+function updateLeaveOptionsAvailability(approvedList) {
+  const hasMorning = approvedList.some(t => t === 'ลาครึ่งเช้า' || t === 'ไปราชการครึ่งเช้า');
+  const hasAfternoon = approvedList.some(t => t === 'ลาครึ่งบ่าย' || t === 'ไปราชการครึ่งบ่าย');
+  const hasFull = approvedList.some(t => t === 'ลาทั้งวัน' || t === 'ไปราชการ');
+
+  const leaveSel = document.getElementById('leaveTypeSelect');
+  const obSel = document.getElementById('obTypeSelect');
+  if (leaveSel) {
+    Array.from(leaveSel.options).forEach(o => {
+      o.disabled = false;
+      if (hasFull && o.value !== '') o.disabled = true;
+      if (hasMorning && o.value === 'ลาครึ่งเช้า') o.disabled = true;
+      if (hasAfternoon && o.value === 'ลาครึ่งบ่าย') o.disabled = true;
+    });
+  }
+  if (obSel) {
+    Array.from(obSel.options).forEach(o => {
+      o.disabled = false;
+      if (hasFull && o.value !== '') o.disabled = true;
+      if (hasMorning && o.value === 'ครึ่งเช้า') o.disabled = true;
+      if (hasAfternoon && o.value === 'ครึ่งบ่าย') o.disabled = true;
+    });
   }
 }
 
@@ -1212,10 +1139,10 @@ document.querySelectorAll('.action-btn').forEach(btn => {
 function handleLeaveTypeChange() {
   const type = document.getElementById('leaveTypeSelect').value;
   const dateRange = document.getElementById('dateRangeDiv');
-  if (type === 'ลาหลายวัน') {
+  if (type === 'ลาทั้งวัน') {
     dateRange.style.display = 'grid';
-    document.getElementById('leaveStartDate').value = getLocalDateStr();
-    document.getElementById('leaveEndDate').value = getLocalDateStr();
+    if (!document.getElementById('leaveStartDate').value) document.getElementById('leaveStartDate').value = getLocalDateStr();
+    if (!document.getElementById('leaveEndDate').value) document.getElementById('leaveEndDate').value = getLocalDateStr();
   } else {
     dateRange.style.display = 'none';
   }
@@ -1223,10 +1150,10 @@ function handleLeaveTypeChange() {
 function handleObTypeChange() {
   const type = document.getElementById('obTypeSelect').value;
   const dateRange = document.getElementById('dateRangeDiv');
-  if (type === 'หลายวัน') {
+  if (type === '') {
     dateRange.style.display = 'grid';
-    document.getElementById('leaveStartDate').value = getLocalDateStr();
-    document.getElementById('leaveEndDate').value = getLocalDateStr();
+    if (!document.getElementById('leaveStartDate').value) document.getElementById('leaveStartDate').value = getLocalDateStr();
+    if (!document.getElementById('leaveEndDate').value) document.getElementById('leaveEndDate').value = getLocalDateStr();
   } else {
     dateRange.style.display = 'none';
   }
@@ -1269,14 +1196,15 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
     const payload = { action: state.selectedAction, reason, note, lat: pos.lat, lng: pos.lng };
     if (state.selectedAction === 'ลา') {
       payload.leaveType = document.getElementById('leaveTypeSelect').value;
-      if (payload.leaveType === 'ลาหลายวัน') {
+      if (payload.leaveType === 'ลาทั้งวัน') {
         payload.startDate = document.getElementById('leaveStartDate').value;
         payload.endDate = document.getElementById('leaveEndDate').value;
       }
     }
     if (state.selectedAction === 'ไปราชการ') {
-      payload.leaveType = document.getElementById('obTypeSelect').value; // ครึ่งเช้า / ครึ่งบ่าย / หลายวัน / ''(ทั้งวัน)
-      if (payload.leaveType === 'หลายวัน') {
+      const sub = document.getElementById('obTypeSelect').value;
+      payload.leaveType = sub;
+      if (sub === '') {
         payload.startDate = document.getElementById('leaveStartDate').value;
         payload.endDate = document.getElementById('leaveEndDate').value;
       }
@@ -1288,14 +1216,12 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
       document.getElementById('reasonSection').classList.remove('visible');
       document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
       state.selectedAction = null;
-
       invalidateAllReportCaches();
       loadDailyReport(true);
       checkTodayStatus(true);
       if (isManager()) checkPendingCounts();
     } else {
       toast(res.message, 'error');
-      // ถ้า backend ปฏิเสธ (เช่น ข้อมูลใน Sheet เปลี่ยนไป) ให้ซิงก์สถานะปุ่มใหม่ทันที
       checkTodayStatus(true);
     }
   } catch (err) { toast(err.message, 'error'); }
@@ -1314,7 +1240,6 @@ function getInitials(name) {
   if(parts.length >= 2) return parts[0].charAt(0) + parts[1].charAt(0);
   return name.charAt(0);
 }
-
 function avatarFor(picSrc, name) {
   const initials = esc(getInitials(name));
   const fallback = `<div style="display:none; width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
@@ -1334,7 +1259,7 @@ function renderDailyReport(records) {
     const picSrc = r.profilePic || (state.user && state.user.fullName === r.fullName ? state.user.profilePic : null);
     return `
       <tr>
-        <td class="table-name">${avatarFor(picSrc, r.fullName)} ${esc(r.fullName)}</td>
+        <td class="table-name">${avatarFor(picSrc, r.fullName)} ${esc(getFirstName(r.fullName))}</td>
         <td style="color:var(--success);font-weight:700">${esc(r.inTime)}</td>
         <td style="color:var(--danger);font-weight:700">${esc(r.outTime)}</td>
         <td>${esc(r.note || '-')}</td>
@@ -1350,10 +1275,8 @@ async function loadDailyReport(force = false, isPolling = false) {
     if (dd.value !== today) { dd.value = today; force = true; }
   }
   if (!dd.value) return;
-
   const cacheKey = dd.value;
   if (state.dailyLoadingKey === cacheKey) return;
-
   const cached = state.dailyReportCache[cacheKey];
   const cacheAge = cached ? (Date.now() - cached.ts) : Infinity;
   const isStale = cacheAge > CACHE_TTL_DAILY;
@@ -1367,15 +1290,12 @@ async function loadDailyReport(force = false, isPolling = false) {
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td></tr>`;
   }
-
   state.dailyLoadingKey = cacheKey;
   try {
     const parts = dd.value.split('-');
     const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
     const res = await api('getDailyReport', { date: formattedDate });
-
     if (dd.value !== cacheKey) return;
-
     if (!res.success) {
       if (!cached && !isPolling) {
         document.getElementById('dailyReportBody').innerHTML =
@@ -1386,12 +1306,8 @@ async function loadDailyReport(force = false, isPolling = false) {
     const records = res.records || [];
     const newHash = JSON.stringify(records);
     const oldHash = cached ? JSON.stringify(cached.data) : '';
-    
     state.dailyReportCache[cacheKey] = { data: records, ts: Date.now() };
-    
-    if (newHash !== oldHash || !isPolling) {
-      renderDailyReport(records);
-    }
+    if (newHash !== oldHash || !isPolling) renderDailyReport(records);
   } finally {
     if (state.dailyLoadingKey === cacheKey) state.dailyLoadingKey = null;
   }
@@ -1405,16 +1321,22 @@ function renderReportsTable(records) {
   const tbody = document.getElementById('termReportBody');
   state.currentReportRecords = records || [];
   if (!records || records.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>';
+    const cols = isManager() ? 5 : 4;
+    tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>`;
     return;
   }
   const mgr = isManager();
-  
   tbody.innerHTML = records.map((r, i) => {
     const picSrc = r.profilePic || (state.user && state.user.fullName === r.name ? state.user.profilePic : null);
+    const displayName = getFirstName(r.name);
     return `
       <tr>
-        <td>${mgr ? `<div style="display:flex; align-items:center; margin-bottom:4px;">${avatarFor(picSrc, r.name)} <b>${esc(r.name)}</b></div><span style="font-size:0.75rem;color:var(--text-muted); margin-left:40px;">${esc(r.date)}</span>` : esc(r.date)}</td>
+        <td>
+          <div style="display:flex; align-items:center; margin-bottom:4px;">
+            ${avatarFor(picSrc, r.name)} <b>${esc(displayName)}</b>
+          </div>
+          <span style="font-size:0.75rem;color:var(--text-muted); margin-left:40px;">${esc(r.date)}</span>
+        </td>
         <td style="color:var(--success);font-weight:700">${esc(r.inTime)}</td>
         <td style="color:var(--danger);font-weight:700">${esc(r.outTime)}</td>
         <td>${esc(r.note)}</td>
@@ -1427,26 +1349,20 @@ async function loadReports(force = false, isPolling = false) {
   const year = document.getElementById('reportYear').value.trim();
   const term = document.getElementById('reportTerm').value;
   const month = document.getElementById('reportMonth').value;
-
   if (!year || !term) {
     if (!isPolling) document.getElementById('termReportBody').innerHTML =
       '<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">กรุณาระบุปีการศึกษา</td></tr>';
     return;
   }
-
   const cacheKey = `${year}|${term}|${month}`;
   if (state.reportsLoadingKey === cacheKey) return;
-
   const cached = state.reportsCache[cacheKey];
   const cacheAge = cached ? (Date.now() - cached.ts) : Infinity;
   const isStale = cacheAge > CACHE_TTL_REPORTS;
   const needsFetch = force || !cached || isStale;
 
   if (cached) {
-    if (!isPolling) {
-      renderReportsTable(cached.data);
-      updateCacheIndicator(cached.ts);
-    }
+    if (!isPolling) { renderReportsTable(cached.data); updateCacheIndicator(cached.ts); }
     if (!needsFetch && !isPolling) return;
   } else if (!isPolling) {
     document.getElementById('termReportBody').innerHTML = `
@@ -1454,13 +1370,11 @@ async function loadReports(force = false, isPolling = false) {
       <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>`;
     updateCacheIndicator(null);
   }
-
   state.reportsLoadingKey = cacheKey;
   try {
     const res = await api('getReports', { year, term, month });
     const currentKey = `${document.getElementById('reportYear').value.trim()}|${document.getElementById('reportTerm').value}|${document.getElementById('reportMonth').value}`;
     if (currentKey !== cacheKey) return;
-
     if (!res.success) {
       if (!cached && !isPolling) {
         document.getElementById('termReportBody').innerHTML =
@@ -1471,9 +1385,7 @@ async function loadReports(force = false, isPolling = false) {
     const records = res.records || [];
     const newHash = JSON.stringify(records);
     const oldHash = cached ? JSON.stringify(cached.data) : '';
-    
     state.reportsCache[cacheKey] = { data: records, ts: Date.now() };
-    
     if (newHash !== oldHash || !isPolling) {
       renderReportsTable(records);
       updateCacheIndicator(Date.now());
@@ -1493,7 +1405,6 @@ function updateCacheIndicator(ts) {
   el.style.display = 'inline-flex';
 }
 
-// ---------- แก้ไข / ลบ ประวัติการลงเวลา (แอดมิน/ผอ.) ----------
 function openEditAttendanceByIdx(i) {
   const r = state.currentReportRecords[i];
   if (!r) return;
@@ -1506,26 +1417,16 @@ function openEditAttendanceByIdx(i) {
   document.getElementById('editAttNote').value = (r.note && r.note !== '-') ? r.note : '';
   document.getElementById('editAttendanceModal').classList.add('show');
 }
-
 function closeEditAttendanceModal() {
   document.getElementById('editAttendanceModal').classList.remove('show');
 }
-
 function afterAttendanceEdited() {
   invalidateAllReportCaches();
-  // โหลดทุกอย่างพร้อมกันทันที ไม่รอ poll รอบถัดไป
-  Promise.all([
-    loadReports(true),
-    loadDailyReport(true),
-    checkTodayStatus(true)
-  ]).catch(() => {});
-  // poll รอบถัดไปก็จะ sync ซ้ำอีกครั้ง (safety net)
+  Promise.all([loadReports(true), loadDailyReport(true), checkTodayStatus(true)]).catch(() => {});
 }
-
 async function saveEditAttendance() {
   const btn = document.getElementById('saveEditAttBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
-
   const payload = {
     name: document.getElementById('editAttName').value,
     origDate: document.getElementById('editAttOrigDate').value,
@@ -1536,10 +1437,8 @@ async function saveEditAttendance() {
     year: document.getElementById('reportYear').value.trim(),
     term: document.getElementById('reportTerm').value
   };
-  
   const res = await api('admin_editAttendance', payload);
   btn.disabled = false; btn.textContent = 'บันทึก';
-  
   if (res.success) {
     toast(res.message);
     closeEditAttendanceModal();
@@ -1549,7 +1448,6 @@ async function saveEditAttendance() {
     if (/ไม่พบข้อมูลเดิม/.test(res.message || '')) { closeEditAttendanceModal(); afterAttendanceEdited(); }
   }
 }
-
 async function deleteEditAttendance() {
   const name = document.getElementById('editAttName').value;
   const date = document.getElementById('editAttOrigDate').value;
@@ -1562,15 +1460,8 @@ async function deleteEditAttendance() {
     term: document.getElementById('reportTerm').value
   });
   btn.disabled = false;
-  if (res.success) {
-    toast(res.message);
-    closeEditAttendanceModal();
-    afterAttendanceEdited();
-  } else {
-    toast(res.message, 'error');
-    closeEditAttendanceModal();
-    afterAttendanceEdited();
-  }
+  if (res.success) { toast(res.message); closeEditAttendanceModal(); afterAttendanceEdited(); }
+  else { toast(res.message, 'error'); closeEditAttendanceModal(); afterAttendanceEdited(); }
 }
 
 function openPdfModal() {
@@ -1580,6 +1471,7 @@ function openPdfModal() {
 }
 function closePdfModal() { document.getElementById('pdfModal').classList.remove('show'); }
 
+// ============ PDF download รองรับทั้ง manager (URL) และ user (base64) ============
 async function downloadPdf() {
   const monthVal = document.getElementById('pdfMonthSelect').value;
   const academicYear = document.getElementById('reportYear').value.trim();
@@ -1588,19 +1480,30 @@ async function downloadPdf() {
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังสร้าง...';
   const res = await api('exportPDF', { monthStr: monthVal, academicYear: academicYear });
   btn.disabled = false; btn.textContent = 'ดาวน์โหลด';
-  if (res.success && res.downloadUrl) {
-    const downloadLink = document.createElement("a");
-    downloadLink.href = res.downloadUrl;
-    downloadLink.target = "_blank";
-    downloadLink.download = `Report_${monthVal}_${academicYear}.pdf`;
-    downloadLink.click();
+  if (res.success) {
+    if (res.downloadUrl) {
+      // manager → เปิด link ในแท็บใหม่
+      window.open(res.downloadUrl, '_blank');
+    } else if (res.pdfBase64) {
+      // user ทั่วไป → ดาวน์โหลดลงเครื่องทันที (ไม่ upload Drive)
+      const byteChars = atob(res.pdfBase64);
+      const bytes = new Uint8Array(byteChars.length);
+      for (let i = 0; i < byteChars.length; i++) bytes[i] = byteChars.charCodeAt(i);
+      const blob = new Blob([bytes], { type: 'application/pdf' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = res.fileName || `Report_${monthVal}_${academicYear}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1000);
+    }
     toast('ดาวน์โหลด PDF สำเร็จ');
     closePdfModal();
   } else {
     toast(res.message || 'เกิดข้อผิดพลาดในการสร้าง PDF', 'error');
   }
 }
-
 document.getElementById('exportPdfBtn').addEventListener('click', openPdfModal);
 
 function updateProfileUI() {
@@ -1610,7 +1513,6 @@ function updateProfileUI() {
   const validPositions = ['ครู', 'ผอ.', 'พนักงาน', 'ลูกจ้าง'];
   const profPosSelect = document.getElementById('profPosition');
   profPosSelect.value = validPositions.includes(state.user.position) ? state.user.position : 'ครู';
-  // เฉพาะแอดมิน/ผอ. เท่านั้นที่เลือกตำแหน่ง ผอ. เองได้ (ผู้อื่นให้แอดมินตั้งให้)
   const canPickDirector = isManager();
   Array.from(profPosSelect.options).forEach(o => { if (o.value === 'ผอ.') o.disabled = !canPickDirector; });
   document.getElementById('profEmail').value = state.user.email || '';
@@ -1646,7 +1548,6 @@ handleImageUpload('profilePicInput', (dataUrl) => {
   state.profilePicBase64 = dataUrl;
   document.getElementById('profilePicPreview').src = dataUrl;
 });
-
 handleImageUpload('sigInput', (dataUrl) => {
   state.signatureBase64 = dataUrl;
   const sigPreview = document.getElementById('sigPreview');
@@ -1688,7 +1589,6 @@ document.getElementById('passwordForm').addEventListener('submit', async (e) => 
   else toast(r.message, 'error');
 });
 
-// ---------- Admin panel (แอดมินเห็นครบ / ผอ. เห็นเฉพาะแท็บอนุมัติ) ----------
 function activateAdminTab(name) {
   document.querySelectorAll('#adminScreen .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
   document.querySelectorAll('#adminScreen .tab-content').forEach(c => c.classList.remove('active'));
@@ -1698,7 +1598,6 @@ function activateAdminTab(name) {
   if (name === 'users') loadUsers();
   if (name === 'settings') loadAdminSettings();
 }
-
 document.getElementById('adminBtn').addEventListener('click', () => {
   showScreen('adminScreen');
   const admin = isAdminRole();
@@ -1707,7 +1606,6 @@ document.getElementById('adminBtn').addEventListener('click', () => {
   });
   activateAdminTab(admin ? 'pending' : 'leaves');
 });
-
 document.querySelectorAll('#adminScreen .tab').forEach(tab => {
   tab.addEventListener('click', () => activateAdminTab(tab.dataset.tab));
 });
@@ -1728,7 +1626,6 @@ async function loadPending() {
       </div>
     </div>`).join('');
 }
-
 window.approveUser = async (u) => {
   const el = document.getElementById(`pending-${u}`);
   if (el) el.style.display = 'none';
@@ -1736,7 +1633,6 @@ window.approveUser = async (u) => {
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
 };
-
 window.rejectUser = async (u) => {
   const el = document.getElementById(`pending-${u}`);
   if (el) el.style.display = 'none';
@@ -1762,19 +1658,13 @@ async function loadPendingLeaves() {
       </div>
     </div>`).join('');
 }
-
 async function handleLeaveDecision(cmd, id) {
   const el = document.getElementById(`leave-${id}`);
   if (el) el.style.display = 'none';
   const r = await api(cmd, {id:id});
   toast(r.message, r.success?'success':'error');
-  if (r.success) {
-    invalidateAllReportCaches();
-    checkPendingCounts();
-  } else {
-    // รายการอาจถูกดำเนินการ/ยกเลิกไปแล้ว → โหลดรายการใหม่ตามข้อมูลจริงใน backend
-    loadPendingLeaves();
-  }
+  if (r.success) { invalidateAllReportCaches(); checkPendingCounts(); }
+  else loadPendingLeaves();
 }
 window.approveLeave = (id) => handleLeaveDecision('admin_approveLeave', id);
 window.rejectLeave  = (id) => handleLeaveDecision('admin_rejectLeave', id);
@@ -1785,7 +1675,6 @@ async function loadUsers() {
   const res = await api('admin_listUsers');
   if (!res.success) { box.innerHTML = `<div class="empty-state">${esc(res.message)}</div>`; return; }
   state.adminUsers = res.users;
-  
   box.innerHTML = res.users.map((u, i) => `
     <div class="user-row">
       <div class="user-row-info">
@@ -1798,13 +1687,11 @@ async function loadUsers() {
       <button class="btn-sm btn-cyan" onclick="openEditUserByIdx(${i})">✏️ แก้ไข</button>
     </div>`).join('');
 }
-
 function openEditUserByIdx(i) {
   const u = state.adminUsers[i];
   if (!u) return;
   openEditUser(u.username, u.fullName, u.role, u.status, u.position, u.email, u.gpsOverride);
 }
-
 function openEditUser(username, fullName, role, status, position, email, gpsOverride) {
   document.getElementById('editTargetUsername').value = username;
   document.getElementById('editUserUsername').value = username;
@@ -1825,22 +1712,17 @@ function openEditUser(username, fullName, role, status, position, email, gpsOver
   state.editUserSigBase64 = null;
   document.getElementById('editUserModal').classList.add('show');
 }
-
 document.getElementById('editUserPosition').addEventListener('change', function() {
   const gpsCheck = document.getElementById('editUserGpsOverride');
   if (this.value === 'ผอ.') { gpsCheck.checked = true; gpsCheck.disabled = true; }
   else gpsCheck.disabled = false;
 });
-
 function closeEditUserModal() { document.getElementById('editUserModal').classList.remove('show'); }
-
 handleImageUpload('editUserPicInput', (dataUrl) => { state.editUserPicBase64 = dataUrl; });
 handleImageUpload('editUserSigInput', (dataUrl) => { state.editUserSigBase64 = dataUrl; });
-
 async function saveEditUser() {
   const btn = document.getElementById('saveEditUserBtn');
   btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลังบันทึก...';
-  
   const payload = {
     targetUsername: document.getElementById('editTargetUsername').value,
     fullName: document.getElementById('editUserFullName').value.trim(),
@@ -1853,10 +1735,8 @@ async function saveEditUser() {
     profilePicBase64: state.editUserPicBase64,
     signatureBase64: state.editUserSigBase64
   };
-  
   const res = await api('admin_updateUser', payload);
   btn.disabled = false; btn.textContent = 'บันทึก';
-  
   if (res.success) {
     toast(res.message);
     closeEditUserModal();
@@ -1896,18 +1776,38 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     officeLng: Number(document.getElementById('setOfficeLng').value),
     radius: Number(document.getElementById('setRadius').value),
     strictRegistration: document.getElementById('setStrictReg').checked,
-    academicYear: document.getElementById('setAcademicYear').value.trim()
+    academicYear: document.getElementById('setAcademicYear').value.trim(),
+    term1Start: document.getElementById('setT1Start').value,
+    term1End: document.getElementById('setT1End').value,
+    term2Start: document.getElementById('setT2Start').value,
+    term2End: document.getElementById('setT2End').value
   };
   const res = await api('admin_updateSettings', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
-  if (res.success) { 
+  if (res.success) {
     toast(res.message);
-    // ดึงค่าที่ backend คำนวณจริง (เช่น เทอม/ปีปัจจุบัน) กลับมาแสดง
     state.reportsInited = false;
     clearAllCaches();
     await loadAdminSettings();
+  } else toast(res.message, 'error');
+});
+
+// ============ Migrate Button ============
+document.getElementById('btnMigrateSheets').addEventListener('click', async () => {
+  if (!confirm('Migrate ชีทเก่า attendance1/2-YYYY → attendanceYYYY และลบชีทเก่า?\n(ทำครั้งเดียว - ข้อมูลจะถูก merge เข้าชีทใหม่)')) return;
+  const btn = document.getElementById('btnMigrateSheets');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลัง migrate...';
+  const res = await api('admin_migrateSheets');
+  btn.disabled = false; btn.textContent = '🔧 Migrate ชีทเก่า (attendance1/2-YYYY → attendanceYYYY)';
+  if (res.success) {
+    toast('Migrate สำเร็จ');
+    console.log('[Migrate log]', res.log);
+    clearAllCaches();
+    loadDailyReport(true);
+    loadReports(true);
+  } else {
+    toast(res.message, 'error');
   }
-  else toast(res.message, 'error');
 });
 </script>
 </body>
