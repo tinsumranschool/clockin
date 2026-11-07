@@ -327,7 +327,7 @@ tr:hover td { background: var(--bg-color); }
           <button class="btn-sm btn-cyan" id="exportPdfBtn">📄 ดาวน์โหลด PDF</button>
         </div>
       </div>
-      <div class="table-wrap">
+      <div class="table-wrap" id="reportsTableWrap">
         <table>
           <thead><tr><th id="reportsDateHeader">วันที่ / ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th><th id="editColHeader" style="display:none;">จัดการ</th></tr></thead>
           <tbody id="termReportBody">
@@ -777,7 +777,7 @@ function showScreen(name) {
   }
   if (name === 'reportsScreen') {
     const mgr = isManager();
-    document.getElementById('reportHeaderRole').textContent = mgr ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลทุกคน (อ่านอย่างเดียว)';
+    document.getElementById('reportHeaderRole').textContent = mgr ? 'ข้อมูลพนักงานทุกคน' : 'ข้อมูลของฉัน';
     document.getElementById('editColHeader').style.display = mgr ? 'table-cell' : 'none';
     document.getElementById('reportsDateHeader').textContent = mgr ? 'วันที่ / ชื่อ' : 'วันที่';
     if (state.user && state.user.profilePic) {
@@ -1355,6 +1355,12 @@ function renderReportsTable(records) {
         ${mgr ? `<td><button class="btn-sm btn-warning" onclick="openEditAttendanceByIdx(${i})">✏️ แก้ไข</button></td>` : ''}
       </tr>`;
   }).join('');
+  
+  // Auto-scroll to top (latest data)
+  const wrap = document.getElementById('reportsTableWrap');
+  if (wrap) {
+    wrap.scrollTop = 0;
+  }
 }
 
 async function loadReports(force = false, isPolling = false) {
