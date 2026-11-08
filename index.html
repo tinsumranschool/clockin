@@ -7,7 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<!-- Flatpickr for Thai BE Date Picker -->
+<!-- Flatpickr for Date Picker -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -201,11 +201,6 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
 .cell-name-mobile .avatar-xs { margin-right: 0; width: 30px; height: 30px; }
 .cell-name-mobile .cell-label { font-size: 0.72rem; font-weight: 700; line-height: 1.2; word-break: break-word; max-width: 60px; }
 
-/* Custom Wrapper for Daily Date Picker */
-.datepicker-wrap { position: relative; display: inline-block; }
-.datepicker-wrap .icon-calendar { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 1rem; color: var(--text-muted); }
-.datepicker-wrap input { padding-right: 30px; cursor: pointer; }
-
 @media (max-width: 600px) {
   .card { padding: 14px 10px; }
   table { font-size: 0.72rem; }
@@ -317,10 +312,7 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
         <div style="display:flex; align-items:center; gap:10px;">
           <span>📊 รายงานประจำวัน <span class="live-indicator"><span class="live-dot"></span>LIVE</span></span>
         </div>
-        <div class="datepicker-wrap">
-          <input type="text" id="dailyDate" class="input datepicker" readonly style="width:130px;padding:6px 10px;font-size:.85rem">
-          <span class="icon-calendar">📅</span>
-        </div>
+        <input type="text" id="dailyDate" class="input datepicker" style="width:130px;padding:6px 10px;font-size:.85rem" placeholder="วว/ดด/ปปปป">
       </div>
       <div class="table-wrap">
         <table><thead><tr><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th></tr></thead>
@@ -537,7 +529,7 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
     <input type="hidden" id="editAttName">
     <input type="hidden" id="editAttOrigDate">
     <div class="field"><label class="field-label">ชื่อ-นามสกุล</label><input type="text" id="editAttNameDisplay" class="input" disabled></div>
-    <div class="field"><label class="field-label">วันที่ (DD/MM/YYYY)</label><input type="text" id="editAttDate" class="input datepicker" placeholder="เช่น 05/พ.ย./2569"></div>
+    <div class="field"><label class="field-label">วันที่ (DD/MM/YYYY)</label><input type="text" id="editAttDate" class="input datepicker" placeholder="เช่น 05/11/2026"></div>
     <div class="form-row-2">
       <div class="field"><label class="field-label">เวลาเข้า</label><input type="text" id="editAttInTime" class="input" placeholder="เช่น 08:00 หรือ -"></div>
       <div class="field"><label class="field-label">เวลาออก</label><input type="text" id="editAttOutTime" class="input" placeholder="เช่น 16:30 หรือ -"></div>
@@ -556,7 +548,6 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
 <!-- Flatpickr Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/buddhistEra/buddhistEra.js"></script>
 
 <script>
 // ============================================================
@@ -592,10 +583,8 @@ function applyTheme() {
 applyTheme();
 
 // ============================================================
-// DATEPICKER SETUP
+// DATEPICKER SETUP (FIXED & CE FORMAT)
 // ============================================================
-const THAI_MONTHS_SHORT = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
-
 function getLocalDateStr(d = new Date()) {
   const yyyy = d.getFullYear();
   const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -605,32 +594,30 @@ function getLocalDateStr(d = new Date()) {
 
 const datePickers = {};
 function initDatePickers() {
+  // Fallback to native if flatpickr fails to load
   if (typeof flatpickr === 'undefined') {
     console.warn('Flatpickr not loaded. Using native date input fallback.');
     document.querySelectorAll('.datepicker').forEach(el => {
       el.type = 'date';
+      el.removeAttribute('readonly'); // Ensure it can be clicked
       if (!el.value) el.value = getLocalDateStr();
     });
     return;
   }
 
-  if (flatpickr.l10ns && flatpickr.l10ns.th) {
-    flatpickr.l10ns.th.months.short = THAI_MONTHS_SHORT;
-    flatpickr.l10ns.th.months.shorthand = THAI_MONTHS_SHORT;
-  }
-
+  // Configure Flatpickr to display DD/MM/YYYY (CE) format
   const fpConfig = {
     locale: "th",
-    dateFormat: "Y-m-d",
+    dateFormat: "Y-m-d", // Format sent to API
     altInput: true,
-    altFormat: "d/M/Y",
-    plugins: [new flatpickr.plugins.buddhistEra()],
-    clickOpens: true,
+    altFormat: "d/m/Y", // Format shown to user (08/11/2026)
     allowInput: false
   };
 
   document.querySelectorAll('.datepicker').forEach(el => {
+    el.removeAttribute('readonly'); // Remove any leftover readonly attributes
     let config = { ...fpConfig };
+    
     if (el.id === 'dailyDate') {
       config.onChange = function(selectedDates, dateStr, instance) {
         state.dailyDateAuto = (dateStr === getLocalDateStr());
@@ -640,7 +627,8 @@ function initDatePickers() {
     datePickers[el.id] = flatpickr(el, config);
   });
 }
-document.addEventListener('DOMContentLoaded', initDatePickers);
+// Initialize immediately since the script is at the bottom of the body
+initDatePickers();
 
 // ============================================================
 // SOUND
@@ -739,14 +727,13 @@ function termForDateClient(ms) {
   return { term: inTerm1 ? '1' : '2', year: String(buddhistYear) };
 }
 
+// แปลง dd/MM/yyyy → milliseconds
 function dmyToMsClient(str) {
-  const m = String(str || '').match(/^(\d{1,2})\/([ก-ฮ\.\w]+)\/(\d{4})$/);
+  const m = String(str || '').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
   if (!m) return 0;
   let y = parseInt(m[3], 10);
-  if (y > 2400) y -= 543;
-  let mIdx = THAI_MONTHS_SHORT.indexOf(m[2]);
-  if (mIdx < 0) mIdx = parseInt(m[2], 10) - 1;
-  return new Date(y, mIdx, parseInt(m[1], 10)).getTime();
+  if (y > 2400) y -= 543; // Convert BE to CE for JS Date
+  return new Date(y, parseInt(m[2], 10) - 1, parseInt(m[1], 10)).getTime();
 }
 
 async function api(cmd, extra = {}) {
@@ -1048,7 +1035,6 @@ async function initUserSession() {
   updateActionButtonsUI();
   
   if (datePickers['dailyDate']) {
-    // Force set to today and trigger onChange to load data
     datePickers['dailyDate'].setDate(new Date(), true);
   } else {
     const dd = document.getElementById('dailyDate');
