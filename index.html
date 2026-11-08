@@ -201,6 +201,11 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
 .cell-name-mobile .avatar-xs { margin-right: 0; width: 30px; height: 30px; }
 .cell-name-mobile .cell-label { font-size: 0.72rem; font-weight: 700; line-height: 1.2; word-break: break-word; max-width: 60px; }
 
+/* Custom Wrapper for Daily Date Picker */
+.datepicker-wrap { position: relative; display: inline-block; }
+.datepicker-wrap .icon-calendar { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; font-size: 1rem; color: var(--text-muted); }
+.datepicker-wrap input { padding-right: 30px; cursor: pointer; }
+
 @media (max-width: 600px) {
   .card { padding: 14px 10px; }
   table { font-size: 0.72rem; }
@@ -312,7 +317,10 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
         <div style="display:flex; align-items:center; gap:10px;">
           <span>📊 รายงานประจำวัน <span class="live-indicator"><span class="live-dot"></span>LIVE</span></span>
         </div>
-        <input type="text" id="dailyDate" class="input datepicker" style="width:120px;padding:6px 10px;font-size:.85rem" placeholder="วว/ดด/ปปปป">
+        <div class="datepicker-wrap">
+          <input type="text" id="dailyDate" class="input datepicker" readonly style="width:130px;padding:6px 10px;font-size:.85rem">
+          <span class="icon-calendar">📅</span>
+        </div>
       </div>
       <div class="table-wrap">
         <table><thead><tr><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th></tr></thead>
@@ -584,7 +592,7 @@ function applyTheme() {
 applyTheme();
 
 // ============================================================
-// DATEPICKER SETUP (SAFE INIT)
+// DATEPICKER SETUP
 // ============================================================
 const THAI_MONTHS_SHORT = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
@@ -616,7 +624,9 @@ function initDatePickers() {
     dateFormat: "Y-m-d",
     altInput: true,
     altFormat: "d/M/Y",
-    plugins: [new flatpickr.plugins.buddhistEra()]
+    plugins: [new flatpickr.plugins.buddhistEra()],
+    clickOpens: true,
+    allowInput: false
   };
 
   document.querySelectorAll('.datepicker').forEach(el => {
@@ -729,7 +739,6 @@ function termForDateClient(ms) {
   return { term: inTerm1 ? '1' : '2', year: String(buddhistYear) };
 }
 
-// แปลง dd/MM/yyyy → milliseconds (รองรับ พ.ศ.)
 function dmyToMsClient(str) {
   const m = String(str || '').match(/^(\d{1,2})\/([ก-ฮ\.\w]+)\/(\d{4})$/);
   if (!m) return 0;
@@ -1039,7 +1048,8 @@ async function initUserSession() {
   updateActionButtonsUI();
   
   if (datePickers['dailyDate']) {
-    datePickers['dailyDate'].setDate(new Date());
+    // Force set to today and trigger onChange to load data
+    datePickers['dailyDate'].setDate(new Date(), true);
   } else {
     const dd = document.getElementById('dailyDate');
     if (dd) dd.value = getLocalDateStr();
