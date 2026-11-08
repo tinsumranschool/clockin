@@ -423,6 +423,8 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
             <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
           </tbody>
         </table>
+        <!-- Spacer เพิ่มพื้นที่ว่างด้านล่างตาราง -->
+        <div id="reportTableSpacer" style="height: 100vh; width: 1px;"></div>
       </div>
     </div>
   </div>
@@ -1455,7 +1457,7 @@ document.getElementById('reportTerm').addEventListener('change', () => loadRepor
 document.getElementById('reportMonth').addEventListener('change', () => loadReports());
 
 // ============================================================
-// REPORTS TABLE — เรียงจากเก่าไปใหม่ (ใหม่ล่าง) + auto scroll ไปวันใหม่
+// REPORTS TABLE — เรียงจากเก่าไปใหม่ (ใหม่ล่าง) + Auto scroll ไปวันใหม่
 // ============================================================
 function renderReportsTable(records) {
   const tbody = document.getElementById('termReportBody');
@@ -1530,30 +1532,28 @@ function renderReportsTable(records) {
       </tr>`;
   }).join('');
 
-  // scroll ไปยังแถววันล่าสุด (แถวแรกของวันล่าสุด)
+  // scroll ไปยังแถววันล่าสุด (แถวแรกของวันล่าสุด) ให้ชิดขอบบนสุด
   setTimeout(() => {
     const wrap = document.getElementById('reportsTableWrap');
     if (!wrap) return;
     // หาแถวแรกของวันล่าสุด
     const firstLatestRow = tbody.querySelector(`tr[data-date="${latestDateStr}"]`);
     if (firstLatestRow) {
-      // ใช้ getBoundingClientRect เพื่อความแม่นยำในการคำนวณระยะ scroll
       const theadHeight = wrap.querySelector('thead') ? wrap.querySelector('thead').offsetHeight : 0;
+      
+      // ใช้ getBoundingClientRect เพื่อหาตำแหน่งที่แน่นอน
       const wrapRect = wrap.getBoundingClientRect();
       const rowRect = firstLatestRow.getBoundingClientRect();
       
-      // ระยะจากด้านบนของ wrap ถึงแถวล่าสุด
-      const rowOffset = rowRect.top - wrapRect.top;
+      // คำนวณระยะ scroll ที่ต้องเลื่อน
+      const targetScroll = wrap.scrollTop + (rowRect.top - wrapRect.top) - theadHeight;
       
-      // คำนวณ scrollTop ใหม่ (หักความสูงของ thead ออก)
-      const targetScrollTop = wrap.scrollTop + rowOffset - theadHeight;
-      
-      wrap.scrollTop = targetScrollTop;
+      // สั่งเลื่อน
+      wrap.scrollTop = targetScroll;
     } else {
-      // ถ้าหาไม่เจอ scroll ไปล่างสุด
       wrap.scrollTop = wrap.scrollHeight;
     }
-  }, 100); // เพิ่ม delay เป็น 100ms เพื่อรอให้ DOM render เสร็จ
+  }, 100);
 }
 
 async function loadReports(force = false, isPolling = false) {
