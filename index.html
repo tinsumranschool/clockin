@@ -516,6 +516,7 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
         </div>
 
         <button type="button" class="btn-sm btn-warning" id="btnMigrateSheets" style="width:100%;margin-bottom:16px;">🔧 Migrate ชีทเก่า (attendance1/2-YYYY → attendanceYYYY)</button>
+        <button type="button" class="btn-sm btn-warning" id="btnMigrateDatesBE" style="width:100%;margin-bottom:16px;">🔧 แปลงปี คศ เป็น พศ ทั้งระบบ (Migrate CE to BE)</button>
 
         <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
       </div>
@@ -586,7 +587,7 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
     <input type="hidden" id="editAttName">
     <input type="hidden" id="editAttOrigDate">
     <div class="field"><label class="field-label">ชื่อ-นามสกุล</label><input type="text" id="editAttNameDisplay" class="input" disabled></div>
-    <div class="field"><label class="field-label">วันที่ (DD/MM/YYYY)</label><input type="text" id="editAttDate" class="input" placeholder="เช่น 05/11/2026"></div>
+    <div class="field"><label class="field-label">วันที่ (DD/MM/YYYY)</label><input type="text" id="editAttDate" class="input" placeholder="เช่น 05/11/2569"></div>
     <div class="form-row-2">
       <div class="field"><label class="field-label">เวลาเข้า</label><input type="text" id="editAttInTime" class="input" placeholder="เช่น 08:00 หรือ -"></div>
       <div class="field"><label class="field-label">เวลาออก</label><input type="text" id="editAttOutTime" class="input" placeholder="เช่น 16:30 หรือ -"></div>
@@ -738,11 +739,13 @@ function termForDateClient(ms) {
   return { term: inTerm1 ? '1' : '2', year: String(buddhistYear) };
 }
 
-// แปลง dd/MM/yyyy → milliseconds (สำหรับ sort)
+// แปลง dd/MM/yyyy → milliseconds (รองรับ พ.ศ.)
 function dmyToMsClient(str) {
   const m = String(str || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
   if (!m) return 0;
-  return new Date(parseInt(m[3],10), parseInt(m[2],10)-1, parseInt(m[1],10)).getTime();
+  let y = parseInt(m[3], 10);
+  if (y > 2400) y -= 543; // Convert BE to CE
+  return new Date(y, parseInt(m[2], 10) - 1, parseInt(m[1], 10)).getTime();
 }
 
 async function api(cmd, extra = {}) {
@@ -1476,7 +1479,13 @@ function renderReportsTable(records) {
     const msA = dmyToMsClient(a.date);
     const msB = dmyToMsClient(b.date);
     if (msA !== msB) return msA - msB;
-    // เวลาเดียวกัน เรียงตามชื่อ
+    
+    // ถ้าวันเดียวกัน เรียงตามเวลาเข้า
+    const inA = a.inTime && a.inTime !== '-' ? a.inTime : '99:99';
+    const inB = b.inTime && b.inTime !== '-' ? b.inTime : '99:99';
+    if (inA !== inB) return inA.localeCompare(inB);
+    
+    // ถ้าเวลาเข้าเท่ากัน เรียงตามชื่อ
     return (a.name || '').localeCompare(b.name || '');
   });
 
@@ -2029,6 +2038,22 @@ document.getElementById('btnMigrateSheets').addEventListener('click', async () =
   if (res.success) {
     toast('Migrate สำเร็จ');
     console.log('[Migrate log]', res.log);
+    clearAllCaches();
+    loadDailyReport(true);
+    loadReports(true);
+  } else {
+    toast(res.message, 'error');
+  }
+});
+
+document.getElementById('btnMigrateDatesBE').addEventListener('click', async () => {
+  if (!confirm('แปลงปี คศ เป็น พศ ใน Google Sheet ทั้งหมด?\n(แนะนำให้ทำครั้งเดียว)')) return;
+  const btn = document.getElementById('btnMigrateDatesBE');
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลัง migrate...';
+  const res = await api('admin_migrateDatesBE');
+  btn.disabled = false; btn.textContent = '🔧 แปลงปี คศ เป็น พศ ทั้งระบบ (Migrate CE to BE)';
+  if (res.success) {
+    toast('Migrate สำเร็จ');
     clearAllCaches();
     loadDailyReport(true);
     loadReports(true);
