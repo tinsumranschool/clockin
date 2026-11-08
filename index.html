@@ -1455,7 +1455,7 @@ document.getElementById('reportTerm').addEventListener('change', () => loadRepor
 document.getElementById('reportMonth').addEventListener('change', () => loadReports());
 
 // ============================================================
-// REPORTS TABLE — เรียงจากเก่าไปใหม่ (ใหม่ล่าง) + scroll ไปวันใหม่
+// REPORTS TABLE — เรียงจากเก่าไปใหม่ (ใหม่ล่าง) + auto scroll ไปวันใหม่
 // ============================================================
 function renderReportsTable(records) {
   const tbody = document.getElementById('termReportBody');
@@ -1537,15 +1537,23 @@ function renderReportsTable(records) {
     // หาแถวแรกของวันล่าสุด
     const firstLatestRow = tbody.querySelector(`tr[data-date="${latestDateStr}"]`);
     if (firstLatestRow) {
-      // scroll ให้แถวแรกของวันล่าสุดอยู่บนสุดของ wrap
-      const rowTop = firstLatestRow.offsetTop;
+      // ใช้ getBoundingClientRect เพื่อความแม่นยำในการคำนวณระยะ scroll
       const theadHeight = wrap.querySelector('thead') ? wrap.querySelector('thead').offsetHeight : 0;
-      wrap.scrollTop = rowTop - theadHeight;
+      const wrapRect = wrap.getBoundingClientRect();
+      const rowRect = firstLatestRow.getBoundingClientRect();
+      
+      // ระยะจากด้านบนของ wrap ถึงแถวล่าสุด
+      const rowOffset = rowRect.top - wrapRect.top;
+      
+      // คำนวณ scrollTop ใหม่ (หักความสูงของ thead ออก)
+      const targetScrollTop = wrap.scrollTop + rowOffset - theadHeight;
+      
+      wrap.scrollTop = targetScrollTop;
     } else {
       // ถ้าหาไม่เจอ scroll ไปล่างสุด
       wrap.scrollTop = wrap.scrollHeight;
     }
-  }, 50);
+  }, 100); // เพิ่ม delay เป็น 100ms เพื่อรอให้ DOM render เสร็จ
 }
 
 async function loadReports(force = false, isPolling = false) {
