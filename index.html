@@ -126,13 +126,28 @@ input[type="checkbox"]{width:20px;height:20px;cursor:pointer;accent-color:var(--
 .btn-neutral{background:var(--bg-pattern); color:var(--text-main);}
 .btn-warning{background:#fff3d6; color:#d97706;}
 
+/* ===== TABLE WRAP: scroll ล่างขึ้นบน ===== */
 .table-wrap{ overflow-x:auto; border-radius:16px; border:var(--border-width) solid var(--border-color); margin-top:12px; background:var(--card-bg); box-shadow: 4px 4px 0px rgba(0,0,0,0.05); }
+
+/* reports table เฉพาะ: scroll แนวตั้ง + เรียงจากเก่าไปใหม่ (ใหม่อยู่ล่าง) */
+#reportsTableWrap {
+  max-height: 60vh;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+}
+
 table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left}
 th{background:var(--bg-pattern);padding:12px 10px;font-weight:700;color:var(--text-main);white-space:nowrap;border-bottom:var(--border-width) solid var(--border-color); text-align: center;}
+/* thead ติดด้านบนเสมอเมื่อ scroll */
+#reportsTableWrap thead th { position: sticky; top: 0; z-index: 2; }
 td{padding:12px 10px;border-bottom:1px solid var(--border-color);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td { background: var(--bg-color); }
 .table-name{font-weight:700;color:var(--text-main); display: flex; align-items: center; gap: 4px;}
+
+/* แถว highlight วันใหม่ */
+.row-latest-day { background: color-mix(in srgb, var(--primary) 8%, transparent); }
+tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, transparent); }
 
 .skeleton-row td{position: relative;overflow: hidden;background-color: var(--bg-pattern);color: transparent !important; border-bottom: none;}
 .skeleton-row td::after{content: "";position: absolute;top: 0;left: 0;right: 0;bottom: 0;background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);transform: translateX(-100%);animation: shimmer 1.5s infinite;}
@@ -182,6 +197,79 @@ tr:hover td { background: var(--bg-color); }
 .reports-action-bar { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:10px; flex-wrap:wrap; }
 .reports-action-bar .left { display:flex; gap:8px; align-items:center; }
 .reports-action-bar .right { display:flex; gap:8px; align-items:center; }
+
+/* label วันล่าสุด */
+.latest-day-label {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 700;
+  background: var(--primary);
+  color: #fff;
+  border-radius: 6px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* ============================================================
+   MOBILE RESPONSIVE — ตาราง + avatar cell
+   ============================================================ */
+
+/* avatar cell แนวตั้ง: รูปบน ชื่อล่าง — เฉพาะมือถือ */
+.cell-name-mobile {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+}
+.cell-name-mobile .avatar-xs {
+  margin-right: 0;
+  width: 30px;
+  height: 30px;
+}
+.cell-name-mobile .cell-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  word-break: break-word;
+  max-width: 60px;
+}
+
+@media (max-width: 600px) {
+  /* card padding แคบลง */
+  .card { padding: 14px 10px; }
+
+  /* ตาราง: font เล็กลง, padding แน่นขึ้น */
+  table { font-size: 0.72rem; }
+  th { padding: 7px 4px; font-size: 0.72rem; white-space: nowrap; }
+  td { padding: 7px 4px; }
+
+  /* คอลัมน์เวลาไม่ wrap */
+  td:nth-child(2), td:nth-child(3),
+  th:nth-child(2), th:nth-child(3) {
+    white-space: nowrap;
+    min-width: 44px;
+  }
+
+  /* คอลัมน์หมายเหตุ wrap ได้ ไม่กำหนด min-width */
+  td:last-child { word-break: break-word; max-width: 80px; }
+
+  /* หน้า daily: ซ่อนคอลัมน์หมายเหตุถ้าจำเป็น — เราเลือก wrap แทน */
+
+  /* reports table wrap ความสูง */
+  #reportsTableWrap { max-height: 55vh; }
+
+  /* avatar ในตาราง: แนวตั้ง รูปบน ชื่อล่าง */
+  .cell-name-mobile { display: flex; }
+
+  /* ซ่อน label "ล่าสุด" บนมือถือเพื่อประหยัดพื้นที่ */
+  .latest-day-label { display: none; }
+
+  /* form-row-3 บนมือถือ 2 คอลัมน์ */
+  .form-row-3 { grid-template-columns: 1fr 1fr; }
+  .form-row-3 > *:last-child { grid-column: 1 / -1; }
+}
 </style>
 </head>
 <body>
@@ -327,7 +415,7 @@ tr:hover td { background: var(--bg-color); }
           <button class="btn-sm btn-cyan" id="exportPdfBtn">📄 ดาวน์โหลด PDF</button>
         </div>
       </div>
-      <div class="table-wrap" id="reportsTableWrap">
+      <div id="reportsTableWrap">
         <table>
           <thead><tr><th id="reportsDateHeader">วันที่ / ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th><th id="editColHeader" style="display:none;">จัดการ</th></tr></thead>
           <tbody id="termReportBody">
@@ -646,6 +734,13 @@ function termForDateClient(ms) {
   const day   = d.getDate();
   const inTerm1 = (month >= 5 && month <= 9) || (month === 10 && day <= 15);
   return { term: inTerm1 ? '1' : '2', year: String(buddhistYear) };
+}
+
+// แปลง dd/MM/yyyy → milliseconds (สำหรับ sort)
+function dmyToMsClient(str) {
+  const m = String(str || '').match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!m) return 0;
+  return new Date(parseInt(m[3],10), parseInt(m[2],10)-1, parseInt(m[1],10)).getTime();
 }
 
 async function api(cmd, extra = {}) {
@@ -1252,6 +1347,8 @@ function getInitials(name) {
   if(parts.length >= 2) return parts[0].charAt(0) + parts[1].charAt(0);
   return name.charAt(0);
 }
+
+// avatar แนวนอน (desktop) — รูปซ้าย ชื่อขวา
 function avatarFor(picSrc, name) {
   const initials = esc(getInitials(name));
   const fallback = `<div style="display:none; width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
@@ -1261,19 +1358,47 @@ function avatarFor(picSrc, name) {
   return `<div style="width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
 }
 
+// avatar แนวตั้ง (mobile) — รูปบน ชื่อจริงล่าง
+function avatarForMobile(picSrc, firstName) {
+  const initials = esc(getInitials(firstName));
+  if (picSrc) {
+    return `<div class="cell-name-mobile">
+      <img src="${esc(picSrc)}" class="avatar-xs" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+      <div style="display:none; width:30px; height:30px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); align-items:center; justify-content:center; font-weight:700; color:var(--text-main); font-size:0.65rem; flex-shrink:0;">${initials}</div>
+      <span class="cell-label">${esc(firstName)}</span>
+    </div>`;
+  }
+  return `<div class="cell-name-mobile">
+    <div style="width:30px; height:30px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-main); font-size:0.65rem; flex-shrink:0;">${initials}</div>
+    <span class="cell-label">${esc(firstName)}</span>
+  </div>`;
+}
+
+// เลือก desktop หรือ mobile layout อัตโนมัติตามขนาดจอ
+function avatarCell(picSrc, name) {
+  const isMobile = window.innerWidth <= 600;
+  const firstName = getFirstName(name);
+  if (isMobile) return avatarForMobile(picSrc, firstName);
+  return avatarFor(picSrc, name);
+}
+
 function renderDailyReport(records) {
   const tbody = document.getElementById('dailyReportBody');
   if (!records || records.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในวันนี้</td></tr>';
     return;
   }
+  const isMobile = window.innerWidth <= 600;
   tbody.innerHTML = records.map(r => {
     const picSrc = r.profilePic || (state.user && state.user.fullName === r.fullName ? state.user.profilePic : null);
+    const nameCell = isMobile
+      ? avatarForMobile(picSrc, getFirstName(r.fullName))
+      : `${avatarFor(picSrc, r.fullName)} ${esc(getFirstName(r.fullName))}`;
     return `
       <tr>
-        <td class="table-name">${avatarFor(picSrc, r.fullName)} ${esc(getFirstName(r.fullName))}</td>
-        <td style="color:var(--success);font-weight:700">${esc(r.inTime)}</td>
-        <td style="color:var(--danger);font-weight:700">${esc(r.outTime)}</td>
+        <td class="table-name" style="${isMobile ? 'text-align:center;' : ''}">${nameCell}</td>
+        <td style="color:var(--success);font-weight:700;text-align:center">${esc(r.inTime)}</td>
+        <td style="color:var(--danger);font-weight:700;text-align:center">${esc(r.outTime)}</td>
         <td>${esc(r.note || '-')}</td>
       </tr>`;
   }).join('');
@@ -1329,38 +1454,98 @@ document.getElementById('reportYear').addEventListener('change', () => loadRepor
 document.getElementById('reportTerm').addEventListener('change', () => loadReports());
 document.getElementById('reportMonth').addEventListener('change', () => loadReports());
 
+// ============================================================
+// REPORTS TABLE — เรียงจากเก่าไปใหม่ (ใหม่ล่าง) + scroll ไปวันใหม่
+// ============================================================
 function renderReportsTable(records) {
   const tbody = document.getElementById('termReportBody');
   state.currentReportRecords = records || [];
+
   if (!records || records.length === 0) {
     const cols = isManager() ? 5 : 4;
     tbody.innerHTML = `<tr><td colspan="${cols}" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในช่วงเวลานี้</td></tr>`;
     return;
   }
+
   const mgr = isManager();
-  tbody.innerHTML = records.map((r, i) => {
+
+  // เรียงจากเก่าไปใหม่ (ascending) ให้ใหม่อยู่ล่างสุด
+  const sorted = records.slice().sort((a, b) => {
+    const msA = dmyToMsClient(a.date);
+    const msB = dmyToMsClient(b.date);
+    if (msA !== msB) return msA - msB;
+    // เวลาเดียวกัน เรียงตามชื่อ
+    return (a.name || '').localeCompare(b.name || '');
+  });
+
+  // หาวันใหม่ที่สุด
+  const latestMs = Math.max(...sorted.map(r => dmyToMsClient(r.date)));
+  const latestDateStr = sorted.find(r => dmyToMsClient(r.date) === latestMs)?.date || '';
+
+  // อัปเดต currentReportRecords ให้ index ตรงกับ sorted
+  state.currentReportRecords = sorted;
+
+  const isMobile = window.innerWidth <= 600;
+
+  tbody.innerHTML = sorted.map((r, i) => {
     const picSrc = r.profilePic || (state.user && state.user.fullName === r.name ? state.user.profilePic : null);
     const displayName = getFirstName(r.name);
-    return `
-      <tr>
-        <td>
+    const isLatest = (r.date === latestDateStr);
+    const rowClass = isLatest ? 'row-latest-day' : '';
+    const latestLabel = isLatest ? '<span class="latest-day-label">ล่าสุด</span>' : '';
+
+    let firstColHtml;
+    if (isMobile) {
+      // มือถือ: รูปบน ชื่อล่าง + วันที่ใต้ชื่อ (mgr) หรือแค่วันที่ (user)
+      if (mgr) {
+        firstColHtml = `
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+            ${avatarForMobile(picSrc, displayName)}
+            <span style="font-size:0.65rem;color:var(--text-muted);text-align:center;">${esc(r.date)}</span>
+          </div>`;
+      } else {
+        // user ทั่วไป: แสดงวันที่อย่างเดียว
+        firstColHtml = `<span style="font-size:0.75rem;font-weight:700;">${esc(r.date)}</span>`;
+      }
+    } else {
+      // desktop: แนวนอนเหมือนเดิม
+      if (mgr) {
+        firstColHtml = `
           <div style="display:flex; align-items:center; margin-bottom:4px;">
-            ${avatarFor(picSrc, r.name)} <b>${esc(displayName)}</b>
+            ${avatarFor(picSrc, r.name)} <b>${esc(displayName)}</b>${latestLabel}
           </div>
-          <span style="font-size:0.75rem;color:var(--text-muted); margin-left:40px;">${esc(r.date)}</span>
-        </td>
-        <td style="color:var(--success);font-weight:700">${esc(r.inTime)}</td>
-        <td style="color:var(--danger);font-weight:700">${esc(r.outTime)}</td>
-        <td>${esc(r.note)}</td>
-        ${mgr ? `<td><button class="btn-sm btn-warning" onclick="openEditAttendanceByIdx(${i})">✏️ แก้ไข</button></td>` : ''}
+          <span style="font-size:0.75rem;color:var(--text-muted); margin-left:40px;">${esc(r.date)}</span>`;
+      } else {
+        firstColHtml = `<b>${esc(r.date)}</b>${latestLabel}`;
+      }
+    }
+
+    return `
+      <tr class="${rowClass}" data-date="${esc(r.date)}">
+        <td style="${isMobile && mgr ? 'text-align:center;' : ''}">${firstColHtml}</td>
+        <td style="color:var(--success);font-weight:700;text-align:center;">${esc(r.inTime)}</td>
+        <td style="color:var(--danger);font-weight:700;text-align:center;">${esc(r.outTime)}</td>
+        <td style="font-size:${isMobile ? '0.7rem' : '0.85rem'};">${esc(r.note)}</td>
+        ${mgr ? `<td style="text-align:center;"><button class="btn-sm btn-warning" style="${isMobile ? 'padding:4px 6px;font-size:0.7rem;' : ''}" onclick="openEditAttendanceByIdx(${i})">✏️${isMobile ? '' : ' แก้ไข'}</button></td>` : ''}
       </tr>`;
   }).join('');
-  
-  // Auto-scroll to top (latest data)
-  const wrap = document.getElementById('reportsTableWrap');
-  if (wrap) {
-    wrap.scrollTop = 0;
-  }
+
+  // scroll ไปยังแถววันล่าสุด (แถวแรกของวันล่าสุด)
+  setTimeout(() => {
+    const wrap = document.getElementById('reportsTableWrap');
+    if (!wrap) return;
+    // หาแถวแรกของวันล่าสุด
+    const firstLatestRow = tbody.querySelector(`tr[data-date="${latestDateStr}"]`);
+    if (firstLatestRow) {
+      // scroll ให้แถวแรกของวันล่าสุดอยู่บนสุดของ wrap
+      const rowTop = firstLatestRow.offsetTop;
+      const theadHeight = wrap.querySelector('thead') ? wrap.querySelector('thead').offsetHeight : 0;
+      wrap.scrollTop = rowTop - theadHeight;
+    } else {
+      // ถ้าหาไม่เจอ scroll ไปล่างสุด
+      wrap.scrollTop = wrap.scrollHeight;
+    }
+  }, 50);
 }
 
 async function loadReports(force = false, isPolling = false) {
@@ -1805,6 +1990,26 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     clearAllCaches();
     await loadAdminSettings();
   } else toast(res.message, 'error');
+});
+
+// re-render ตารางเมื่อหมุนจอหรือ resize
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    const active = document.querySelector('.screen.active');
+    if (!active) return;
+    if (active.id === 'dashboardScreen' && state.dailyReportCache) {
+      const dd = document.getElementById('dailyDate');
+      if (dd && dd.value) {
+        const cached = state.dailyReportCache[dd.value];
+        if (cached) renderDailyReport(cached.data);
+      }
+    }
+    if (active.id === 'reportsScreen' && state.currentReportRecords && state.currentReportRecords.length) {
+      renderReportsTable(state.currentReportRecords);
+    }
+  }, 200);
 });
 
 document.getElementById('btnMigrateSheets').addEventListener('click', async () => {
