@@ -584,55 +584,41 @@ function applyTheme() {
 applyTheme();
 
 // ============================================================
-// DATEPICKER SETUP (FLATPICKR WITH THAI MONTH)
+// DATEPICKER SETUP (SAFE INIT)
 // ============================================================
 const THAI_MONTHS_SHORT = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
 
-function parseThaiDate(str) {
-  const m = String(str).match(/^(\d{1,2})\/([ก-ฮ\.\w]+)\/(\d{4})$/);
-  if (m) {
-    let y = parseInt(m[3], 10);
-    if (y > 2400) y -= 543;
-    let mIdx = THAI_MONTHS_SHORT.indexOf(m[2]);
-    if (mIdx < 0) mIdx = parseInt(m[2], 10) - 1;
-    return new Date(y, mIdx, parseInt(m[1], 10));
-  }
-  return new Date();
-}
-
-function formatThaiDate(date) {
-  const d = String(date.getDate()).padStart(2, '0');
-  const m = THAI_MONTHS_SHORT[date.getMonth()];
-  const y = date.getFullYear() + 543;
-  return `${d}/${m}/${y}`;
-}
-
-function dmyToISO(str) {
-  const m = String(str || '').match(/^(\d{1,2})\/([ก-ฮ\.\w]+)\/(\d{4})$/);
-  if (!m) return str;
-  let y = parseInt(m[3], 10);
-  if (y > 2400) y -= 543;
-  let mIdx = THAI_MONTHS_SHORT.indexOf(m[2]);
-  if (mIdx < 0) mIdx = parseInt(m[2], 10) - 1;
-  return `${y}-${String(mIdx+1).padStart(2, '0')}-${String(m[1]).padStart(2, '0')}`;
+function getLocalDateStr(d = new Date()) {
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
 }
 
 const datePickers = {};
 function initDatePickers() {
+  if (typeof flatpickr === 'undefined') {
+    console.warn('Flatpickr not loaded. Using native date input fallback.');
+    document.querySelectorAll('.datepicker').forEach(el => {
+      el.type = 'date';
+      if (!el.value) el.value = getLocalDateStr();
+    });
+    return;
+  }
+
+  if (flatpickr.l10ns && flatpickr.l10ns.th) {
+    flatpickr.l10ns.th.months.short = THAI_MONTHS_SHORT;
+    flatpickr.l10ns.th.months.shorthand = THAI_MONTHS_SHORT;
+  }
+
   const fpConfig = {
     locale: "th",
     dateFormat: "Y-m-d",
     altInput: true,
     altFormat: "d/M/Y",
-    plugins: [new flatpickr.plugins.buddhistEra()],
-    formatDate: function(date, format, locale) {
-      return formatThaiDate(date);
-    },
-    parseDate: function(dateStr, format) {
-      return parseThaiDate(dateStr);
-    }
+    plugins: [new flatpickr.plugins.buddhistEra()]
   };
-  
+
   document.querySelectorAll('.datepicker').forEach(el => {
     let config = { ...fpConfig };
     if (el.id === 'dailyDate') {
@@ -644,8 +630,7 @@ function initDatePickers() {
     datePickers[el.id] = flatpickr(el, config);
   });
 }
-// เรียกใช้ทันทีเพื่อไม่ให้เกิดปัญหาโหลดค้าง
-initDatePickers();
+document.addEventListener('DOMContentLoaded', initDatePickers);
 
 // ============================================================
 // SOUND
@@ -734,12 +719,6 @@ function isManager() {
 }
 function isAdminRole() {
   return !!state.user && state.user.role === 'admin';
-}
-function getLocalDateStr(d = new Date()) {
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}`;
 }
 function termForDateClient(ms) {
   const d = new Date(ms);
@@ -1061,6 +1040,9 @@ async function initUserSession() {
   
   if (datePickers['dailyDate']) {
     datePickers['dailyDate'].setDate(new Date());
+  } else {
+    const dd = document.getElementById('dailyDate');
+    if (dd) dd.value = getLocalDateStr();
   }
   state.dailyDateAuto = true;
 
@@ -1327,16 +1309,16 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
     if (state.selectedAction === 'ลา') {
       payload.leaveType = document.getElementById('leaveTypeSelect').value;
       if (payload.leaveType === 'ลาทั้งวัน') {
-        payload.startDate = datePickers['leaveStartDate'].input.value;
-        payload.endDate = datePickers['leaveEndDate'].input.value;
+        payload.startDate = datePickers['leaveStartDate'] ? datePickers['leaveStartDate'].input.value : document.getElementById('leaveStartDate').value;
+        payload.endDate = datePickers['leaveEndDate'] ? datePickers['leaveEndDate'].input.value : document.getElementById('leaveEndDate').value;
       }
     }
     if (state.selectedAction === 'ไปราชการ') {
       const sub = document.getElementById('obTypeSelect').value;
       payload.leaveType = sub;
       if (sub === '') {
-        payload.startDate = datePickers['leaveStartDate'].input.value;
-        payload.endDate = datePickers['leaveEndDate'].input.value;
+        payload.startDate = datePickers['leaveStartDate'] ? datePickers['leaveStartDate'].input.value : document.getElementById('leaveStartDate').value;
+        payload.endDate = datePickers['leaveEndDate'] ? datePickers['leaveEndDate'].input.value : document.getElementById('leaveEndDate').value;
       }
     }
     const res = await api('attendance', payload);
@@ -1413,11 +1395,28 @@ function renderDailyReport(records) {
 
 async function loadDailyReport(force = false, isPolling = false) {
   const dd = datePickers['dailyDate'];
-  if (!dd || !dd.input.value) return;
-  
-  const currentVal = dd.input.value; // Y-m-d CE format
+  if (!dd) {
+    const nativeInput = document.getElementById('dailyDate');
+    if (!nativeInput || !nativeInput.value) return;
+    const parts = nativeInput.value.split('-');
+    if (parts.length === 3) {
+       const currentVal = `${parts[2]}/${parts[1]}/${parts[0]}`;
+       const cacheKey = currentVal;
+       const res = await api('getDailyReport', { date: currentVal });
+       if (res.success) renderDailyReport(res.records);
+    }
+    return;
+  }
+
+  if (!dd.selectedDates || dd.selectedDates.length === 0) return;
+
+  const selectedDate = dd.selectedDates[0];
+  const yyyy = selectedDate.getFullYear();
+  const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
+  const day = String(selectedDate.getDate()).padStart(2, '0');
+  const currentVal = `${day}/${mm}/${yyyy}`;
+
   const cacheKey = currentVal;
-  
   if (state.dailyLoadingKey === cacheKey) return;
   const cached = state.dailyReportCache[cacheKey];
   const cacheAge = cached ? (Date.now() - cached.ts) : Infinity;
@@ -1435,7 +1434,7 @@ async function loadDailyReport(force = false, isPolling = false) {
   state.dailyLoadingKey = cacheKey;
   try {
     const res = await api('getDailyReport', { date: currentVal });
-    if (dd.input.value !== cacheKey) return;
+    if (dd.selectedDates[0] !== selectedDate) return;
     if (!res.success) {
       if (!cached && !isPolling) {
         document.getElementById('dailyReportBody').innerHTML =
@@ -1609,7 +1608,7 @@ function openEditAttendanceByIdx(i) {
   document.getElementById('editAttOrigDate').value = r.date;
   document.getElementById('editAttNameDisplay').value = r.name;
   if (datePickers['editAttDate']) {
-    datePickers['editAttDate'].setDate(dmyToISO(r.date));
+    datePickers['editAttDate'].setDate(r.date);
   } else {
     document.getElementById('editAttDate').value = r.date;
   }
@@ -1975,10 +1974,10 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     radius: Number(document.getElementById('setRadius').value),
     strictRegistration: document.getElementById('setStrictReg').checked,
     academicYear: document.getElementById('setAcademicYear').value.trim(),
-    term1Start: datePickers['setT1Start'] ? datePickers['setT1Start'].input.value : '',
-    term1End: datePickers['setT1End'] ? datePickers['setT1End'].input.value : '',
-    term2Start: datePickers['setT2Start'] ? datePickers['setT2Start'].input.value : '',
-    term2End: datePickers['setT2End'] ? datePickers['setT2End'].input.value : ''
+    term1Start: datePickers['setT1Start'] ? datePickers['setT1Start'].input.value : document.getElementById('setT1Start').value,
+    term1End: datePickers['setT1End'] ? datePickers['setT1End'].input.value : document.getElementById('setT1End').value,
+    term2Start: datePickers['setT2Start'] ? datePickers['setT2Start'].input.value : document.getElementById('setT2Start').value,
+    term2End: datePickers['setT2End'] ? datePickers['setT2End'].input.value : document.getElementById('setT2End').value
   };
   const res = await api('admin_updateSettings', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
@@ -1998,8 +1997,12 @@ window.addEventListener('resize', () => {
     if (!active) return;
     if (active.id === 'dashboardScreen' && state.dailyReportCache) {
       const dd = datePickers['dailyDate'];
-      if (dd && dd.input.value) {
-        const cached = state.dailyReportCache[dd.input.value];
+      if (dd && dd.selectedDates.length) {
+        const selectedDate = dd.selectedDates[0];
+        const yyyy = selectedDate.getFullYear();
+        const mm = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        const day = String(selectedDate.getDate()).padStart(2, '0');
+        const cached = state.dailyReportCache[`${day}/${mm}/${yyyy}`];
         if (cached) renderDailyReport(cached.data);
       }
     }
