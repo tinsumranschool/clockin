@@ -7,6 +7,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Mali:wght@400;500;600;700&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<!-- Flatpickr for Thai BE Date Picker -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root {
@@ -129,7 +131,6 @@ input[type="checkbox"]{width:20px;height:20px;cursor:pointer;accent-color:var(--
 /* ===== TABLE WRAP: scroll ล่างขึ้นบน ===== */
 .table-wrap{ overflow-x:auto; border-radius:16px; border:var(--border-width) solid var(--border-color); margin-top:12px; background:var(--card-bg); box-shadow: 4px 4px 0px rgba(0,0,0,0.05); }
 
-/* reports table เฉพาะ: scroll แนวตั้ง + เรียงจากเก่าไปใหม่ (ใหม่อยู่ล่าง) */
 #reportsTableWrap {
   max-height: 60vh;
   overflow-y: auto;
@@ -138,14 +139,12 @@ input[type="checkbox"]{width:20px;height:20px;cursor:pointer;accent-color:var(--
 
 table{width:100%;border-collapse:collapse;font-size:.85rem;text-align:left}
 th{background:var(--bg-pattern);padding:12px 10px;font-weight:700;color:var(--text-main);white-space:nowrap;border-bottom:var(--border-width) solid var(--border-color); text-align: center;}
-/* thead ติดด้านบนเสมอเมื่อ scroll */
 #reportsTableWrap thead th { position: sticky; top: 0; z-index: 2; }
 td{padding:12px 10px;border-bottom:1px solid var(--border-color);vertical-align:middle}
 tr:last-child td{border-bottom:none}
 tr:hover td { background: var(--bg-color); }
 .table-name{font-weight:700;color:var(--text-main); display: flex; align-items: center; gap: 4px;}
 
-/* แถว highlight วันใหม่ */
 .row-latest-day { background: color-mix(in srgb, var(--primary) 8%, transparent); }
 tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, transparent); }
 
@@ -198,75 +197,26 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
 .reports-action-bar .left { display:flex; gap:8px; align-items:center; }
 .reports-action-bar .right { display:flex; gap:8px; align-items:center; }
 
-/* label วันล่าสุด */
-.latest-day-label {
-  display: inline-block;
-  font-size: 0.65rem;
-  font-weight: 700;
-  background: var(--primary);
-  color: #fff;
-  border-radius: 6px;
-  padding: 1px 6px;
-  margin-left: 6px;
-  vertical-align: middle;
-}
+.latest-day-label { display: inline-block; font-size: 0.65rem; font-weight: 700; background: var(--primary); color: #fff; border-radius: 6px; padding: 1px 6px; margin-left: 6px; vertical-align: middle; }
 
-/* ============================================================
-   MOBILE RESPONSIVE — ตาราง + avatar cell
-   ============================================================ */
+/* Flatpickr Custom Overrides */
+.flatpickr-calendar { font-family: 'Mali', sans-serif !important; border: 2px solid var(--border-color) !important; box-shadow: 4px 4px 0 var(--border-color) !important; border-radius: 12px !important; }
+.flatpickr-day.selected { background: var(--primary) !important; border-color: var(--primary) !important; }
 
-/* avatar cell แนวตั้ง: รูปบน ชื่อล่าง — เฉพาะมือถือ */
-.cell-name-mobile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  text-align: center;
-}
-.cell-name-mobile .avatar-xs {
-  margin-right: 0;
-  width: 30px;
-  height: 30px;
-}
-.cell-name-mobile .cell-label {
-  font-size: 0.72rem;
-  font-weight: 700;
-  line-height: 1.2;
-  word-break: break-word;
-  max-width: 60px;
-}
+.cell-name-mobile { display: flex; flex-direction: column; align-items: center; gap: 3px; text-align: center; }
+.cell-name-mobile .avatar-xs { margin-right: 0; width: 30px; height: 30px; }
+.cell-name-mobile .cell-label { font-size: 0.72rem; font-weight: 700; line-height: 1.2; word-break: break-word; max-width: 60px; }
 
 @media (max-width: 600px) {
-  /* card padding แคบลง */
   .card { padding: 14px 10px; }
-
-  /* ตาราง: font เล็กลง, padding แน่นขึ้น */
   table { font-size: 0.72rem; }
   th { padding: 7px 4px; font-size: 0.72rem; white-space: nowrap; }
   td { padding: 7px 4px; }
-
-  /* คอลัมน์เวลาไม่ wrap */
-  td:nth-child(2), td:nth-child(3),
-  th:nth-child(2), th:nth-child(3) {
-    white-space: nowrap;
-    min-width: 44px;
-  }
-
-  /* คอลัมน์หมายเหตุ wrap ได้ ไม่กำหนด min-width */
+  td:nth-child(2), td:nth-child(3), th:nth-child(2), th:nth-child(3) { white-space: nowrap; min-width: 44px; }
   td:last-child { word-break: break-word; max-width: 80px; }
-
-  /* หน้า daily: ซ่อนคอลัมน์หมายเหตุถ้าจำเป็น — เราเลือก wrap แทน */
-
-  /* reports table wrap ความสูง */
   #reportsTableWrap { max-height: 55vh; }
-
-  /* avatar ในตาราง: แนวตั้ง รูปบน ชื่อล่าง */
   .cell-name-mobile { display: flex; }
-
-  /* ซ่อน label "ล่าสุด" บนมือถือเพื่อประหยัดพื้นที่ */
   .latest-day-label { display: none; }
-
-  /* form-row-3 บนมือถือ 2 คอลัมน์ */
   .form-row-3 { grid-template-columns: 1fr 1fr; }
   .form-row-3 > *:last-child { grid-column: 1 / -1; }
 }
@@ -354,8 +304,8 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
             </select>
           </div>
           <div id="dateRangeDiv" style="display:none; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;">
-            <div><label class="field-label" style="font-size:0.75rem;">ตั้งแต่วันที่</label><input type="date" id="leaveStartDate" class="input"></div>
-            <div><label class="field-label" style="font-size:0.75rem;">ถึงวันที่</label><input type="date" id="leaveEndDate" class="input"></div>
+            <div><label class="field-label" style="font-size:0.75rem;">ตั้งแต่วันที่</label><input type="text" id="leaveStartDate" class="input datepicker" placeholder="วว/ดด/ปปปป"></div>
+            <div><label class="field-label" style="font-size:0.75rem;">ถึงวันที่</label><input type="text" id="leaveEndDate" class="input datepicker" placeholder="วว/ดด/ปปปป"></div>
           </div>
           <div class="field" style="margin-bottom:12px"><label class="field-label">เหตุผล <span class="req">*</span></label><textarea id="reasonInput" class="textarea" placeholder="ระบุเหตุผล..." style="min-height:60px"></textarea></div>
         </div>
@@ -368,7 +318,7 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
         <div style="display:flex; align-items:center; gap:10px;">
           <span>📊 รายงานประจำวัน <span class="live-indicator"><span class="live-dot"></span>LIVE</span></span>
         </div>
-        <input type="date" id="dailyDate" class="input" style="width:auto;padding:6px 10px;font-size:.85rem">
+        <input type="text" id="dailyDate" class="input datepicker" style="width:120px;padding:6px 10px;font-size:.85rem" placeholder="วว/ดด/ปปปป">
       </div>
       <div class="table-wrap">
         <table><thead><tr><th>ชื่อ</th><th>เข้า</th><th>ออก</th><th>หมายเหตุ</th></tr></thead>
@@ -423,7 +373,6 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
             <tr class="skeleton-row"><td>Loading Data</td><td>--:--</td><td>--:--</td><td>Loading...</td><td></td></tr>
           </tbody>
         </table>
-        <!-- Spacer เพิ่มพื้นที่ว่างด้านล่างตาราง -->
         <div id="reportTableSpacer" style="height: 100vh; width: 1px;"></div>
       </div>
     </div>
@@ -501,12 +450,12 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
 
         <div class="section-title" style="margin-top:20px;border-top:2px dashed var(--border-color);padding-top:16px">📅 วันเปิด/ปิดเทอม</div>
         <div class="form-row-2">
-          <div class="field"><label class="field-label">เปิดเทอม 1</label><input type="date" id="setT1Start" class="input"></div>
-          <div class="field"><label class="field-label">ปิดเทอม 1</label><input type="date" id="setT1End" class="input"></div>
+          <div class="field"><label class="field-label">เปิดเทอม 1</label><input type="text" id="setT1Start" class="input datepicker" placeholder="วว/ดด/ปปปป"></div>
+          <div class="field"><label class="field-label">ปิดเทอม 1</label><input type="text" id="setT1End" class="input datepicker" placeholder="วว/ดด/ปปปป"></div>
         </div>
         <div class="form-row-2">
-          <div class="field"><label class="field-label">เปิดเทอม 2</label><input type="date" id="setT2Start" class="input"></div>
-          <div class="field"><label class="field-label">ปิดเทอม 2</label><input type="date" id="setT2End" class="input"></div>
+          <div class="field"><label class="field-label">เปิดเทอม 2</label><input type="text" id="setT2Start" class="input datepicker" placeholder="วว/ดด/ปปปป"></div>
+          <div class="field"><label class="field-label">ปิดเทอม 2</label><input type="text" id="setT2End" class="input datepicker" placeholder="วว/ดด/ปปปป"></div>
         </div>
         <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:12px;font-weight:500;">💡 ใช้สำหรับ: auto-fill หยุดหลังปิดเทอม / PDF รายงานถึงวันปิดเทอม</div>
 
@@ -516,7 +465,6 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
         </div>
 
         <button type="button" class="btn-sm btn-warning" id="btnMigrateSheets" style="width:100%;margin-bottom:16px;">🔧 Migrate ชีทเก่า (attendance1/2-YYYY → attendanceYYYY)</button>
-        <button type="button" class="btn-sm btn-warning" id="btnMigrateDatesBE" style="width:100%;margin-bottom:16px;">🔧 แปลงปี คศ เป็น พศ ทั้งระบบ (Migrate CE to BE)</button>
 
         <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
       </div>
@@ -587,7 +535,7 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
     <input type="hidden" id="editAttName">
     <input type="hidden" id="editAttOrigDate">
     <div class="field"><label class="field-label">ชื่อ-นามสกุล</label><input type="text" id="editAttNameDisplay" class="input" disabled></div>
-    <div class="field"><label class="field-label">วันที่ (DD/MM/YYYY)</label><input type="text" id="editAttDate" class="input" placeholder="เช่น 05/11/2569"></div>
+    <div class="field"><label class="field-label">วันที่ (DD/MM/YYYY)</label><input type="text" id="editAttDate" class="input datepicker" placeholder="เช่น 05/11/2569"></div>
     <div class="form-row-2">
       <div class="field"><label class="field-label">เวลาเข้า</label><input type="text" id="editAttInTime" class="input" placeholder="เช่น 08:00 หรือ -"></div>
       <div class="field"><label class="field-label">เวลาออก</label><input type="text" id="editAttOutTime" class="input" placeholder="เช่น 16:30 หรือ -"></div>
@@ -602,6 +550,11 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
     </div>
   </div>
 </div>
+
+<!-- Flatpickr Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/th.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/plugins/buddhistEra/buddhistEra.js"></script>
 
 <script>
 // ============================================================
@@ -635,6 +588,35 @@ function applyTheme() {
   }
 }
 applyTheme();
+
+// ============================================================
+// DATEPICKER SETUP (FLATPICKR WITH BE)
+// ============================================================
+const datePickers = {};
+function initDatePickers() {
+  const fpConfig = {
+    locale: "th",
+    dateFormat: "Y-m-d", // internal CE format
+    altInput: true,
+    altFormat: "d/m/Y", // display BE format
+    altInputClass: "input",
+    plugins: [
+      new flatpickr.plugins.buddhistEra()
+    ]
+  };
+  
+  document.querySelectorAll('.datepicker').forEach(el => {
+    let config = { ...fpConfig };
+    if (el.id === 'dailyDate') {
+      config.onChange = function(selectedDates, dateStr, instance) {
+        state.dailyDateAuto = (dateStr === getLocalDateStr());
+        loadDailyReport();
+      };
+    }
+    datePickers[el.id] = flatpickr(el, config);
+  });
+}
+document.addEventListener('DOMContentLoaded', initDatePickers);
 
 // ============================================================
 // SOUND
@@ -772,7 +754,7 @@ function forceLogout(msg) {
   clearAllCaches();
   stopPolling();
   state.dailyDateAuto = true;
-  const dd = document.getElementById('dailyDate'); if (dd) dd.value = '';
+  const dd = datePickers['dailyDate']; if (dd) dd.clear();
   showScreen('authScreen');
   toast(msg || 'กรุณาเข้าสู่ระบบใหม่', 'error');
 }
@@ -1045,8 +1027,12 @@ async function initUserSession() {
 
   fillSettingsForm(res.settings);
   updateActionButtonsUI();
-  const dd = document.getElementById('dailyDate');
-  if (dd) { dd.value = getLocalDateStr(); state.dailyDateAuto = true; }
+  
+  if (datePickers['dailyDate']) {
+    datePickers['dailyDate'].setDate(new Date());
+  }
+  state.dailyDateAuto = true;
+
   if (isManager()) checkPendingCounts();
   showScreen('dashboardScreen');
   return true;
@@ -1059,10 +1045,11 @@ function fillSettingsForm(s) {
   document.getElementById('setOfficeLng').value = s.officeLng || '';
   document.getElementById('setRadius').value = s.radius || '';
   document.getElementById('setStrictReg').checked = !!s.strictRegistration;
-  document.getElementById('setT1Start').value = s.term1_start || '';
-  document.getElementById('setT1End').value = s.term1_end || '';
-  document.getElementById('setT2Start').value = s.term2_start || '';
-  document.getElementById('setT2End').value = s.term2_end || '';
+  
+  if (datePickers['setT1Start']) datePickers['setT1Start'].setDate(s.term1_start);
+  if (datePickers['setT1End']) datePickers['setT1End'].setDate(s.term1_end);
+  if (datePickers['setT2Start']) datePickers['setT2Start'].setDate(s.term2_start);
+  if (datePickers['setT2End']) datePickers['setT2End'].setDate(s.term2_end);
 }
 
 function applyUserUpdate(u) {
@@ -1117,7 +1104,7 @@ document.getElementById('logoutBtn').addEventListener('click', async () => {
   clearAllCaches();
   stopPolling();
   state.dailyDateAuto = true;
-  document.getElementById('dailyDate').value = '';
+  if (datePickers['dailyDate']) datePickers['dailyDate'].clear();
   showScreen('authScreen');
   toast('ออกจากระบบแล้ว');
 });
@@ -1253,8 +1240,8 @@ function handleLeaveTypeChange() {
   const dateRange = document.getElementById('dateRangeDiv');
   if (type === 'ลาทั้งวัน') {
     dateRange.style.display = 'grid';
-    if (!document.getElementById('leaveStartDate').value) document.getElementById('leaveStartDate').value = getLocalDateStr();
-    if (!document.getElementById('leaveEndDate').value) document.getElementById('leaveEndDate').value = getLocalDateStr();
+    if (datePickers['leaveStartDate'] && !datePickers['leaveStartDate'].input.value) datePickers['leaveStartDate'].setDate(new Date());
+    if (datePickers['leaveEndDate'] && !datePickers['leaveEndDate'].input.value) datePickers['leaveEndDate'].setDate(new Date());
   } else {
     dateRange.style.display = 'none';
   }
@@ -1264,8 +1251,8 @@ function handleObTypeChange() {
   const dateRange = document.getElementById('dateRangeDiv');
   if (type === '') {
     dateRange.style.display = 'grid';
-    if (!document.getElementById('leaveStartDate').value) document.getElementById('leaveStartDate').value = getLocalDateStr();
-    if (!document.getElementById('leaveEndDate').value) document.getElementById('leaveEndDate').value = getLocalDateStr();
+    if (datePickers['leaveStartDate'] && !datePickers['leaveStartDate'].input.value) datePickers['leaveStartDate'].setDate(new Date());
+    if (datePickers['leaveEndDate'] && !datePickers['leaveEndDate'].input.value) datePickers['leaveEndDate'].setDate(new Date());
   } else {
     dateRange.style.display = 'none';
   }
@@ -1309,16 +1296,16 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
     if (state.selectedAction === 'ลา') {
       payload.leaveType = document.getElementById('leaveTypeSelect').value;
       if (payload.leaveType === 'ลาทั้งวัน') {
-        payload.startDate = document.getElementById('leaveStartDate').value;
-        payload.endDate = document.getElementById('leaveEndDate').value;
+        payload.startDate = datePickers['leaveStartDate'].input.value;
+        payload.endDate = datePickers['leaveEndDate'].input.value;
       }
     }
     if (state.selectedAction === 'ไปราชการ') {
       const sub = document.getElementById('obTypeSelect').value;
       payload.leaveType = sub;
       if (sub === '') {
-        payload.startDate = document.getElementById('leaveStartDate').value;
-        payload.endDate = document.getElementById('leaveEndDate').value;
+        payload.startDate = datePickers['leaveStartDate'].input.value;
+        payload.endDate = datePickers['leaveEndDate'].input.value;
       }
     }
     const res = await api('attendance', payload);
@@ -1340,12 +1327,6 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
   finally { btn.disabled = false; btn.innerHTML = '📍 บันทึกข้อมูล'; }
 });
 
-document.getElementById('dailyDate').addEventListener('change', () => {
-  const picked = document.getElementById('dailyDate').value;
-  state.dailyDateAuto = (picked === getLocalDateStr());
-  loadDailyReport();
-});
-
 function getInitials(name) {
   if(!name) return "?";
   let parts = name.trim().split(" ");
@@ -1353,7 +1334,6 @@ function getInitials(name) {
   return name.charAt(0);
 }
 
-// avatar แนวนอน (desktop) — รูปซ้าย ชื่อขวา
 function avatarFor(picSrc, name) {
   const initials = esc(getInitials(name));
   const fallback = `<div style="display:none; width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
@@ -1363,7 +1343,6 @@ function avatarFor(picSrc, name) {
   return `<div style="width:32px; height:32px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-main); margin-right:8px; box-shadow:var(--glow-primary); flex-shrink:0;">${initials}</div>`;
 }
 
-// avatar แนวตั้ง (mobile) — รูปบน ชื่อจริงล่าง
 function avatarForMobile(picSrc, firstName) {
   const initials = esc(getInitials(firstName));
   if (picSrc) {
@@ -1377,14 +1356,6 @@ function avatarForMobile(picSrc, firstName) {
     <div style="width:30px; height:30px; border-radius:50%; background:var(--bg-pattern); border:2px solid var(--border-color); display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--text-main); font-size:0.65rem; flex-shrink:0;">${initials}</div>
     <span class="cell-label">${esc(firstName)}</span>
   </div>`;
-}
-
-// เลือก desktop หรือ mobile layout อัตโนมัติตามขนาดจอ
-function avatarCell(picSrc, name) {
-  const isMobile = window.innerWidth <= 600;
-  const firstName = getFirstName(name);
-  if (isMobile) return avatarForMobile(picSrc, firstName);
-  return avatarFor(picSrc, name);
 }
 
 function renderDailyReport(records) {
@@ -1410,14 +1381,12 @@ function renderDailyReport(records) {
 }
 
 async function loadDailyReport(force = false, isPolling = false) {
-  const dd = document.getElementById('dailyDate');
-  if (!dd) return;
-  if (state.dailyDateAuto) {
-    const today = getLocalDateStr();
-    if (dd.value !== today) { dd.value = today; force = true; }
-  }
-  if (!dd.value) return;
-  const cacheKey = dd.value;
+  const dd = datePickers['dailyDate'];
+  if (!dd || !dd.input.value) return;
+  
+  const currentVal = dd.input.value; // d/m/Y BE
+  const cacheKey = currentVal;
+  
   if (state.dailyLoadingKey === cacheKey) return;
   const cached = state.dailyReportCache[cacheKey];
   const cacheAge = cached ? (Date.now() - cached.ts) : Infinity;
@@ -1434,10 +1403,8 @@ async function loadDailyReport(force = false, isPolling = false) {
   }
   state.dailyLoadingKey = cacheKey;
   try {
-    const parts = dd.value.split('-');
-    const formattedDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
-    const res = await api('getDailyReport', { date: formattedDate });
-    if (dd.value !== cacheKey) return;
+    const res = await api('getDailyReport', { date: currentVal });
+    if (dd.input.value !== cacheKey) return;
     if (!res.success) {
       if (!cached && !isPolling) {
         document.getElementById('dailyReportBody').innerHTML =
@@ -1459,9 +1426,6 @@ document.getElementById('reportYear').addEventListener('change', () => loadRepor
 document.getElementById('reportTerm').addEventListener('change', () => loadReports());
 document.getElementById('reportMonth').addEventListener('change', () => loadReports());
 
-// ============================================================
-// REPORTS TABLE — เรียงจากเก่าไปใหม่ (ใหม่ล่าง) + Auto scroll ไปวันใหม่
-// ============================================================
 function renderReportsTable(records) {
   const tbody = document.getElementById('termReportBody');
   state.currentReportRecords = records || [];
@@ -1474,26 +1438,19 @@ function renderReportsTable(records) {
 
   const mgr = isManager();
 
-  // เรียงจากเก่าไปใหม่ (ascending) ให้ใหม่อยู่ล่างสุด
   const sorted = records.slice().sort((a, b) => {
     const msA = dmyToMsClient(a.date);
     const msB = dmyToMsClient(b.date);
     if (msA !== msB) return msA - msB;
-    
-    // ถ้าวันเดียวกัน เรียงตามเวลาเข้า
     const inA = a.inTime && a.inTime !== '-' ? a.inTime : '99:99';
     const inB = b.inTime && b.inTime !== '-' ? b.inTime : '99:99';
     if (inA !== inB) return inA.localeCompare(inB);
-    
-    // ถ้าเวลาเข้าเท่ากัน เรียงตามชื่อ
     return (a.name || '').localeCompare(b.name || '');
   });
 
-  // หาวันใหม่ที่สุด
   const latestMs = Math.max(...sorted.map(r => dmyToMsClient(r.date)));
   const latestDateStr = sorted.find(r => dmyToMsClient(r.date) === latestMs)?.date || '';
 
-  // อัปเดต currentReportRecords ให้ index ตรงกับ sorted
   state.currentReportRecords = sorted;
 
   const isMobile = window.innerWidth <= 600;
@@ -1507,7 +1464,6 @@ function renderReportsTable(records) {
 
     let firstColHtml;
     if (isMobile) {
-      // มือถือ: รูปบน ชื่อล่าง + วันที่ใต้ชื่อ (mgr) หรือแค่วันที่ (user)
       if (mgr) {
         firstColHtml = `
           <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
@@ -1515,11 +1471,9 @@ function renderReportsTable(records) {
             <span style="font-size:0.65rem;color:var(--text-muted);text-align:center;">${esc(r.date)}</span>
           </div>`;
       } else {
-        // user ทั่วไป: แสดงวันที่อย่างเดียว
         firstColHtml = `<span style="font-size:0.75rem;font-weight:700;">${esc(r.date)}</span>`;
       }
     } else {
-      // desktop: แนวนอนเหมือนเดิม
       if (mgr) {
         firstColHtml = `
           <div style="display:flex; align-items:center; margin-bottom:4px;">
@@ -1541,23 +1495,15 @@ function renderReportsTable(records) {
       </tr>`;
   }).join('');
 
-  // scroll ไปยังแถววันล่าสุด (แถวแรกของวันล่าสุด) ให้ชิดขอบบนสุด
   setTimeout(() => {
     const wrap = document.getElementById('reportsTableWrap');
     if (!wrap) return;
-    // หาแถวแรกของวันล่าสุด
     const firstLatestRow = tbody.querySelector(`tr[data-date="${latestDateStr}"]`);
     if (firstLatestRow) {
       const theadHeight = wrap.querySelector('thead') ? wrap.querySelector('thead').offsetHeight : 0;
-      
-      // ใช้ getBoundingClientRect เพื่อหาตำแหน่งที่แน่นอน
       const wrapRect = wrap.getBoundingClientRect();
       const rowRect = firstLatestRow.getBoundingClientRect();
-      
-      // คำนวณระยะ scroll ที่ต้องเลื่อน
       const targetScroll = wrap.scrollTop + (rowRect.top - wrapRect.top) - theadHeight;
-      
-      // สั่งเลื่อน
       wrap.scrollTop = targetScroll;
     } else {
       wrap.scrollTop = wrap.scrollHeight;
@@ -1631,7 +1577,11 @@ function openEditAttendanceByIdx(i) {
   document.getElementById('editAttName').value = r.name;
   document.getElementById('editAttOrigDate').value = r.date;
   document.getElementById('editAttNameDisplay').value = r.name;
-  document.getElementById('editAttDate').value = r.date;
+  if (datePickers['editAttDate']) {
+    datePickers['editAttDate'].setDate(r.date);
+  } else {
+    document.getElementById('editAttDate').value = r.date;
+  }
   document.getElementById('editAttInTime').value = r.inTime;
   document.getElementById('editAttOutTime').value = r.outTime;
   document.getElementById('editAttNote').value = (r.note && r.note !== '-') ? r.note : '';
@@ -1650,7 +1600,7 @@ async function saveEditAttendance() {
   const payload = {
     name: document.getElementById('editAttName').value,
     origDate: document.getElementById('editAttOrigDate').value,
-    newDate: document.getElementById('editAttDate').value.trim(),
+    newDate: datePickers['editAttDate'] ? datePickers['editAttDate'].input.value : document.getElementById('editAttDate').value,
     inTime: document.getElementById('editAttInTime').value.trim(),
     outTime: document.getElementById('editAttOutTime').value.trim(),
     note: document.getElementById('editAttNote').value,
@@ -1994,10 +1944,10 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     radius: Number(document.getElementById('setRadius').value),
     strictRegistration: document.getElementById('setStrictReg').checked,
     academicYear: document.getElementById('setAcademicYear').value.trim(),
-    term1Start: document.getElementById('setT1Start').value,
-    term1End: document.getElementById('setT1End').value,
-    term2Start: document.getElementById('setT2Start').value,
-    term2End: document.getElementById('setT2End').value
+    term1Start: datePickers['setT1Start'] ? datePickers['setT1Start'].input.value : '',
+    term1End: datePickers['setT1End'] ? datePickers['setT1End'].input.value : '',
+    term2Start: datePickers['setT2Start'] ? datePickers['setT2Start'].input.value : '',
+    term2End: datePickers['setT2End'] ? datePickers['setT2End'].input.value : ''
   };
   const res = await api('admin_updateSettings', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
@@ -2009,7 +1959,6 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
   } else toast(res.message, 'error');
 });
 
-// re-render ตารางเมื่อหมุนจอหรือ resize
 let _resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(_resizeTimer);
@@ -2017,9 +1966,9 @@ window.addEventListener('resize', () => {
     const active = document.querySelector('.screen.active');
     if (!active) return;
     if (active.id === 'dashboardScreen' && state.dailyReportCache) {
-      const dd = document.getElementById('dailyDate');
-      if (dd && dd.value) {
-        const cached = state.dailyReportCache[dd.value];
+      const dd = datePickers['dailyDate'];
+      if (dd && dd.input.value) {
+        const cached = state.dailyReportCache[dd.input.value];
         if (cached) renderDailyReport(cached.data);
       }
     }
@@ -2038,22 +1987,6 @@ document.getElementById('btnMigrateSheets').addEventListener('click', async () =
   if (res.success) {
     toast('Migrate สำเร็จ');
     console.log('[Migrate log]', res.log);
-    clearAllCaches();
-    loadDailyReport(true);
-    loadReports(true);
-  } else {
-    toast(res.message, 'error');
-  }
-});
-
-document.getElementById('btnMigrateDatesBE').addEventListener('click', async () => {
-  if (!confirm('แปลงปี คศ เป็น พศ ใน Google Sheet ทั้งหมด?\n(แนะนำให้ทำครั้งเดียว)')) return;
-  const btn = document.getElementById('btnMigrateDatesBE');
-  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> กำลัง migrate...';
-  const res = await api('admin_migrateDatesBE');
-  btn.disabled = false; btn.textContent = '🔧 แปลงปี คศ เป็น พศ ทั้งระบบ (Migrate CE to BE)';
-  if (res.success) {
-    toast('Migrate สำเร็จ');
     clearAllCaches();
     loadDailyReport(true);
     loadReports(true);
