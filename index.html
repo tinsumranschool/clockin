@@ -460,7 +460,7 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
 
         <button type="button" class="btn-sm btn-warning" id="btnMigrateSheets" style="width:100%;margin-bottom:16px;">🔧 Migrate ชีทเก่า (attendance1/2-YYYY → attendanceYYYY)</button>
 
-        <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
+        <button type="submit" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
       </div>
     </div>
   </div>
@@ -611,12 +611,15 @@ function initDatePickers() {
     flatpickr.l10ns.th.months.shorthand = THAI_MONTHS_SHORT;
   }
 
+  // ตั้งค่าให้แสดงผลเป็น ว/ด/ป (พ.ศ.) และบังคับใช้ UI ของ flatpickr บนมือถือ
   const fpConfig = {
     locale: "th",
-    dateFormat: "Y-m-d",
+    dateFormat: "Y-m-d", // ค่าที่ส่งไปหลังบ้านจะเป็น ค.ศ. (ซ่อนไว้)
     altInput: true,
-    altFormat: "d/M/Y",
-    plugins: [new flatpickr.plugins.buddhistEra()]
+    altFormat: "d/m/Y", // สิ่งที่ผู้ใช้เห็นหน้าจอเป็น ว/ด/ป (พ.ศ.)
+    plugins: [new flatpickr.plugins.buddhistEra()],
+    allowInput: true,
+    disableMobile: true
   };
 
   document.querySelectorAll('.datepicker').forEach(el => {
@@ -627,7 +630,15 @@ function initDatePickers() {
         loadDailyReport();
       };
     }
-    datePickers[el.id] = flatpickr(el, config);
+    const fp = flatpickr(el, config);
+    datePickers[el.id] = fp;
+    
+    // คงขนาดและหน้าตาของช่อง Input ให้เหมือนเดิม ไม่ให้ UI เพี้ยน
+    if (el.id === 'dailyDate' && fp.altInput) {
+      fp.altInput.style.width = '120px';
+      fp.altInput.style.padding = '6px 10px';
+      fp.altInput.style.fontSize = '0.85rem';
+    }
   });
 }
 document.addEventListener('DOMContentLoaded', initDatePickers);
