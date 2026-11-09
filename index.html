@@ -728,8 +728,8 @@ function dmyToMsClient(str) {
   const m = String(str || '').match(/^(\d{1,2})\/([ก-ฮ\.\w]+)\/(\d{4})$/);
   if (!m) return 0;
   let y = parseInt(m[3], 10);
-  if (y > 3000) y -= 543; // Fix double BE bug (3112 -> 2569)
-  else if (y > 2400) y -= 543; // BE to CE
+  if (y > 3000) y -= 543;
+  else if (y > 2400) y -= 543;
   let mIdx = THAI_MONTHS_SHORT.indexOf(m[2]);
   if (mIdx < 0) mIdx = parseInt(m[2], 10) - 1;
   return new Date(y, mIdx, parseInt(m[1], 10)).getTime();
@@ -1366,6 +1366,30 @@ function avatarForMobile(picSrc, firstName) {
   </div>`;
 }
 
+function getDisplayTime(time, note, type) {
+  let timeStr = time && time !== '-' ? time : '-';
+  if (type === 'in') {
+    if (note.includes('ลาครึ่งเช้า')) return timeStr !== '-' ? `ลา, ${timeStr}` : 'ลา';
+    if (note.includes('ไปราชการครึ่งเช้า')) return timeStr !== '-' ? `ไปราชการ, ${timeStr}` : 'ไปราชการ';
+    if (note.includes('ลาทั้งวัน') || note === 'ลา') return 'ลา';
+    if (note.includes('ไปราชการ') && !note.includes('ครึ่ง')) return 'ไปราชการ';
+  }
+  if (type === 'out') {
+    if (note.includes('ลาครึ่งบ่าย')) return timeStr !== '-' ? `ลา, ${timeStr}` : 'ลา';
+    if (note.includes('ไปราชการครึ่งบ่าย')) return timeStr !== '-' ? `ไปราชการ, ${timeStr}` : 'ไปราชการ';
+    if (note.includes('ลาทั้งวัน') || note === 'ลา') return 'ลา';
+    if (note.includes('ไปราชการ') && !note.includes('ครึ่ง')) return 'ไปราชการ';
+  }
+  return timeStr;
+}
+
+function getDisplayNote(note) {
+  if (!note) return '-';
+  if (note.includes('รออนุมัติ')) return note;
+  const parts = note.split(':');
+  return parts.length > 1 ? parts[1].trim() : '-';
+}
+
 function renderDailyReport(records) {
   const tbody = document.getElementById('dailyReportBody');
   if (!records || records.length === 0) {
@@ -1378,12 +1402,17 @@ function renderDailyReport(records) {
     const nameCell = isMobile
       ? avatarForMobile(picSrc, getFirstName(r.fullName))
       : `${avatarFor(picSrc, r.fullName)} ${esc(getFirstName(r.fullName))}`;
+      
+    const inDisplay = getDisplayTime(r.inTime, r.note, 'in');
+    const outDisplay = getDisplayTime(r.outTime, r.note, 'out');
+    const noteDisplay = getDisplayNote(r.note);
+
     return `
       <tr>
         <td class="table-name" style="${isMobile ? 'text-align:center;' : ''}">${nameCell}</td>
-        <td style="color:var(--success);font-weight:700;text-align:center">${esc(r.inTime)}</td>
-        <td style="color:var(--danger);font-weight:700;text-align:center">${esc(r.outTime)}</td>
-        <td>${esc(r.note || '-')}</td>
+        <td style="color:var(--success);font-weight:700;text-align:center">${inDisplay}</td>
+        <td style="color:var(--danger);font-weight:700;text-align:center">${outDisplay}</td>
+        <td>${esc(noteDisplay)}</td>
       </tr>`;
   }).join('');
 }
@@ -1468,7 +1497,6 @@ function renderReportsTable(records) {
     const msB = dmyToMsClient(b.date);
     if (msA !== msB) return msA - msB;
     
-    // Sort by inTime
     const inA = a.inTime && a.inTime !== '-' ? a.inTime : '99:99';
     const inB = b.inTime && b.inTime !== '-' ? b.inTime : '99:99';
     if (inA !== inB) return inA.localeCompare(inB);
@@ -1513,12 +1541,16 @@ function renderReportsTable(records) {
       }
     }
 
+    const inDisplay = getDisplayTime(r.inTime, r.note, 'in');
+    const outDisplay = getDisplayTime(r.outTime, r.note, 'out');
+    const noteDisplay = getDisplayNote(r.note);
+
     return `
       <tr class="${rowClass}" data-date="${esc(r.date)}">
         <td style="${isMobile && mgr ? 'text-align:center;' : ''}">${firstColHtml}</td>
-        <td style="color:var(--success);font-weight:700;text-align:center;">${esc(r.inTime)}</td>
-        <td style="color:var(--danger);font-weight:700;text-align:center;">${esc(r.outTime)}</td>
-        <td style="font-size:${isMobile ? '0.7rem' : '0.85rem'};">${esc(r.note)}</td>
+        <td style="color:var(--success);font-weight:700;text-align:center;">${inDisplay}</td>
+        <td style="color:var(--danger);font-weight:700;text-align:center;">${outDisplay}</td>
+        <td style="font-size:${isMobile ? '0.7rem' : '0.85rem'};">${esc(noteDisplay)}</td>
         ${mgr ? `<td style="text-align:center;"><button class="btn-sm btn-warning" style="${isMobile ? 'padding:4px 6px;font-size:0.7rem;' : ''}" onclick="openEditAttendanceByIdx(${i})">✏️${isMobile ? '' : ' แก้ไข'}</button></td>` : ''}
       </tr>`;
   }).join('');
