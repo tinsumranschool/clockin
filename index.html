@@ -202,6 +202,12 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
 .cell-name-mobile .avatar-xs { margin-right: 0; width: 30px; height: 30px; }
 .cell-name-mobile .cell-label { font-size: 0.72rem; font-weight: 700; line-height: 1.2; word-break: break-word; max-width: 60px; }
 
+.pdf-bg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 10px; margin-top: 10px; }
+.pdf-bg-slot { position: relative; width: 100%; aspect-ratio: 1; background: var(--bg-color); border: 2px dashed var(--border-color); border-radius: 12px; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; }
+.pdf-bg-slot img { width: 100%; height: 100%; object-fit: cover; }
+.pdf-bg-slot .delete-bg { position: absolute; top: 2px; right: 2px; background: rgba(255,0,0,0.8); color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; z-index: 10; }
+.pdf-bg-slot input[type="file"] { display: none; }
+
 @media (max-width: 600px) {
   .card { padding: 14px 10px; }
   table { font-size: 0.72rem; }
@@ -459,7 +465,23 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px;font-weight:500;">💡 ระบบสร้าง Sheet <b>attendance{ปี}</b> อัตโนมัติเมื่อมีการลงเวลา</div>
         </div>
 
-        <button type="button" class="btn-sm btn-warning" id="btnMigrateSheets" style="width:100%;margin-bottom:16px;">🔧 Migrate ชีทเก่า (attendance1/2-YYYY → attendanceYYYY)</button>
+        <!-- [NEW] PDF Background Settings -->
+        <div class="section-title" style="margin-top:20px;border-top:2px dashed var(--border-color);padding-top:16px">🎨 พื้นหลังรายงาน PDF (เฉพาะแอดมิน)</div>
+        <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:10px;">อัปโหลดได้สูงสุด 5 รูปต่อส่วน (ระบบจะจัดเรียงให้อัตโนมัติ)</div>
+        
+        <div class="field">
+          <label class="field-label">รูปพื้นหลังหน้าแรก (Theme: Blue)</label>
+          <div class="pdf-bg-grid" id="pdfBgGridPage1"></div>
+          <input type="file" id="pdfBgInputPage1" accept="image/*" style="display:none">
+        </div>
+
+        <div class="field">
+          <label class="field-label">รูปพื้นหลังหน้าถัดไป (Theme: Blue-Pink)</label>
+          <div class="pdf-bg-grid" id="pdfBgGridPage2"></div>
+          <input type="file" id="pdfBgInputPage2" accept="image/*" style="display:none">
+        </div>
+
+        <button type="button" class="btn-sm btn-warning" id="btnMigrateSheets" style="width:100%;margin-top:16px;margin-bottom:16px;">🔧 Migrate ชีทเก่า (attendance1/2-YYYY → attendanceYYYY)</button>
 
         <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
       </div>
@@ -698,7 +720,10 @@ const state = {
   dailyLoadingKey: null,
   pollTimer: null,
   userDict: {},
-  isPendingLeaveLocked: false
+  isPendingLeaveLocked: false,
+  // PDF BG
+  pdfBgPage1: [], // Array of Base64 strings
+  pdfBgPage2: [],
 };
 
 function esc(s) {
@@ -1058,6 +1083,11 @@ function fillSettingsForm(s) {
   if (datePickers['setT1End']) datePickers['setT1End'].setDate(s.term1_end);
   if (datePickers['setT2Start']) datePickers['setT2Start'].setDate(s.term2_start);
   if (datePickers['setT2End']) datePickers['setT2End'].setDate(s.term2_end);
+
+  // Setup PDF BG
+  state.pdfBgPage1 = s.pdf_bg_page1 || [];
+  state.pdfBgPage2 = s.pdf_bg_page2 || [];
+  renderPdfBgGrids();
 }
 
 function applyUserUpdate(u) {
@@ -1981,6 +2011,63 @@ async function loadAdminSettings() {
   fillSettingsForm(s.settings);
 }
 
+// ============================================================
+// PDF BACKGROUND LOGIC
+// ============================================================
+function renderPdfBgGrids() {
+  const renderGrid = (gridId, arr, type) => {
+    const grid = document.getElementById(gridId);
+    grid.innerHTML = '';
+    arr.forEach((base64, index) => {
+      const slot = document.createElement('div');
+      slot.className = 'pdf-bg-slot';
+      slot.innerHTML = `
+        <img src="${base64}">
+        <div class="delete-bg" onclick="removePdfBg(event, '${type}', ${index})">✕</div>
+      `;
+      grid.appendChild(slot);
+    });
+    if (arr.length < 5) {
+      const addSlot = document.createElement('div');
+      addSlot.className = 'pdf-bg-slot';
+      addSlot.innerHTML = `<span style="font-size:24px; color:var(--text-muted);">+</span>`;
+      addSlot.onclick = () => document.getElementById(`pdfBgInput${type}`).click();
+      grid.appendChild(addSlot);
+    }
+  };
+  renderGrid('pdfBgGridPage1', state.pdfBgPage1, 'Page1');
+  renderGrid('pdfBgGridPage2', state.pdfBgPage2, 'Page2');
+}
+
+window.removePdfBg = (event, type, index) => {
+  event.stopPropagation();
+  if (type === 'Page1') {
+    state.pdfBgPage1.splice(index, 1);
+  } else {
+    state.pdfBgPage2.splice(index, 1);
+  }
+  renderPdfBgGrids();
+};
+
+handleImageUpload('pdfBgInputPage1', (dataUrl) => {
+  if (state.pdfBgPage1.length < 5) {
+    state.pdfBgPage1.push(dataUrl);
+    renderPdfBgGrids();
+  } else {
+    toast('อัปโหลดได้สูงสุด 5 รูปครับ', 'error');
+  }
+});
+handleImageUpload('pdfBgInputPage2', (dataUrl) => {
+  if (state.pdfBgPage2.length < 5) {
+    state.pdfBgPage2.push(dataUrl);
+    renderPdfBgGrids();
+  } else {
+    toast('อัปโหลดได้สูงสุด 5 รูปครับ', 'error');
+  }
+});
+
+// ============================================================
+
 document.getElementById('btnUseCurrentGps').addEventListener('click', async () => {
   const btn = document.getElementById('btnUseCurrentGps');
   const orig = btn.innerHTML;
@@ -2007,7 +2094,9 @@ document.getElementById('saveSettingsBtn').addEventListener('click', async () =>
     term1Start: datePickers['setT1Start'] ? datePickers['setT1Start'].input.value : document.getElementById('setT1Start').value,
     term1End: datePickers['setT1End'] ? datePickers['setT1End'].input.value : document.getElementById('setT1End').value,
     term2Start: datePickers['setT2Start'] ? datePickers['setT2Start'].input.value : document.getElementById('setT2Start').value,
-    term2End: datePickers['setT2End'] ? datePickers['setT2End'].input.value : document.getElementById('setT2End').value
+    term2End: datePickers['setT2End'] ? datePickers['setT2End'].input.value : document.getElementById('setT2End').value,
+    pdfBgPage1: state.pdfBgPage1,
+    pdfBgPage2: state.pdfBgPage2
   };
   const res = await api('admin_updateSettings', payload);
   btn.disabled = false; btn.textContent = '💾 บันทึกการตั้งค่าทั้งหมด';
