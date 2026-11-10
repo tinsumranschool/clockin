@@ -595,7 +595,6 @@ function getLocalDateStr(d = new Date()) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
-// 👇 เพิ่มฟังก์ชันแปลงวันที่จากรูปแบบ พ.ศ. (DD/MM/YYYY) เป็น Date Object 👇
 function thaiDateStrToDate(thaiStr) {
   if (!thaiStr) return null;
   const parts = String(thaiStr).trim().split('/');
@@ -608,7 +607,7 @@ function thaiDateStrToDate(thaiStr) {
     month = parseInt(monthStr, 10) - 1;
   }
   if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
-  if (year > 2400) year -= 543; // แปลง พ.ศ. เป็น ค.ศ.
+  if (year > 2400) year -= 543;
   return new Date(year, month, day);
 }
 
@@ -623,14 +622,13 @@ function initDatePickers() {
     return;
   }
 
-  // 👇 ปรับแต่ง fpConfig เพื่อให้แสดงผล พ.ศ. แต่ปฏิทินทำงานด้วย ค.ศ. และ Default เป็นวันปัจจุบัน 👇
   const fpConfig = {
     locale: "th",
     dateFormat: "Y-m-d",
     altInput: true,
     altFormat: "d/m/Y",
     allowInput: false,
-    defaultDate: new Date(), // Default เป็นวันปัจจุบัน
+    defaultDate: new Date(),
     formatDate: (date, format, locale) => {
       if (format === "d/m/Y") {
         const d = String(date.getDate()).padStart(2, '0');
@@ -711,7 +709,7 @@ document.body.addEventListener('click', function initWelcome() {
 const API_URL = 'https://script.google.com/macros/s/AKfycbw0_KAxSsVL6VbsDERVUIxpM8pUMzycLW8gmvg5Ort5wCk5M1cGduynNxXHP4qhZGDY/exec';
 const CACHE_TTL_REPORTS = 4 * 1000;
 const CACHE_TTL_DAILY   = 2 * 1000;
-const POLL_INTERVAL_MS  = 2000;
+const POLL_INTERVAL_MS  = 1500;  // ⚡ real-time: 1.5s (เดิม 2s)
 
 const state = {
   token: localStorage.getItem('tt_token') || '',
@@ -844,14 +842,16 @@ function clearAllCaches() {
   state.isPendingLeaveLocked = false;
 }
 
+// ⚡ แก้: ลด redundant API calls ตอน poll — เรียก checkTodayStatus แบบมี throttle
+// และ checkPendingCounts แบบมี throttle ทำให้ loadDailyReport ได้ bandwidth เต็ม
 function pollTick() {
   if (document.hidden || !state.token) return;
   const activeScreen = document.querySelector('.screen.active');
   if (!activeScreen) return;
   if (activeScreen.id === 'dashboardScreen') {
     loadDailyReport(false, true);
-    checkTodayStatus(true);
-    if (isManager()) checkPendingCounts();
+    checkTodayStatus();                          // ⚡ ไม่ force — ใช้ throttle 10s
+    if (isManager()) checkPendingCounts();       // ⚡ ไม่ force — ใช้ throttle 15s
   } else if (activeScreen.id === 'reportsScreen') {
     loadReports(false, true);
   }
@@ -1083,7 +1083,7 @@ async function initUserSession() {
   }
   state.dailyDateAuto = true;
 
-  if (isManager()) checkPendingCounts();
+  if (isManager()) checkPendingCounts(true);   // ⚡ force ครั้งแรกหลัง login
   showScreen('dashboardScreen');
   return true;
 }
@@ -1116,12 +1116,16 @@ function applyUserUpdate(u) {
   }
   if (changed) {
     refreshDashboardMode();
-    if (isManager()) checkPendingCounts();
+    if (isManager()) checkPendingCounts(true);   // ⚡ force เมื่อ role เปลี่ยน
   }
 }
 
-async function checkPendingCounts() {
+// ⚡ แก้: เพิ่ม throttle 15s (เดิมยิงทุก 2s ทำให้ Apps Script throttle ทำให้ getDailyReport ช้า)
+let _lastPendingCountFetch = 0;
+async function checkPendingCounts(force = false) {
   if (!isManager()) return;
+  if (!force && Date.now() - _lastPendingCountFetch < 15000) return;
+  _lastPendingCountFetch = Date.now();
   const res = await api('getPendingCounts');
   if (res.success) {
     const total = res.countLeave + res.countOB;
@@ -1269,7 +1273,6 @@ document.querySelectorAll('.action-btn').forEach(btn => {
       leaveOpts.style.display = 'block';
       document.getElementById('obOptions').style.display = 'none';
       gpsEl.style.display = 'none';
-      // 👇 รีเซ็ตวันที่ให้เป็นวันปัจจุบันทุกครั้งที่กดเลือก "ลา" 👇
       if (datePickers['leaveStartDate']) datePickers['leaveStartDate'].setDate(new Date());
       if (datePickers['leaveEndDate']) datePickers['leaveEndDate'].setDate(new Date());
       handleLeaveTypeChange();
@@ -1278,7 +1281,6 @@ document.querySelectorAll('.action-btn').forEach(btn => {
       leaveOpts.style.display = 'none';
       document.getElementById('obOptions').style.display = 'block';
       gpsEl.style.display = 'none';
-      // 👇 รีเซ็ตวันที่ให้เป็นวันปัจจุบันทุกครั้งที่กดเลือก "ไปราชการ" 👇
       if (datePickers['leaveStartDate']) datePickers['leaveStartDate'].setDate(new Date());
       if (datePickers['leaveEndDate']) datePickers['leaveEndDate'].setDate(new Date());
       handleObTypeChange();
@@ -1372,10 +1374,18 @@ document.getElementById('attendanceForm').addEventListener('submit', async (e) =
       document.getElementById('reasonSection').classList.remove('visible');
       document.querySelectorAll('.action-btn').forEach(b => b.classList.remove('active'));
       state.selectedAction = null;
+      // ⚡ real-time: force refetch ทันที + delayed refetch อีก 2 จังหวะ เพื่อจับ server processing lag
       invalidateAllReportCaches();
       loadDailyReport(true);
       checkTodayStatus(true);
-      if (isManager()) checkPendingCounts();
+      if (isManager()) checkPendingCounts(true);
+      [600, 1800].forEach(delay => {
+        setTimeout(() => {
+          invalidateAllReportCaches();
+          loadDailyReport(true);
+          checkTodayStatus(true);
+        }, delay);
+      });
     } else {
       toast(res.message, 'error');
       checkTodayStatus(true);
@@ -1441,6 +1451,7 @@ function getDisplayNote(note) {
 
 function renderDailyReport(records) {
   const tbody = document.getElementById('dailyReportBody');
+  if (!tbody) return;
   if (!records || records.length === 0) {
     tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">ไม่มีข้อมูลในวันนี้</td></tr>';
     return;
@@ -1474,7 +1485,6 @@ async function loadDailyReport(force = false, isPolling = false) {
     const parts = nativeInput.value.split('-');
     if (parts.length === 3) {
        const currentVal = `${parts[2]}/${parts[1]}/${parts[0]}`;
-       const cacheKey = currentVal;
        const res = await api('getDailyReport', { date: currentVal });
        if (res.success) renderDailyReport(res.records);
     }
@@ -1688,7 +1698,6 @@ function openEditAttendanceByIdx(i) {
   document.getElementById('editAttNameDisplay').value = r.name;
   
   if (datePickers['editAttDate']) {
-    // 👇 ใช้ฟังก์ชันแปลงค่า พ.ศ. เป็น Date Object ก่อนส่งให้ปฏิทิน 👇
     const parsedDate = thaiDateStrToDate(r.date);
     datePickers['editAttDate'].setDate(parsedDate || new Date());
   } else {
@@ -1912,6 +1921,7 @@ window.approveUser = async (u) => {
   const r = await api('admin_approve', {username:u});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
+  if (r.success) checkPendingCounts(true);
 };
 window.rejectUser = async (u) => {
   const el = document.getElementById(`pending-${u}`);
@@ -1919,6 +1929,7 @@ window.rejectUser = async (u) => {
   const r = await api('admin_reject', {username:u});
   toast(r.message, r.success?'success':'error');
   if (!r.success && el) el.style.display = 'block';
+  if (r.success) checkPendingCounts(true);
 };
 
 async function loadPendingLeaves() {
@@ -1943,7 +1954,7 @@ async function handleLeaveDecision(cmd, id) {
   if (el) el.style.display = 'none';
   const r = await api(cmd, {id:id});
   toast(r.message, r.success?'success':'error');
-  if (r.success) { invalidateAllReportCaches(); checkPendingCounts(); }
+  if (r.success) { invalidateAllReportCaches(); checkPendingCounts(true); }
   else loadPendingLeaves();
 }
 window.approveLeave = (id) => handleLeaveDecision('admin_approveLeave', id);
