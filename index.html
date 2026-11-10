@@ -459,7 +459,7 @@ tr.row-latest-day:hover td { background: color-mix(in srgb, var(--primary) 14%, 
           <div style="font-size:.75rem;color:var(--text-muted);margin-top:6px;font-weight:500;">💡 ระบบสร้าง Sheet <b>attendance{ปี}</b> อัตโนมัติเมื่อมีการลงเวลา</div>
         </div>
 
-        <button type="button" class="btn-sm btn-warning" id="btnMigrateSheets" style="width:100%;margin-top:16px;margin-bottom:16px;">🔧 Migrate ชีทเก่า (attendance1/2-YYYY → attendanceYYYY)</button>
+        <button type="button" class="btn-sm btn-warning" id="btnMigrateSheets" style="width:100%;margin-bottom:16px;">🔧 Migrate ชีทเก่า (attendance1/2-YYYY → attendanceYYYY)</button>
 
         <button type="button" class="submit-btn" id="saveSettingsBtn">💾 บันทึกการตั้งค่าทั้งหมด</button>
       </div>
@@ -698,7 +698,7 @@ const state = {
   dailyLoadingKey: null,
   pollTimer: null,
   userDict: {},
-  isPendingLeaveLocked: false,
+  isPendingLeaveLocked: false
 };
 
 function esc(s) {
@@ -1749,10 +1749,7 @@ function updateProfileUI() {
   else { sigPreview.style.display = 'none'; }
 }
 
-// ============================================================
-// IMAGE UPLOAD WITH WHITE BACKGROUND REMOVAL
-// ============================================================
-function handleImageUpload(inputId, callback, removeWhiteBg = false) {
+function handleImageUpload(inputId, callback) {
   document.getElementById(inputId).addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -1763,24 +1760,10 @@ function handleImageUpload(inputId, callback, removeWhiteBg = false) {
         const canvas = document.createElement('canvas');
         const MAX_WIDTH = 400;
         const scale = Math.min(1, MAX_WIDTH / img.width);
-        canvas.width = img.width * scale; 
-        canvas.height = img.height * scale;
+        canvas.width = img.width * scale; canvas.height = img.height * scale;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        if (removeWhiteBg) {
-          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          const data = imgData.data;
-          for (let i = 0; i < data.length; i += 4) {
-            if (data[i] > 200 && data[i+1] > 200 && data[i+2] > 200) {
-              data[i+3] = 0;
-            }
-          }
-          ctx.putImageData(imgData, 0, 0);
-          callback(canvas.toDataURL('image/png'));
-        } else {
-          callback(canvas.toDataURL('image/jpeg', 0.8));
-        }
+        callback(canvas.toDataURL('image/jpeg', 0.8));
       };
       img.src = evt.target.result;
     };
@@ -1788,19 +1771,15 @@ function handleImageUpload(inputId, callback, removeWhiteBg = false) {
   });
 }
 
-handleImageUpload('sigInput', (dataUrl) => {
-  state.signatureBase64 = dataUrl;
-  const sigPreview = document.getElementById('sigPreview');
-  sigPreview.src = dataUrl; sigPreview.style.display = 'inline-block';
-}, true);
-
 handleImageUpload('profilePicInput', (dataUrl) => {
   state.profilePicBase64 = dataUrl;
   document.getElementById('profilePicPreview').src = dataUrl;
 });
-
-handleImageUpload('editUserPicInput', (dataUrl) => { state.editUserPicBase64 = dataUrl; });
-handleImageUpload('editUserSigInput', (dataUrl) => { state.editUserSigBase64 = dataUrl; }, true);
+handleImageUpload('sigInput', (dataUrl) => {
+  state.signatureBase64 = dataUrl;
+  const sigPreview = document.getElementById('sigPreview');
+  sigPreview.src = dataUrl; sigPreview.style.display = 'inline-block';
+});
 
 document.getElementById('profileForm').addEventListener('submit', async (e) => {
   e.preventDefault();
