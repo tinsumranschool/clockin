@@ -1779,7 +1779,10 @@ function updateProfileUI() {
   else { sigPreview.style.display = 'none'; }
 }
 
-function handleImageUpload(inputId, callback) {
+// ============================================================
+// IMAGE UPLOAD WITH WHITE BACKGROUND REMOVAL
+// ============================================================
+function handleImageUpload(inputId, callback, removeWhiteBg = false) {
   document.getElementById(inputId).addEventListener('change', function(e) {
     const file = e.target.files[0];
     if (!file) return;
@@ -1790,10 +1793,25 @@ function handleImageUpload(inputId, callback) {
         const canvas = document.createElement('canvas');
         const MAX_WIDTH = 400;
         const scale = Math.min(1, MAX_WIDTH / img.width);
-        canvas.width = img.width * scale; canvas.height = img.height * scale;
+        canvas.width = img.width * scale; 
+        canvas.height = img.height * scale;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-        callback(canvas.toDataURL('image/jpeg', 0.8));
+
+        if (removeWhiteBg) {
+          const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imgData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            // ถ้าสีใกล้เคียงสีขาว (R,G,B > 200) ให้ทำให้โปร่งใส
+            if (data[i] > 200 && data[i+1] > 200 && data[i+2] > 200) {
+              data[i+3] = 0; // Alpha = 0
+            }
+          }
+          ctx.putImageData(imgData, 0, 0);
+          callback(canvas.toDataURL('image/png')); // ใช้ PNG เพื่อรองรับพื้นหลังโปร่งใส
+        } else {
+          callback(canvas.toDataURL('image/jpeg', 0.8));
+        }
       };
       img.src = evt.target.result;
     };
@@ -1801,15 +1819,22 @@ function handleImageUpload(inputId, callback) {
   });
 }
 
-handleImageUpload('profilePicInput', (dataUrl) => {
-  state.profilePicBase64 = dataUrl;
-  document.getElementById('profilePicPreview').src = dataUrl;
-});
+// ลบพื้นหลังขาวสำหรับลายเซ็น
 handleImageUpload('sigInput', (dataUrl) => {
   state.signatureBase64 = dataUrl;
   const sigPreview = document.getElementById('sigPreview');
   sigPreview.src = dataUrl; sigPreview.style.display = 'inline-block';
+}, true); // true = เปิดใช้งานการลบพื้นหลังขาว
+
+// รูปโปรไฟล์ ไม่ต้องลบพื้นหลัง (เพราะเป็นรูปคน)
+handleImageUpload('profilePicInput', (dataUrl) => {
+  state.profilePicBase64 = dataUrl;
+  document.getElementById('profilePicPreview').src = dataUrl;
 });
+
+// แอดมินแก้ไขรูป ก็ลบพื้นหลังขาวให้ลายเซ็นด้วย
+handleImageUpload('editUserPicInput', (dataUrl) => { state.editUserPicBase64 = dataUrl; });
+handleImageUpload('editUserSigInput', (dataUrl) => { state.editUserSigBase64 = dataUrl; }, true);
 
 document.getElementById('profileForm').addEventListener('submit', async (e) => {
   e.preventDefault();
