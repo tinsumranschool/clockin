@@ -595,6 +595,23 @@ function getLocalDateStr(d = new Date()) {
   return `${yyyy}-${mm}-${dd}`;
 }
 
+// 👇 เพิ่มฟังก์ชันแปลงวันที่จากรูปแบบ พ.ศ. (DD/MM/YYYY) เป็น Date Object 👇
+function thaiDateStrToDate(thaiStr) {
+  if (!thaiStr) return null;
+  const parts = String(thaiStr).trim().split('/');
+  if (parts.length !== 3) return null;
+  let day = parseInt(parts[0], 10);
+  let year = parseInt(parts[2], 10);
+  let monthStr = parts[1];
+  let month = THAI_MONTHS_SHORT.indexOf(monthStr);
+  if (month < 0) {
+    month = parseInt(monthStr, 10) - 1;
+  }
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+  if (year > 2400) year -= 543; // แปลง พ.ศ. เป็น ค.ศ.
+  return new Date(year, month, day);
+}
+
 const datePickers = {};
 function initDatePickers() {
   if (typeof flatpickr === 'undefined') {
@@ -606,12 +623,37 @@ function initDatePickers() {
     return;
   }
 
+  // 👇 ปรับแต่ง fpConfig เพื่อให้แสดงผล พ.ศ. แต่ปฏิทินทำงานด้วย ค.ศ. และ Default เป็นวันปัจจุบัน 👇
   const fpConfig = {
     locale: "th",
     dateFormat: "Y-m-d",
     altInput: true,
     altFormat: "d/m/Y",
-    allowInput: false
+    allowInput: false,
+    defaultDate: new Date(), // Default เป็นวันปัจจุบัน
+    formatDate: (date, format, locale) => {
+      if (format === "d/m/Y") {
+        const d = String(date.getDate()).padStart(2, '0');
+        const m = String(date.getMonth() + 1).padStart(2, '0');
+        const y = date.getFullYear() + 543;
+        return `${d}/${m}/${y}`;
+      }
+      return flatpickr.formatDate(date, format, locale);
+    },
+    parseDate: (dateStr, format, locale) => {
+      if (format === "d/m/Y") {
+        if (!dateStr) return null;
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          let y = parseInt(parts[2], 10);
+          if (y > 2400) y -= 543;
+          let m = THAI_MONTHS_SHORT.indexOf(parts[1]);
+          if (m < 0) m = parseInt(parts[1], 10) - 1;
+          return new Date(y, m, parseInt(parts[0], 10));
+        }
+      }
+      return flatpickr.parseDate(dateStr, format, locale);
+    }
   };
 
   document.querySelectorAll('.datepicker').forEach(el => {
@@ -1221,17 +1263,24 @@ document.querySelectorAll('.action-btn').forEach(btn => {
     const reasonSec = document.getElementById('reasonSection');
     const leaveOpts = document.getElementById('leaveOptions');
     const gpsEl = document.getElementById('gpsStatus');
+    
     if (action === 'ลา') {
       reasonSec.classList.add('visible');
       leaveOpts.style.display = 'block';
       document.getElementById('obOptions').style.display = 'none';
       gpsEl.style.display = 'none';
+      // 👇 รีเซ็ตวันที่ให้เป็นวันปัจจุบันทุกครั้งที่กดเลือก "ลา" 👇
+      if (datePickers['leaveStartDate']) datePickers['leaveStartDate'].setDate(new Date());
+      if (datePickers['leaveEndDate']) datePickers['leaveEndDate'].setDate(new Date());
       handleLeaveTypeChange();
     } else if (action === 'ไปราชการ') {
       reasonSec.classList.add('visible');
       leaveOpts.style.display = 'none';
       document.getElementById('obOptions').style.display = 'block';
       gpsEl.style.display = 'none';
+      // 👇 รีเซ็ตวันที่ให้เป็นวันปัจจุบันทุกครั้งที่กดเลือก "ไปราชการ" 👇
+      if (datePickers['leaveStartDate']) datePickers['leaveStartDate'].setDate(new Date());
+      if (datePickers['leaveEndDate']) datePickers['leaveEndDate'].setDate(new Date());
       handleObTypeChange();
     } else {
       document.getElementById('obOptions').style.display = 'none';
@@ -1637,11 +1686,15 @@ function openEditAttendanceByIdx(i) {
   document.getElementById('editAttName').value = r.name;
   document.getElementById('editAttOrigDate').value = r.date;
   document.getElementById('editAttNameDisplay').value = r.name;
+  
   if (datePickers['editAttDate']) {
-    datePickers['editAttDate'].setDate(r.date);
+    // 👇 ใช้ฟังก์ชันแปลงค่า พ.ศ. เป็น Date Object ก่อนส่งให้ปฏิทิน 👇
+    const parsedDate = thaiDateStrToDate(r.date);
+    datePickers['editAttDate'].setDate(parsedDate || new Date());
   } else {
     document.getElementById('editAttDate').value = r.date;
   }
+  
   document.getElementById('editAttInTime').value = r.inTime;
   document.getElementById('editAttOutTime').value = r.outTime;
   document.getElementById('editAttNote').value = (r.note && r.note !== '-') ? r.note : '';
